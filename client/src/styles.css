@@ -228,6 +228,40 @@ h1 {
   transform-origin: left center;
 }
 
+.intro-sequence {
+  position: relative;
+  z-index: 4;
+  justify-self: center;
+  align-self: center;
+  width: min(33vw, 420px);
+  aspect-ratio: 9 / 16;
+  border: 1px solid rgba(255,255,255,0.16);
+  border-radius: clamp(22px, 3vw, 34px);
+  overflow: hidden;
+  background: #050505;
+  box-shadow: 0 58px 135px rgba(0,0,0,0.68), inset 0 0 70px rgba(255,255,255,0.035);
+  transform-origin: center center;
+  will-change: transform;
+}
+
+.intro-sequence img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center;
+  user-select: none;
+  pointer-events: none;
+}
+
+.intro-sequence::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.07), transparent 18%, rgba(0,0,0,0.2));
+  pointer-events: none;
+}
+
 .visual {
   position: relative;
   z-index: 4;
@@ -612,6 +646,13 @@ h1 {
     margin-top: 14px;
   }
 
+  .intro-sequence {
+    width: min(54vw, 250px);
+    justify-self: center;
+    align-self: center;
+    border-radius: 22px;
+  }
+
   .visual {
     width: min(84vw, 400px);
     height: min(33vh, 270px);
@@ -697,6 +738,10 @@ h1 {
 
   .progress-track {
     margin-top: 10px;
+  }
+
+  .intro-sequence {
+    width: min(45vw, 190px);
   }
 
   .visual {
