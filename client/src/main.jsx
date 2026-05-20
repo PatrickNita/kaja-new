@@ -79,7 +79,7 @@ const footerBaseStyle = {
   position: 'absolute',
   left: 0,
   right: 0,
-  bottom: 0,
+  bottom: 'max(0px, env(safe-area-inset-bottom))',
   zIndex: 70,
   display: 'flex',
   flexDirection: 'column',
@@ -169,12 +169,19 @@ function ElasticCursor() {
 }
 
 function Navigation({ active, fixed, goTo }) {
+  const navRef = useRef(null);
+
+  useEffect(() => {
+    const activeButton = navRef.current?.querySelector('button.active');
+    activeButton?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  }, [active]);
+
   return (
     <header className={`top-nav ${fixed ? 'is-fixed' : ''}`}>
       <button className="brand" onClick={() => goTo(0)} aria-label="Go to first segment">
         <img src={logo} alt="KAJA" />
       </button>
-      <nav>
+      <nav ref={navRef} aria-label="Section navigation">
         {sections.map((section, index) => (
           <button
             key={section.label}
@@ -191,9 +198,9 @@ function Navigation({ active, fixed, goTo }) {
 }
 
 function ProductVisual({ type, progress, index }) {
-  const y = useTransform(progress, [0, 1], ['12vh', '-14vh']);
-  const scale = useTransform(progress, [0, 0.55, 1], [0.9, 1.1, 0.92]);
-  const opacity = useTransform(progress, [0, 0.82, 1], [1, 1, 0.78]);
+  const y = useTransform(progress, [0, 1], ['8vh', '-10vh']);
+  const scale = useTransform(progress, [0, 0.55, 1], [0.92, 1.06, 0.94]);
+  const opacity = useTransform(progress, [0, 0.82, 1], [1, 1, 0.8]);
   const blur = useTransform(progress, [0, 1], ['blur(0px)', 'blur(0px)']);
   const reveal = useTransform(progress, [0, 1], ['inset(0% 0% 0% 0% round 32px)', 'inset(0% 0% 0% 0% round 32px)']);
 
@@ -231,15 +238,15 @@ function HangerVisual({ progress }) {
 
 function Segment({ section, index, active, rawProgress }) {
   const progress = useMotionValue(rawProgress);
-  const spring = useSpring(progress, { stiffness: 76, damping: 24, mass: 0.75 });
-  const titleY = useTransform(spring, [0, 1], [14, -42]);
+  const spring = useSpring(progress, { stiffness: 82, damping: 24, mass: 0.68 });
+  const titleY = useTransform(spring, [0, 1], [6, -18]);
   const titleOpacity = useTransform(spring, [0, 1], [1, 1]);
-  const copyY = useTransform(spring, [0, 1], [8, -24]);
-  const accentY = useTransform(spring, [0, 1], ['2vh', '-8vh']);
-  const counterScale = useTransform(spring, [0, 1], [0.86, 1.3]);
-  const counterY = useTransform(spring, [0, 1], ['3vh', '-7vh']);
+  const copyY = useTransform(spring, [0, 1], [3, -10]);
+  const accentY = useTransform(spring, [0, 1], ['1vh', '-5vh']);
+  const counterScale = useTransform(spring, [0, 1], [0.9, 1.18]);
+  const counterY = useTransform(spring, [0, 1], ['2vh', '-5vh']);
   const gridOpacity = useTransform(spring, [0, 1], [0.32, 1]);
-  const gridY = useTransform(spring, [0, 1], ['4vh', '-4vh']);
+  const gridY = useTransform(spring, [0, 1], ['2vh', '-2vh']);
   const isHangerSection = section.shape === 'hanger';
 
   useEffect(() => {
@@ -282,7 +289,7 @@ function ScrollHint({ active, progress }) {
 
 function LegalFooter({ visible }) {
   return (
-    <footer style={{ ...footerBaseStyle, opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(24px)' }}>
+    <footer style={{ ...footerBaseStyle, opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(18px)' }}>
       <p style={footerNoticeStyle}>PAGE IS DESTINATED FOR PEOPLE OF AGE 18+</p>
       <p style={footerDetailsStyle}>KAJA Studio SRL • Strada Atelierului 18, Bucharest • CUI RO48291035 • Trade Registry J40/18422/2026 • contact@kaja.example • Support Monday-Friday 09:00-17:00</p>
     </footer>
@@ -317,11 +324,11 @@ function App() {
       setFixed(nextActive > 0 || nextProgress > 0.05);
     };
 
-    const advance = (delta, divisor = 1900) => {
+    const advance = (delta, divisor = 1700) => {
       if (lock.current || !delta) return;
 
       const direction = Math.sign(delta);
-      const amount = clamp(Math.abs(delta) / divisor, 0.012, 0.065);
+      const amount = clamp(Math.abs(delta) / divisor, 0.014, 0.078);
       let nextActive = activeRef.current;
       let nextProgress = progressRef.current + amount * direction;
 
@@ -333,7 +340,7 @@ function App() {
           nextProgress = 1;
         }
         lock.current = true;
-        window.setTimeout(() => { lock.current = false; }, 360);
+        window.setTimeout(() => { lock.current = false; }, 300);
       }
 
       if (nextProgress <= 0) {
@@ -344,7 +351,7 @@ function App() {
           nextProgress = 0;
         }
         lock.current = true;
-        window.setTimeout(() => { lock.current = false; }, 220);
+        window.setTimeout(() => { lock.current = false; }, 190);
       }
 
       update(nextActive, clamp(nextProgress, 0, 1));
@@ -352,22 +359,24 @@ function App() {
 
     const onWheel = (event) => {
       event.preventDefault();
-      advance(event.deltaY, 1900);
+      advance(event.deltaY, 1700);
     };
 
     const onTouchStart = (event) => {
+      if (event.target.closest('nav')) return;
       const touch = event.touches[0];
       touchStart.current = touch.clientY;
       touchLast.current = touch.clientY;
     };
 
     const onTouchMove = (event) => {
+      if (event.target.closest('nav')) return;
       if (touchLast.current === null) return;
       event.preventDefault();
       const touch = event.touches[0];
       const delta = touchLast.current - touch.clientY;
       touchLast.current = touch.clientY;
-      advance(delta, 620);
+      advance(delta, 540);
     };
 
     const onTouchEnd = () => {
@@ -408,7 +417,7 @@ function App() {
   }, []);
 
   const visibleSections = useMemo(() => sections.map((section, index) => ({ section, index })), []);
-  const footerVisible = active === sections.length - 1 && progress > 0.96;
+  const footerVisible = active === sections.length - 1 && progress > 0.84;
 
   return (
     <main>
