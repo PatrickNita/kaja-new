@@ -79,18 +79,20 @@
       }
       .grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(min(230px, 100%), 1fr));
         gap: clamp(14px, 2vw, 24px);
       }
       .card {
-        aspect-ratio: 1 / 1;
+        position: relative;
+        aspect-ratio: 1529 / 2048;
         border: 1px solid rgba(255,255,255,.14);
         border-radius: 28px;
         background: linear-gradient(145deg, rgba(255,255,255,.13), rgba(255,255,255,.035));
         display: flex;
         align-items: flex-end;
         justify-content: center;
-        padding: clamp(16px, 2vw, 24px);
+        padding: 0;
+        overflow: hidden;
         box-shadow: 0 34px 90px rgba(0,0,0,.42), inset 0 0 60px rgba(255,255,255,.03);
         transition:
           background .78s cubic-bezier(.22, 1, .36, 1),
@@ -98,27 +100,55 @@
           transform .78s cubic-bezier(.22, 1, .36, 1),
           box-shadow .78s cubic-bezier(.22, 1, .36, 1);
       }
+      .card::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: var(--product-image, linear-gradient(145deg, rgba(255,255,255,.13), rgba(255,255,255,.035)));
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        transform: scale(1.01);
+        transition: transform .78s cubic-bezier(.22, 1, .36, 1), filter .78s cubic-bezier(.22, 1, .36, 1);
+      }
+      .card::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 38%;
+        background: linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.82));
+        pointer-events: none;
+      }
       .card:hover {
         background: linear-gradient(145deg, rgba(255,255,255,.23), rgba(255,255,255,.075));
         border-color: rgba(255,255,255,.28);
         transform: translateY(-4px);
         box-shadow: 0 42px 110px rgba(0,0,0,.48), inset 0 0 80px rgba(255,255,255,.055);
       }
+      .card:hover::before {
+        transform: scale(1.055);
+        filter: brightness(1.08);
+      }
       .card strong {
+        position: relative;
+        z-index: 2;
         display: block;
         max-width: 90%;
-        margin-bottom: clamp(2px, .7vw, 10px);
+        margin: 0 0 clamp(14px, 1.6vw, 24px);
         text-align: center;
         font-size: clamp(10px, 1vw, 14px);
         line-height: 1.18;
         letter-spacing: .12em;
         text-transform: uppercase;
         font-weight: 650;
-        color: rgba(255,255,255,.78);
+        color: rgba(255,255,255,.88);
+        text-shadow: 0 2px 14px rgba(0,0,0,.65);
         transition: color .78s cubic-bezier(.22, 1, .36, 1), transform .78s cubic-bezier(.22, 1, .36, 1);
       }
       .card:hover strong {
-        color: rgba(255,255,255,.94);
+        color: rgba(255,255,255,.98);
         transform: translateY(-2px);
       }
       @media (max-width: 700px) {
@@ -128,8 +158,9 @@
         main { padding: 20px 14px calc(34px + env(safe-area-inset-bottom)); }
         .lead { margin-bottom: 24px; }
         .grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
-        .card { border-radius: 14px; padding: 8px; }
-        .card strong { font-size: 8px; letter-spacing: .08em; line-height: 1.1; }
+        .card { border-radius: 14px; }
+        .card::after { height: 46%; }
+        .card strong { font-size: 8px; letter-spacing: .08em; line-height: 1.1; margin-bottom: 8px; }
       }
     </style>
   </head>
@@ -142,16 +173,16 @@
     </header>
     <main>
       <h1>Catalogue</h1>
-      <p class="lead">Same-size flavour boxes. Replace the placeholders below with your final flavour names, images, and product details.</p>
+      <p class="lead">Portrait product boxes. Replace the placeholder image paths below with your final flavour photos.</p>
       <section class="grid" aria-label="Flavour catalogue">
-        <article class="card"><strong>Classic Mint</strong></article>
-        <article class="card"><strong>Fresh Berry</strong></article>
-        <article class="card"><strong>Citrus Ice</strong></article>
-        <article class="card"><strong>Vanilla Smoke</strong></article>
-        <article class="card"><strong>Dark Cherry</strong></article>
-        <article class="card"><strong>Green Apple</strong></article>
-        <article class="card"><strong>Polar Grape</strong></article>
-        <article class="card"><strong>Peach Frost</strong></article>
+        <article class="card" style="--product-image:url('/catalogue/products/classic-mint.jpg')"><strong>Classic Mint</strong></article>
+        <article class="card" style="--product-image:url('/catalogue/products/fresh-berry.jpg')"><strong>Fresh Berry</strong></article>
+        <article class="card" style="--product-image:url('/catalogue/products/citrus-ice.jpg')"><strong>Citrus Ice</strong></article>
+        <article class="card" style="--product-image:url('/catalogue/products/vanilla-smoke.jpg')"><strong>Vanilla Smoke</strong></article>
+        <article class="card" style="--product-image:url('/catalogue/products/dark-cherry.jpg')"><strong>Dark Cherry</strong></article>
+        <article class="card" style="--product-image:url('/catalogue/products/green-apple.jpg')"><strong>Green Apple</strong></article>
+        <article class="card" style="--product-image:url('/catalogue/products/polar-grape.jpg')"><strong>Polar Grape</strong></article>
+        <article class="card" style="--product-image:url('/catalogue/products/peach-frost.jpg')"><strong>Peach Frost</strong></article>
       </section>
     </main>
     <script src="/cursor-hover.js"></script>
