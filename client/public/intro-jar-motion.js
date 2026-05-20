@@ -101,7 +101,7 @@ function updateIntroJarMotion() {
     introJarState.scale += (introJarState.targetScale - introJarState.scale) * 0.13;
     introJarState.y += (introJarState.targetY - introJarState.y) * 0.13;
 
-    intro.style.transform = `translate3d(0, ${introJarState.y}px, 0) scale(${introJarState.scale})`;
+    intro.style.setProperty('transform', `translate3d(0, ${introJarState.y}px, 0) scale(${introJarState.scale})`, 'important');
   }
 
   requestAnimationFrame(updateIntroJarMotion);
