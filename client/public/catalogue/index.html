@@ -124,9 +124,11 @@
         :root, body, a, button, .card { cursor: auto; }
         .cursor-ring, .cursor-dot { display: none; }
         header { align-items: flex-start; flex-direction: column; }
-        main { padding-bottom: calc(34px + env(safe-area-inset-bottom)); }
-        .card { border-radius: 22px; padding: 16px; }
-        .card strong { font-size: 10px; letter-spacing: .1em; }
+        main { padding: 20px 14px calc(34px + env(safe-area-inset-bottom)); }
+        .lead { margin-bottom: 24px; }
+        .grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .card { border-radius: 14px; padding: 8px; }
+        .card strong { font-size: 8px; letter-spacing: .08em; line-height: 1.1; }
       }
     </style>
   </head>
