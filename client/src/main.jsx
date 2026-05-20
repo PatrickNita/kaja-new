@@ -137,10 +137,10 @@ function ProductVisual({ type, progress, index }) {
   const rotate = useTransform(progress, [0, 1], [-22, 18]);
   const x = useTransform(progress, [0, 1], ['-18vw', '12vw']);
   const y = useTransform(progress, [0, 1], ['10vh', '-8vh']);
-  const scale = useTransform(progress, [0, 0.55, 1], [0.76, 1.08, 0.92]);
-  const opacity = useTransform(progress, [0, 0.14, 0.9, 1], [0.08, 1, 1, 0.7]);
-  const blur = useTransform(progress, [0, 0.3, 1], ['blur(22px)', 'blur(0px)', 'blur(0px)']);
-  const reveal = useTransform(progress, [0, 1], ['inset(38% 35% 38% 35% round 32px)', 'inset(0% 0% 0% 0% round 32px)']);
+  const scale = useTransform(progress, [0, 0.55, 1], [0.92, 1.08, 0.92]);
+  const opacity = useTransform(progress, [0, 1], [1, 0.82]);
+  const blur = useTransform(progress, [0, 1], ['blur(0px)', 'blur(0px)']);
+  const reveal = useTransform(progress, [0, 1], ['inset(0% 0% 0% 0% round 32px)', 'inset(0% 0% 0% 0% round 32px)']);
 
   return (
     <motion.div className={`visual visual-${type}`} style={{ rotate, x, y, scale, opacity, filter: blur, clipPath: reveal }}>
@@ -158,11 +158,12 @@ function ProductVisual({ type, progress, index }) {
 function Segment({ section, index, active, rawProgress }) {
   const progress = useMotionValue(rawProgress);
   const spring = useSpring(progress, { stiffness: 90, damping: 22, mass: 0.6 });
-  const titleY = useTransform(spring, [0, 1], [80, -24]);
-  const titleOpacity = useTransform(spring, [0, 0.22, 1], [0, 1, 1]);
-  const copyY = useTransform(spring, [0, 1], [46, -12]);
-  const accentX = useTransform(spring, [0, 1], ['-105%', '0%']);
-  const counterScale = useTransform(spring, [0, 1], [0.72, 1.18]);
+  const titleY = useTransform(spring, [0, 1], [0, -24]);
+  const titleOpacity = useTransform(spring, [0, 1], [1, 1]);
+  const copyY = useTransform(spring, [0, 1], [0, -12]);
+  const accentX = useTransform(spring, [0, 1], ['0%', '8%']);
+  const counterScale = useTransform(spring, [0, 1], [0.92, 1.18]);
+  const gridOpacity = useTransform(spring, [0, 1], [0.35, 1]);
 
   useEffect(() => {
     progress.set(rawProgress);
@@ -171,7 +172,7 @@ function Segment({ section, index, active, rawProgress }) {
   return (
     <section className={`segment ${active ? 'is-active' : ''}`} aria-hidden={!active}>
       <div className="segment-backdrop">
-        <motion.div className="grid-mask" style={{ opacity: spring }} />
+        <motion.div className="grid-mask" style={{ opacity: gridOpacity }} />
       </div>
       <div className="segment-content">
         <motion.p className="eyebrow" style={{ y: copyY, opacity: titleOpacity }}>{section.eyebrow}</motion.p>
