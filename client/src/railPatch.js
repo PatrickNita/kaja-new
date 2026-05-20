@@ -84,7 +84,7 @@ function forceMobileMerchTravel() {
 
   if (isMobile && merchSection?.classList.contains('is-active') && track && progress !== null) {
     const startX = window.innerWidth * 0.78;
-    const endX = window.innerWidth * -3.1;
+    const endX = window.innerWidth * -2.22;
     const x = startX + (endX - startX) * progress;
     track.style.setProperty('transform', `translate3d(${x}px, 0, 0)`, 'important');
   }
