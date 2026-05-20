@@ -23,8 +23,46 @@ patchStyle.textContent = `
   background: #fff;
 }
 .mobile-merch-track,
-.kaja-contact-form {
+.kaja-contact-form,
+.intro-frame-animation {
   display: none;
+}
+.segment.is-active .visual-panel {
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+.segment.is-active .intro-frame-animation {
+  position: relative;
+  z-index: 4;
+  justify-self: center;
+  align-self: center;
+  display: block;
+  width: min(34vw, 430px);
+  aspect-ratio: 9 / 16;
+  border: 1px solid rgba(255,255,255,0.16);
+  border-radius: clamp(22px, 3vw, 34px);
+  overflow: hidden;
+  background: linear-gradient(145deg, rgba(255,255,255,0.14), rgba(255,255,255,0.035));
+  box-shadow: 0 58px 135px rgba(0,0,0,0.68), inset 0 0 70px rgba(255,255,255,0.035);
+  transform-origin: center center;
+  will-change: transform;
+}
+.intro-frame-animation img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center;
+  transform: scale(1.01);
+  user-select: none;
+  pointer-events: none;
+}
+.intro-frame-animation::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.08), transparent 18%, rgba(0,0,0,0.22));
+  pointer-events: none;
 }
 .is-contact-section .contact-form-panel,
 .is-contact-section .contact-form-fixed-overlay {
@@ -109,6 +147,10 @@ patchStyle.textContent = `
     padding: 10px 14px;
     font-size: 10px;
     letter-spacing: 0.1em;
+  }
+  .segment.is-active .intro-frame-animation {
+    width: min(58vw, 250px);
+    border-radius: 22px;
   }
   .is-hanger-section.is-active .hanger-track {
     visibility: hidden !important;
@@ -211,6 +253,34 @@ function getSectionByTitle(title) {
   return Array.from(document.querySelectorAll('.segment')).find((item) => item.querySelector('h1')?.textContent?.trim() === title);
 }
 
+function ensureIntroFrameAnimation() {
+  const introSection = getSectionByTitle('A sharper way to present KAJA.');
+  const oldVisual = introSection?.querySelector('.visual-panel');
+  if (!introSection || !oldVisual) return null;
+
+  let frame = introSection.querySelector(':scope > .intro-frame-animation');
+  if (frame) return frame;
+
+  frame = document.createElement('div');
+  frame.className = 'intro-frame-animation';
+
+  const image = document.createElement('img');
+  image.alt = 'KAJA product animation frame';
+  image.decoding = 'async';
+  image.loading = 'eager';
+  image.src = '/intro-frames/frame-01.webp';
+
+  frame.appendChild(image);
+  introSection.insertBefore(frame, oldVisual.nextSibling);
+
+  for (let index = 1; index <= 20; index += 1) {
+    const preload = new Image();
+    preload.src = `/intro-frames/frame-${String(index).padStart(2, '0')}.webp`;
+  }
+
+  return frame;
+}
+
 function ensureMobileMerchTrack() {
   const merchSection = getSectionByTitle('A full collection on the line.');
   const railWrap = merchSection?.querySelector('.hanger-rail-wrap');
@@ -274,6 +344,27 @@ function ensureContactForm() {
 
 const merchMotion = { current: 0, target: 0 };
 const contactMotion = { scale: 1, height: 0, darkness: 0, targetScale: 1, targetHeight: 0, targetDarkness: 0 };
+const introMotion = { scale: 0.96, targetScale: 0.96 };
+
+function updateIntroFrameAnimation() {
+  const introSection = getSectionByTitle('A sharper way to present KAJA.');
+  const frame = ensureIntroFrameAnimation();
+  const progress = getProgressForLabel('INTRO');
+
+  if (introSection?.classList.contains('is-active') && frame && progress !== null) {
+    const image = frame.querySelector('img');
+    const frameIndex = Math.min(20, Math.max(1, Math.floor(progress * 19) + 1));
+    const nextSrc = `/intro-frames/frame-${String(frameIndex).padStart(2, '0')}.webp`;
+    if (image && !image.src.endsWith(nextSrc)) image.src = nextSrc;
+
+    const pulse = Math.sin(progress * Math.PI);
+    introMotion.targetScale = 0.96 + pulse * 0.105 - progress * 0.018;
+    introMotion.scale += (introMotion.targetScale - introMotion.scale) * 0.12;
+    frame.style.transform = `translate3d(0, 0, 0) scale(${introMotion.scale})`;
+  }
+
+  requestAnimationFrame(updateIntroFrameAnimation);
+}
 
 function moveMobileMerchTrack() {
   const isMobile = window.matchMedia('(max-width: 900px)').matches;
@@ -327,15 +418,19 @@ function growContactForm() {
 
 const observer = new MutationObserver(() => {
   addSectionButtons();
+  ensureIntroFrameAnimation();
   ensureContactForm();
 });
 observer.observe(document.documentElement, { childList: true, subtree: true });
 window.addEventListener('load', () => {
   addSectionButtons();
+  ensureIntroFrameAnimation();
   ensureContactForm();
 });
 requestAnimationFrame(addSectionButtons);
+requestAnimationFrame(updateIntroFrameAnimation);
 requestAnimationFrame(moveMobileMerchTrack);
 requestAnimationFrame(growContactForm);
 setTimeout(addSectionButtons, 500);
+setTimeout(ensureIntroFrameAnimation, 500);
 setTimeout(ensureContactForm, 500);
