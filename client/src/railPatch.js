@@ -148,14 +148,15 @@ function moveMobileMerchTrack() {
     const firstVisibleLeft = window.innerWidth * 0.04;
     const startX = firstVisibleLeft - firstItemStartOffset;
     const endX = window.innerWidth * 0.5 - step * 5;
-    const x = startX + (endX - startX) * progress;
+    const easedProgress = Math.pow(progress, 1.75);
+    const x = startX + (endX - startX) * easedProgress;
     mobileTrack.style.transform = `translate3d(${x}px, 0, 0)`;
   }
 
   requestAnimationFrame(moveMobileMerchTrack);
 }
 
-function growContactForm() {
+function applyCenteredContactGrowth() {
   const contactSection = getSectionByTitle('Start the conversation.');
   const form = contactSection?.querySelector('.contact-form-panel');
   const progress = getProgressForLabel('CONTACT');
@@ -165,8 +166,15 @@ function growContactForm() {
     form.style.setProperty('transform', `translate3d(0px, 0px, 0px) scale(${scale})`, 'important');
     form.style.setProperty('transform-origin', 'center center', 'important');
   }
+}
 
-  requestAnimationFrame(growContactForm);
+function growContactForm() {
+  requestAnimationFrame(() => {
+    setTimeout(applyCenteredContactGrowth, 0);
+    setTimeout(applyCenteredContactGrowth, 16);
+    setTimeout(applyCenteredContactGrowth, 32);
+    requestAnimationFrame(growContactForm);
+  });
 }
 
 const observer = new MutationObserver(addSectionButtons);
@@ -174,5 +182,5 @@ observer.observe(document.documentElement, { childList: true, subtree: true });
 window.addEventListener('load', addSectionButtons);
 requestAnimationFrame(addSectionButtons);
 requestAnimationFrame(moveMobileMerchTrack);
-requestAnimationFrame(growContactForm);
+growContactForm();
 setTimeout(addSectionButtons, 500);
