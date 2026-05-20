@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>KAJA Merch</title>
+    <link rel="stylesheet" href="/merch-mobile-grid.css" />
     <style>
       * { box-sizing: border-box; }
       :root { cursor: none; }
@@ -123,10 +124,6 @@
         :root, body, a, button, .item { cursor: auto; }
         .cursor-ring, .cursor-dot { display: none; }
         header { align-items: flex-start; flex-direction: column; }
-        main { padding-bottom: calc(34px + env(safe-area-inset-bottom)); }
-        .masonry { columns: 1; }
-        .item { border-radius: 22px; padding: 18px; min-height: 220px !important; }
-        .item:nth-child(odd) { min-height: 300px !important; }
       }
     </style>
   </head>
