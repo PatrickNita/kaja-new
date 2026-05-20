@@ -20,9 +20,9 @@ introJarStyle.textContent=`
 }
 .is-intro-section .intro-jar-clean img{
   position:absolute!important;
-  inset:5%!important;
-  width:90%!important;
-  height:90%!important;
+  inset:-2%!important;
+  width:104%!important;
+  height:104%!important;
   object-fit:contain!important;
   object-position:center!important;
   display:block!important;
@@ -38,18 +38,22 @@ introJarStyle.textContent=`
     height:min(33vh,270px)!important;
     border-radius:22px!important;
   }
-  .is-intro-section .intro-jar-clean img{inset:0!important;width:100%!important;height:100%!important;}
+  .is-intro-section .intro-jar-clean img{inset:-4%!important;width:108%!important;height:108%!important;}
 }
 `;
 document.head.appendChild(introJarStyle);
 const clamp=(v,a,b)=>Math.min(Math.max(v,a),b);
 const smooth=(v)=>v*v*(3-2*v);
-const state={scale:1.08,y:0,targetScale:1.08,targetY:0};
+const state={scale:1.16,y:0,targetScale:1.16,targetY:0};
+let fallbackProgress=0;
 function progress(){
   const text=document.querySelector('.scroll-hint')?.textContent||'';
-  if(!text.includes('INTRO'))return null;
-  const match=text.match(/(\d+)%/);
-  return clamp(match?Number(match[1])/100:0,0,1);
+  if(text.includes('INTRO')){
+    const match=text.match(/(\d+)%/);
+    fallbackProgress=clamp(match?Number(match[1])/100:0,0,1);
+    return fallbackProgress;
+  }
+  return null;
 }
 function ensure(){
   const section=document.querySelector('.is-intro-section');
@@ -71,12 +75,12 @@ function tick(){
   const visual=ensure();
   const p=progress();
   if(visual&&p!==null){
-    const grow=smooth(clamp(p/.62,0,1));
-    const end=smooth(clamp((p-.74)/.26,0,1));
-    state.targetScale=1.08+grow*.14-end*.18;
-    state.targetY=end*7.5;
-    state.scale+=(state.targetScale-state.scale)*.14;
-    state.y+=(state.targetY-state.y)*.14;
+    const grow=smooth(clamp(p/.56,0,1));
+    const end=smooth(clamp((p-.68)/.32,0,1));
+    state.targetScale=1.16+grow*.28-end*.34;
+    state.targetY=end*10;
+    state.scale+=(state.targetScale-state.scale)*.24;
+    state.y+=(state.targetY-state.y)*.24;
     visual.style.transform=`translate3d(0,${state.y}vh,0) scale(${state.scale})`;
   }
   requestAnimationFrame(tick);
