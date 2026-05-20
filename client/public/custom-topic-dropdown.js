@@ -20,7 +20,8 @@ topicDropdownStyle.textContent = `
 
 .kaja-topic-trigger {
   width: 100%;
-  min-height: 54px;
+  min-height: 0;
+  height: auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -29,9 +30,9 @@ topicDropdownStyle.textContent = `
   border-radius: 18px;
   background: rgba(0,0,0,0.42);
   color: rgba(255,255,255,0.72);
-  padding: 0 19px;
+  padding: 17px 19px;
   font-size: 15px;
-  line-height: 1;
+  line-height: 1.2;
   outline: none;
   font-family: inherit;
   text-align: left;
@@ -42,7 +43,7 @@ topicDropdownStyle.textContent = `
 .kaja-topic-trigger:hover,
 .kaja-topic-dropdown.is-open .kaja-topic-trigger {
   border-color: rgba(255,255,255,0.34);
-  background: rgba(0,0,0,0.58);
+  background: rgba(0,0,0,0.56);
   color: #fff;
 }
 
@@ -53,10 +54,10 @@ topicDropdownStyle.textContent = `
 }
 
 .kaja-topic-arrow {
-  width: 9px;
-  height: 9px;
-  border-right: 2px solid rgba(255,255,255,0.72);
-  border-bottom: 2px solid rgba(255,255,255,0.72);
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid rgba(255,255,255,0.72);
+  border-bottom: 1.5px solid rgba(255,255,255,0.72);
   transform: rotate(45deg) translateY(-2px);
   transition: transform 0.25s ease;
   flex: 0 0 auto;
@@ -70,17 +71,17 @@ topicDropdownStyle.textContent = `
   position: absolute;
   left: 0;
   right: 0;
-  top: calc(100% + 8px);
+  top: calc(100% + 6px);
   display: grid;
-  gap: 7px;
-  padding: 9px;
+  gap: 5px;
+  padding: 6px;
   border: 1px solid rgba(255,255,255,0.14);
   border-radius: 18px;
   background: rgba(5,5,5,0.94);
-  box-shadow: 0 24px 70px rgba(0,0,0,0.65), inset 0 0 45px rgba(255,255,255,0.025);
+  box-shadow: 0 22px 60px rgba(0,0,0,0.58), inset 0 0 36px rgba(255,255,255,0.02);
   backdrop-filter: blur(18px);
   opacity: 0;
-  transform: translateY(-8px) scale(0.98);
+  transform: translateY(-6px) scale(0.985);
   pointer-events: none;
   transition: opacity 0.22s ease, transform 0.22s ease;
 }
@@ -93,15 +94,15 @@ topicDropdownStyle.textContent = `
 
 .kaja-topic-option {
   width: 100%;
-  min-height: 44px;
+  min-height: 0;
   border: 1px solid rgba(255,255,255,0.08);
   border-radius: 13px;
-  background: rgba(255,255,255,0.045);
+  background: rgba(255,255,255,0.04);
   color: rgba(255,255,255,0.82);
-  padding: 0 14px;
-  font-size: 12px;
-  font-weight: 750;
-  letter-spacing: 0.08em;
+  padding: 12px 14px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.075em;
   text-transform: uppercase;
   text-align: left;
   font-family: inherit;
@@ -111,8 +112,8 @@ topicDropdownStyle.textContent = `
 
 .kaja-topic-option:hover,
 .kaja-topic-option.is-selected {
-  background: rgba(255,255,255,0.14);
-  border-color: rgba(255,255,255,0.24);
+  background: rgba(255,255,255,0.11);
+  border-color: rgba(255,255,255,0.22);
   color: #fff;
   transform: translateY(-1px);
 }
@@ -123,22 +124,28 @@ topicDropdownStyle.textContent = `
   }
 
   .kaja-topic-trigger {
-    min-height: 38px;
     border-radius: 12px;
-    padding: 0 12px;
+    padding: 10px 12px;
     font-size: 12px;
     cursor: auto;
   }
 
+  .kaja-topic-arrow {
+    width: 6px;
+    height: 6px;
+    border-width: 1.5px;
+  }
+
   .kaja-topic-menu {
     border-radius: 12px;
-    gap: 5px;
-    padding: 7px;
+    gap: 4px;
+    padding: 5px;
+    top: calc(100% + 5px);
   }
 
   .kaja-topic-option {
-    min-height: 36px;
     border-radius: 9px;
+    padding: 9px 11px;
     font-size: 10px;
     cursor: auto;
   }
