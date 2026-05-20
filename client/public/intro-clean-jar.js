@@ -1,5 +1,14 @@
 const introCleanJarStyle = document.createElement('style');
 introCleanJarStyle.textContent = `
+.is-intro-section,
+.is-intro-section.is-active {
+  transform: none !important;
+}
+
+.is-intro-section {
+  transition: opacity 0.42s ease !important;
+}
+
 .is-intro-section .intro-sequence {
   position: relative !important;
   z-index: 4 !important;
