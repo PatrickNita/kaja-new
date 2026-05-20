@@ -60,9 +60,21 @@ catalogueSortStyle.textContent = `
 `;
 document.head.appendChild(catalogueSortStyle);
 
+function switchCatalogueImagesToWebp() {
+  document.querySelectorAll('.grid[aria-label="Flavour catalogue"] .card').forEach((card) => {
+    const inlineStyle = card.getAttribute('style') || '';
+    if (!inlineStyle.includes('.jpg')) return;
+    card.setAttribute('style', inlineStyle.replace(/\.jpg/g, '.webp'));
+  });
+}
+
 function addCatalogueSortControls() {
   const grid = document.querySelector('.grid[aria-label="Flavour catalogue"]');
-  if (!grid || document.querySelector('.catalogue-sort-bar')) return;
+  if (!grid) return;
+
+  switchCatalogueImagesToWebp();
+
+  if (document.querySelector('.catalogue-sort-bar')) return;
 
   const sortBar = document.createElement('div');
   sortBar.className = 'catalogue-sort-bar';
@@ -83,6 +95,7 @@ function addCatalogueSortControls() {
   descending.textContent = 'Z–A';
 
   const sortCards = (direction) => {
+    switchCatalogueImagesToWebp();
     const cards = Array.from(grid.querySelectorAll('.card'));
     cards
       .sort((a, b) => {
@@ -110,4 +123,5 @@ function addCatalogueSortControls() {
 
 window.addEventListener('load', addCatalogueSortControls);
 requestAnimationFrame(addCatalogueSortControls);
+setTimeout(addCatalogueSortControls, 100);
 setTimeout(addCatalogueSortControls, 500);
