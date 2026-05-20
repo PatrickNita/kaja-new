@@ -6,6 +6,8 @@ import logo from './assets/kaja-logo.png';
 import hanger from './assets/hanger.png';
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+const FOOTER_SCROLL_EXTRA = 0.34;
+const MAX_FINAL_PROGRESS = 1 + FOOTER_SCROLL_EXTRA;
 
 const sections = [
   {
@@ -91,7 +93,7 @@ const footerBaseStyle = {
   color: 'rgba(255,255,255,0.62)',
   background: 'linear-gradient(180deg, transparent, rgba(0,0,0,0.76) 38%, rgba(0,0,0,0.92))',
   pointerEvents: 'none',
-  transition: 'opacity 0.35s ease, transform 0.35s ease'
+  transition: 'opacity 0.2s ease, transform 0.2s ease'
 };
 
 const footerNoticeStyle = {
@@ -278,18 +280,22 @@ function Segment({ section, index, active, rawProgress }) {
 }
 
 function ScrollHint({ active, progress }) {
+  const displayProgress = Math.min(progress, 1);
   return (
     <div className="scroll-hint">
       <span>Segment {active + 1}/6</span>
-      <div><i style={{ height: `${Math.round(progress * 100)}%` }} /></div>
-      <span>{Math.round(progress * 100)}%</span>
+      <div><i style={{ height: `${Math.round(displayProgress * 100)}%` }} /></div>
+      <span>{Math.round(displayProgress * 100)}%</span>
     </div>
   );
 }
 
-function LegalFooter({ visible }) {
+function LegalFooter({ footerProgress }) {
+  const opacity = clamp(footerProgress * 1.25, 0, 1);
+  const offset = Math.round((1 - opacity) * 28);
+
   return (
-    <footer style={{ ...footerBaseStyle, opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(18px)' }}>
+    <footer style={{ ...footerBaseStyle, opacity, transform: `translateY(${offset}px)` }}>
       <p style={footerNoticeStyle}>PAGE IS DESTINATED FOR PEOPLE OF AGE 18+</p>
       <p style={footerDetailsStyle}>KAJA Studio SRL • Strada Atelierului 18, Bucharest • CUI RO48291035 • Trade Registry J40/18422/2026 • contact@kaja.example • Support Monday-Friday 09:00-17:00</p>
     </footer>
@@ -331,30 +337,32 @@ function App() {
       const amount = clamp(Math.abs(delta) / divisor, 0.014, 0.078);
       let nextActive = activeRef.current;
       let nextProgress = progressRef.current + amount * direction;
+      const isFinalSection = nextActive === sections.length - 1;
+      const maxProgress = isFinalSection ? MAX_FINAL_PROGRESS : 1;
 
       if (nextProgress >= 1) {
         if (nextActive < sections.length - 1) {
           nextActive += 1;
           nextProgress = 0;
+          lock.current = true;
+          window.setTimeout(() => { lock.current = false; }, 300);
         } else {
-          nextProgress = 1;
+          nextProgress = clamp(nextProgress, 1, MAX_FINAL_PROGRESS);
         }
-        lock.current = true;
-        window.setTimeout(() => { lock.current = false; }, 300);
       }
 
       if (nextProgress <= 0) {
         if (nextActive > 0 && direction < 0) {
           nextActive -= 1;
           nextProgress = 1;
+          lock.current = true;
+          window.setTimeout(() => { lock.current = false; }, 190);
         } else {
           nextProgress = 0;
         }
-        lock.current = true;
-        window.setTimeout(() => { lock.current = false; }, 190);
       }
 
-      update(nextActive, clamp(nextProgress, 0, 1));
+      update(nextActive, clamp(nextProgress, 0, maxProgress));
     };
 
     const onWheel = (event) => {
@@ -387,13 +395,23 @@ function App() {
     const onKeyDown = (event) => {
       if (['ArrowDown', 'PageDown', ' '].includes(event.key)) {
         event.preventDefault();
-        if (progressRef.current < 1) update(activeRef.current, 1);
-        else goTo(activeRef.current + 1);
+        if (activeRef.current === sections.length - 1 && progressRef.current >= 1) {
+          update(activeRef.current, MAX_FINAL_PROGRESS);
+        } else if (progressRef.current < 1) {
+          update(activeRef.current, 1);
+        } else {
+          goTo(activeRef.current + 1);
+        }
       }
       if (['ArrowUp', 'PageUp'].includes(event.key)) {
         event.preventDefault();
-        if (progressRef.current > 0) update(activeRef.current, 0);
-        else goTo(activeRef.current - 1);
+        if (activeRef.current === sections.length - 1 && progressRef.current > 1) {
+          update(activeRef.current, 1);
+        } else if (progressRef.current > 0) {
+          update(activeRef.current, 0);
+        } else {
+          goTo(activeRef.current - 1);
+        }
       }
     };
 
@@ -417,7 +435,7 @@ function App() {
   }, []);
 
   const visibleSections = useMemo(() => sections.map((section, index) => ({ section, index })), []);
-  const footerVisible = active === sections.length - 1 && progress > 0.84;
+  const footerProgress = active === sections.length - 1 ? clamp((progress - 1) / FOOTER_SCROLL_EXTRA, 0, 1) : 0;
 
   return (
     <main>
@@ -430,12 +448,12 @@ function App() {
             section={section}
             index={index}
             active={active === index}
-            rawProgress={active === index ? progress : active > index ? 1 : 0}
+            rawProgress={active === index ? Math.min(progress, 1) : active > index ? 1 : 0}
           />
         ))}
       </div>
       <ScrollHint active={active} progress={progress} />
-      <LegalFooter visible={footerVisible} />
+      <LegalFooter footerProgress={footerProgress} />
     </main>
   );
 }
