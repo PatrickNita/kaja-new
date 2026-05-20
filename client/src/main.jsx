@@ -60,19 +60,57 @@ const sections = [
 
 const hangerObjects = Array.from({ length: 6 }, (_, index) => index + 1);
 const hangerRailWrapStyle = {
-  WebkitMaskImage: 'linear-gradient(90deg, transparent 0%, transparent 10%, black 20%, black 100%)',
-  maskImage: 'linear-gradient(90deg, transparent 0%, transparent 10%, black 20%, black 100%)'
+  WebkitMaskImage: 'linear-gradient(90deg, transparent 0%, black 10%, black 100%)',
+  maskImage: 'linear-gradient(90deg, transparent 0%, black 10%, black 100%)'
 };
 const hangerObjectStyle = {
-  transform: 'translateY(34px)'
+  transform: 'translateY(26px)'
 };
 const hangerImageStyle = {
-  width: 'clamp(230px, 22vw, 340px)',
+  width: 'clamp(190px, 22vw, 340px)',
   height: 'auto',
   display: 'block',
   filter: 'brightness(0) saturate(100%) invert(34%) sepia(0%) saturate(0%) hue-rotate(180deg) brightness(82%) contrast(86%)',
   opacity: 0.95,
   mixBlendMode: 'screen'
+};
+
+const footerStyle = {
+  position: 'fixed',
+  left: 0,
+  right: 0,
+  bottom: 0,
+  zIndex: 70,
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 'clamp(3px, 0.7vw, 8px)',
+  padding: 'clamp(8px, 1.4vw, 18px) clamp(16px, 4vw, 48px)',
+  textAlign: 'center',
+  color: 'rgba(255,255,255,0.62)',
+  background: 'linear-gradient(180deg, transparent, rgba(0,0,0,0.76) 38%, rgba(0,0,0,0.92))',
+  pointerEvents: 'none'
+};
+
+const footerNoticeStyle = {
+  margin: 0,
+  fontSize: 'clamp(10px, 1.05vw, 13px)',
+  lineHeight: 1.25,
+  letterSpacing: '0.18em',
+  fontWeight: 760,
+  textTransform: 'uppercase',
+  color: 'rgba(255,255,255,0.86)'
+};
+
+const footerDetailsStyle = {
+  margin: 0,
+  maxWidth: 'min(980px, 92vw)',
+  fontSize: 'clamp(9px, 0.85vw, 11px)',
+  lineHeight: 1.45,
+  letterSpacing: '0.08em',
+  textTransform: 'uppercase',
+  color: 'rgba(255,255,255,0.46)'
 };
 
 function ElasticCursor() {
@@ -172,7 +210,7 @@ function ProductVisual({ type, progress, index }) {
 }
 
 function HangerVisual({ progress }) {
-  const trackX = useTransform(progress, [0, 1], ['34vw', '-58vw']);
+  const trackX = useTransform(progress, [0, 1], ['32vw', '-88vw']);
 
   return (
     <div className="hanger-scene">
@@ -238,6 +276,15 @@ function ScrollHint({ active, progress }) {
       <div><i style={{ height: `${Math.round(progress * 100)}%` }} /></div>
       <span>{Math.round(progress * 100)}%</span>
     </div>
+  );
+}
+
+function LegalFooter() {
+  return (
+    <footer style={footerStyle}>
+      <p style={footerNoticeStyle}>PAGE IS DESTINATED FOR PEOPLE OF AGE 18+</p>
+      <p style={footerDetailsStyle}>KAJA Studio SRL • Strada Atelierului 18, Bucharest • CUI RO48291035 • Trade Registry J40/18422/2026 • contact@kaja.example • Support Monday-Friday 09:00-17:00</p>
+    </footer>
   );
 }
 
@@ -343,6 +390,7 @@ function App() {
         ))}
       </div>
       <ScrollHint active={active} progress={progress} />
+      <LegalFooter />
     </main>
   );
 }
