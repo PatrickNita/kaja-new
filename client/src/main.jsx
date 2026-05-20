@@ -52,19 +52,27 @@ const sections = [
     label: 'Contact',
     eyebrow: '06 / Conversion',
     title: 'A full collection on the line.',
-    copy: 'A fixed full-width rail holds six dark hangers that glide horizontally from right to left as you scroll.',
+    copy: 'A fixed full-width rail holds six grey hangers that glide horizontally from right to left as you scroll.',
     accent: 'Lineup',
     shape: 'hanger'
   }
 ];
 
 const hangerObjects = Array.from({ length: 6 }, (_, index) => index + 1);
+const hangerTrackStyle = {
+  WebkitMaskImage: 'linear-gradient(90deg, transparent 0%, transparent 15%, black 28%, black 100%)',
+  maskImage: 'linear-gradient(90deg, transparent 0%, transparent 15%, black 28%, black 100%)'
+};
+const hangerObjectStyle = {
+  transform: 'translateY(46px)'
+};
 const hangerImageStyle = {
   width: 'clamp(230px, 22vw, 340px)',
   height: 'auto',
   display: 'block',
-  filter: 'brightness(0) saturate(100%) brightness(24%)',
-  opacity: 1
+  filter: 'brightness(0) saturate(100%) invert(34%) sepia(0%) saturate(0%) hue-rotate(180deg) brightness(82%) contrast(86%)',
+  opacity: 0.95,
+  mixBlendMode: 'screen'
 };
 
 function ElasticCursor() {
@@ -170,9 +178,9 @@ function HangerVisual({ progress }) {
     <div className="hanger-scene">
       <div className="hanger-rail-wrap">
         <div className="hanger-rail" />
-        <motion.div className="hanger-track" style={{ x: trackX }}>
+        <motion.div className="hanger-track" style={{ x: trackX, ...hangerTrackStyle }}>
           {hangerObjects.map((item) => (
-            <div className={`hanger-object hanger-object-${item}`} key={item}>
+            <div className={`hanger-object hanger-object-${item}`} key={item} style={hangerObjectStyle}>
               <img src={hanger} alt="" aria-hidden="true" style={hangerImageStyle} />
             </div>
           ))}
