@@ -110,6 +110,7 @@ nav {
   border: 1px solid rgba(255,255,255,0.12);
   border-radius: 999px;
   background: rgba(255,255,255,0.035);
+  scroll-behavior: smooth;
 }
 
 nav button {
@@ -534,9 +535,9 @@ h1 {
 
   .top-nav,
   .top-nav.is-fixed {
-    padding: 12px 14px;
+    padding: 10px 12px;
     align-items: flex-start;
-    gap: 12px;
+    gap: 10px;
   }
 
   .brand img {
@@ -544,12 +545,22 @@ h1 {
   }
 
   nav {
-    max-width: 70vw;
+    max-width: calc(100vw - 76px);
     overflow-x: auto;
+    overflow-y: hidden;
     justify-content: flex-start;
     border-radius: 16px;
     gap: 4px;
     padding: 4px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    touch-action: pan-x;
+    overscroll-behavior-inline: contain;
+    scroll-snap-type: x proximity;
+  }
+
+  nav::-webkit-scrollbar {
+    display: none;
   }
 
   nav button {
@@ -557,6 +568,7 @@ h1 {
     padding: 7px 8px;
     font-size: 9px;
     letter-spacing: 0.055em;
+    scroll-snap-align: center;
   }
 
   nav button span {
@@ -567,8 +579,8 @@ h1 {
     grid-template-columns: 1fr;
     grid-template-rows: auto minmax(210px, 1fr);
     align-content: start;
-    gap: clamp(12px, 2.4vh, 24px);
-    padding: clamp(76px, 10vh, 96px) clamp(16px, 5vw, 28px) clamp(76px, 11vh, 100px);
+    gap: clamp(14px, 2.8vh, 26px);
+    padding: clamp(78px, 10vh, 96px) clamp(16px, 5vw, 28px) clamp(86px, 13vh, 118px);
   }
 
   .segment-content {
@@ -582,27 +594,27 @@ h1 {
   }
 
   h1 {
-    font-size: clamp(30px, 9.8vw, 48px);
-    line-height: 0.96;
-    letter-spacing: -0.055em;
+    font-size: clamp(28px, 8.8vw, 44px);
+    line-height: 1;
+    letter-spacing: -0.05em;
     max-width: 94vw;
   }
 
   .copy {
     max-width: 92vw;
-    margin-top: 12px;
-    font-size: clamp(12px, 3.25vw, 15px);
-    line-height: 1.38;
+    margin-top: 10px;
+    font-size: clamp(12px, 3.15vw, 14px);
+    line-height: 1.34;
   }
 
   .progress-track {
     width: min(320px, 78vw);
-    margin-top: 16px;
+    margin-top: 14px;
   }
 
   .visual {
-    width: min(86vw, 420px);
-    height: min(34vh, 280px);
+    width: min(84vw, 400px);
+    height: min(33vh, 270px);
     justify-self: center;
     align-self: center;
     border-radius: 22px;
@@ -614,7 +626,7 @@ h1 {
   }
 
   .hanger-scene {
-    min-height: min(34vh, 270px);
+    min-height: min(33vh, 265px);
     width: 100%;
   }
 
@@ -665,33 +677,33 @@ h1 {
 @media (max-height: 680px) and (max-width: 900px) {
   .segment {
     padding-top: 64px;
-    padding-bottom: 60px;
+    padding-bottom: 82px;
     gap: 10px;
   }
 
   h1 {
-    font-size: clamp(26px, 8.5vw, 40px);
+    font-size: clamp(24px, 7.7vw, 36px);
   }
 
   .copy {
-    font-size: clamp(11px, 3vw, 13px);
-    line-height: 1.32;
-    margin-top: 8px;
+    font-size: clamp(10.5px, 2.85vw, 12.5px);
+    line-height: 1.28;
+    margin-top: 7px;
   }
 
   .eyebrow {
-    margin-bottom: 6px;
+    margin-bottom: 5px;
   }
 
   .progress-track {
-    margin-top: 12px;
+    margin-top: 10px;
   }
 
   .visual {
-    height: min(31vh, 230px);
+    height: min(30vh, 220px);
   }
 
   .hanger-scene {
-    min-height: min(30vh, 220px);
+    min-height: min(29vh, 210px);
   }
 }
