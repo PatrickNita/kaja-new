@@ -23,38 +23,42 @@ patchStyle.textContent = `
   background: #fff;
 }
 .mobile-merch-track,
-.contact-form-fixed-overlay {
+.kaja-contact-form {
   display: none;
 }
-.is-contact-section.is-active > .contact-form-panel {
+.is-contact-section .contact-form-panel,
+.is-contact-section .contact-form-fixed-overlay {
+  display: none !important;
   visibility: hidden !important;
   pointer-events: none !important;
 }
-.is-contact-section.is-active .contact-form-fixed-overlay {
+.is-contact-section.is-active .kaja-contact-form {
   position: relative;
-  z-index: 4;
+  z-index: 8;
   justify-self: center;
-  display: block;
+  align-self: center;
+  display: flex;
+  flex-direction: column;
   width: min(46vw, 560px);
-  padding: clamp(20px, 3vw, 38px);
+  min-height: 260px;
+  padding: clamp(20px, 3vw, 36px);
   border: 1px solid rgba(255,255,255,0.16);
   border-radius: clamp(22px, 3vw, 34px);
   background: linear-gradient(145deg, rgba(255,255,255,0.13), rgba(255,255,255,0.035));
   box-shadow: 0 52px 120px rgba(0,0,0,0.64), inset 0 0 70px rgba(255,255,255,0.035);
   backdrop-filter: blur(18px);
   transform-origin: center center;
-  will-change: transform;
+  will-change: transform, min-height, padding;
 }
-.contact-form-fixed-overlay p {
+.kaja-contact-label {
   margin: 0 0 14px;
   color: rgba(255,255,255,0.58);
   text-transform: uppercase;
   letter-spacing: 0.18em;
   font-size: 12px;
 }
-.contact-form-fixed-overlay input,
-.contact-form-fixed-overlay select,
-.contact-form-fixed-overlay textarea {
+.kaja-contact-form input,
+.kaja-contact-form select {
   width: 100%;
   border: 1px solid rgba(255,255,255,0.14);
   border-radius: 16px;
@@ -65,12 +69,14 @@ patchStyle.textContent = `
   outline: none;
   margin-top: 12px;
   font-family: inherit;
+  transition: border-color 0.25s ease, background 0.25s ease;
 }
-.contact-form-fixed-overlay textarea {
-  min-height: 118px;
-  resize: none;
+.kaja-contact-form input:focus,
+.kaja-contact-form select:focus {
+  border-color: rgba(255,255,255,0.36);
+  background: rgba(0,0,0,0.56);
 }
-.contact-form-fixed-overlay button {
+.kaja-contact-form button {
   width: 100%;
   margin-top: 14px;
   border: 0;
@@ -120,22 +126,23 @@ patchStyle.textContent = `
     opacity: 0.95;
     mix-blend-mode: screen;
   }
-  .is-contact-section.is-active .contact-form-fixed-overlay {
+  .is-contact-section.is-active .kaja-contact-form {
     width: min(92vw, 420px);
-    padding: 16px;
+    min-height: 230px;
+    padding: 15px;
   }
-  .contact-form-fixed-overlay input,
-  .contact-form-fixed-overlay select,
-  .contact-form-fixed-overlay textarea {
+  .kaja-contact-label {
+    margin-bottom: 8px;
+    font-size: 10px;
+  }
+  .kaja-contact-form input,
+  .kaja-contact-form select {
     padding: 10px 12px;
     margin-top: 8px;
     font-size: 12px;
     border-radius: 12px;
   }
-  .contact-form-fixed-overlay textarea {
-    min-height: 78px;
-  }
-  .contact-form-fixed-overlay button {
+  .kaja-contact-form button {
     padding: 11px 14px;
     margin-top: 10px;
     font-size: 10px;
@@ -214,20 +221,38 @@ function ensureMobileMerchTrack() {
   return mobileTrack;
 }
 
-function ensureContactOverlay() {
+function ensureContactForm() {
   const contactSection = getSectionByTitle('Start the conversation.');
-  const originalForm = contactSection?.querySelector(':scope > .contact-form-panel');
-  if (!contactSection || !originalForm) return null;
+  const oldForm = contactSection?.querySelector('.contact-form-panel');
+  if (!contactSection) return null;
 
-  let overlay = contactSection.querySelector(':scope > .contact-form-fixed-overlay');
-  if (overlay) return overlay;
+  let form = contactSection.querySelector(':scope > .kaja-contact-form');
+  if (form) return form;
 
-  overlay = document.createElement('form');
-  overlay.className = 'contact-form-fixed-overlay';
-  overlay.innerHTML = originalForm.innerHTML;
-  overlay.addEventListener('submit', (event) => event.preventDefault());
-  contactSection.insertBefore(overlay, originalForm.nextSibling);
-  return overlay;
+  form = document.createElement('form');
+  form.className = 'kaja-contact-form';
+  form.innerHTML = `
+    <p class="kaja-contact-label">Contact KAJA</p>
+    <input placeholder="Name" aria-label="Name" name="name" />
+    <input placeholder="Email" aria-label="Email" name="email" type="email" />
+    <input placeholder="Phone number" aria-label="Phone number" name="phone" type="tel" />
+    <select aria-label="Topic" name="topic" required>
+      <option value="" disabled selected>Topic</option>
+      <option value="general-contact">General contact</option>
+      <option value="collaboration">Collaboration</option>
+      <option value="distribution">Distribution</option>
+    </select>
+    <button type="submit">Send request</button>
+  `;
+  form.addEventListener('submit', (event) => event.preventDefault());
+
+  if (oldForm) {
+    contactSection.insertBefore(form, oldForm.nextSibling);
+  } else {
+    contactSection.appendChild(form);
+  }
+
+  return form;
 }
 
 function moveMobileMerchTrack() {
@@ -251,33 +276,34 @@ function moveMobileMerchTrack() {
   requestAnimationFrame(moveMobileMerchTrack);
 }
 
-function growContactOverlay() {
+function growContactForm() {
   const contactSection = getSectionByTitle('Start the conversation.');
-  const overlay = ensureContactOverlay();
+  const form = ensureContactForm();
   const progress = getProgressForLabel('CONTACT');
 
-  if (contactSection?.classList.contains('is-active') && overlay && progress !== null) {
-    const scale = 0.88 + progress * 0.16;
-    const extraHeight = progress * 24;
-    overlay.style.transform = `translate3d(0, 0, 0) scale(${scale})`;
-    overlay.style.paddingTop = `calc(clamp(20px, 3vw, 38px) + ${extraHeight}px)`;
-    overlay.style.paddingBottom = `calc(clamp(20px, 3vw, 38px) + ${extraHeight}px)`;
+  if (contactSection?.classList.contains('is-active') && form && progress !== null) {
+    const scale = 0.9 + progress * 0.14;
+    const extraHeight = progress * 34;
+    form.style.transform = `scale(${scale})`;
+    form.style.minHeight = `${260 + extraHeight}px`;
+    form.style.paddingTop = `calc(clamp(20px, 3vw, 36px) + ${extraHeight * 0.35}px)`;
+    form.style.paddingBottom = `calc(clamp(20px, 3vw, 36px) + ${extraHeight * 0.35}px)`;
   }
 
-  requestAnimationFrame(growContactOverlay);
+  requestAnimationFrame(growContactForm);
 }
 
 const observer = new MutationObserver(() => {
   addSectionButtons();
-  ensureContactOverlay();
+  ensureContactForm();
 });
 observer.observe(document.documentElement, { childList: true, subtree: true });
 window.addEventListener('load', () => {
   addSectionButtons();
-  ensureContactOverlay();
+  ensureContactForm();
 });
 requestAnimationFrame(addSectionButtons);
 requestAnimationFrame(moveMobileMerchTrack);
-requestAnimationFrame(growContactOverlay);
+requestAnimationFrame(growContactForm);
 setTimeout(addSectionButtons, 500);
-setTimeout(ensureContactOverlay, 500);
+setTimeout(ensureContactForm, 500);
