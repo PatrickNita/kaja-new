@@ -51,13 +51,13 @@ const sections = [
     label: 'Contact',
     eyebrow: '06 / Conversion',
     title: 'A full collection on the line.',
-    copy: 'The last scene becomes a horizontal hanger rail with six product objects sliding across the stage as you scroll.',
+    copy: 'A fixed full-width rail holds six dark hangers that glide horizontally from right to left as you scroll.',
     accent: 'Lineup',
     shape: 'hanger'
   }
 ];
 
-const hangerObjects = ['Origin', 'Material', 'Engine', 'Cursor', 'Story', 'Launch'];
+const hangerObjects = Array.from({ length: 6 }, (_, index) => index + 1);
 
 function ElasticCursor() {
   const cursor = useRef(null);
@@ -156,28 +156,26 @@ function ProductVisual({ type, progress, index }) {
 }
 
 function HangerVisual({ progress }) {
-  const trackX = useTransform(progress, [0, 1], ['32vw', '-52vw']);
-  const railY = useTransform(progress, [0, 1], ['5vh', '-7vh']);
-  const sceneY = useTransform(progress, [0, 1], ['8vh', '-10vh']);
+  const trackX = useTransform(progress, [0, 1], ['34vw', '-58vw']);
 
   return (
-    <motion.div className="hanger-scene" style={{ y: sceneY }}>
-      <motion.div className="hanger-rail-wrap" style={{ y: railY }}>
+    <div className="hanger-scene">
+      <div className="hanger-rail-wrap">
         <div className="hanger-rail" />
         <motion.div className="hanger-track" style={{ x: trackX }}>
-          {hangerObjects.map((item, objectIndex) => (
-            <div className={`hanger-object hanger-object-${objectIndex + 1}`} key={item}>
-              <span className="hanger-hook" />
-              <div className="hanger-card">
-                <img src={logo} alt="KAJA mark" />
-                <strong>{String(objectIndex + 1).padStart(2, '0')}</strong>
-                <em>{item}</em>
+          {hangerObjects.map((item) => (
+            <div className={`hanger-object hanger-object-${item}`} key={item}>
+              <div className="hanger-silhouette" aria-label={`Dark grey hanger ${item}`}>
+                <span className="hanger-neck" />
+                <span className="hanger-shoulder hanger-shoulder-left" />
+                <span className="hanger-shoulder hanger-shoulder-right" />
+                <span className="hanger-bottom" />
               </div>
             </div>
           ))}
         </motion.div>
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
 }
 
