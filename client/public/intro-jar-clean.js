@@ -39,8 +39,8 @@ introJarStyle.textContent=`
 document.head.appendChild(introJarStyle);
 const clamp=(v,a,b)=>Math.min(Math.max(v,a),b);
 const smooth=(v)=>v*v*(3-2*v);
-const state={scale:1.18,y:0,targetScale:1.18,targetY:0};
-function progress(){
+const state={progress:0,scale:1.18,y:0};
+function targetProgress(){
   const hint=document.querySelector('.scroll-hint');
   const text=hint?.textContent||'';
   if(!text.includes('INTRO'))return null;
@@ -72,15 +72,17 @@ function ensure(){
 }
 function tick(){
   const visual=ensure();
-  const p=progress();
+  const target=targetProgress();
   const img=visual?.querySelector('img');
-  if(visual&&img&&p!==null){
-    const grow=smooth(clamp(p/.55,0,1));
-    const end=smooth(clamp((p-.68)/.32,0,1));
-    state.targetScale=1.18+grow*.34-end*.42;
-    state.targetY=end*13;
-    state.scale+=(state.targetScale-state.scale)*.32;
-    state.y+=(state.targetY-state.y)*.32;
+  if(visual&&img&&target!==null){
+    state.progress+=(target-state.progress)*.105;
+    if(Math.abs(target-state.progress)<.002)state.progress=target;
+    const grow=smooth(clamp(state.progress/.55,0,1));
+    const end=smooth(clamp((state.progress-.68)/.32,0,1));
+    const scale=1.18+grow*.34-end*.42;
+    const y=end*13;
+    state.scale+=(scale-state.scale)*.26;
+    state.y+=(y-state.y)*.26;
     visual.style.transform='translate3d(0,0,0)';
     img.style.setProperty('transform',`translate3d(0,${state.y}vh,0) scale(${state.scale})`,'important');
   }
