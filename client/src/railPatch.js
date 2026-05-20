@@ -76,25 +76,32 @@ function getMerchProgress() {
   return Math.min(Math.max(percent / 100, 0), 1);
 }
 
-function forceMobileMerchTravel() {
+function applyMobileMerchTravel() {
   const isMobile = window.matchMedia('(max-width: 900px)').matches;
   const merchSection = Array.from(document.querySelectorAll('.segment')).find((item) => item.querySelector('h1')?.textContent?.trim() === 'A full collection on the line.');
   const track = merchSection?.querySelector('.hanger-track');
   const progress = getMerchProgress();
 
-  if (isMobile && merchSection?.classList.contains('is-active') && track && progress !== null) {
-    const startX = window.innerWidth * 0.78;
-    const endX = window.innerWidth * -2.22;
-    const x = startX + (endX - startX) * progress;
-    track.style.setProperty('transform', `translate3d(${x}px, 0, 0)`, 'important');
-  }
+  if (!isMobile || !merchSection?.classList.contains('is-active') || !track || progress === null) return;
 
-  requestAnimationFrame(forceMobileMerchTravel);
+  const startX = window.innerWidth * 0.78;
+  const endX = window.innerWidth * -2.22;
+  const x = startX + (endX - startX) * progress;
+  track.style.setProperty('transform', `translate3d(${x}px, 0, 0)`, 'important');
+}
+
+function forceMobileMerchTravel() {
+  requestAnimationFrame(() => {
+    setTimeout(applyMobileMerchTravel, 0);
+    setTimeout(applyMobileMerchTravel, 16);
+    setTimeout(applyMobileMerchTravel, 32);
+    requestAnimationFrame(forceMobileMerchTravel);
+  });
 }
 
 const observer = new MutationObserver(addSectionButtons);
 observer.observe(document.documentElement, { childList: true, subtree: true });
 window.addEventListener('load', addSectionButtons);
 requestAnimationFrame(addSectionButtons);
-requestAnimationFrame(forceMobileMerchTravel);
+forceMobileMerchTravel();
 setTimeout(addSectionButtons, 500);
