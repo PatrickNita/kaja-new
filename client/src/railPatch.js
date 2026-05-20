@@ -29,6 +29,10 @@ patchStyle.textContent = `
     font-size: 10px;
     letter-spacing: 0.1em;
   }
+  .is-hanger-section.is-active .hanger-track {
+    transition: none !important;
+    will-change: transform !important;
+  }
 }
 `;
 document.head.appendChild(patchStyle);
@@ -63,30 +67,38 @@ function addSectionButtons() {
   });
 }
 
-function extendMobileMerchTravel() {
+function getMerchProgress() {
+  const spans = Array.from(document.querySelectorAll('.scroll-hint span'));
+  const first = spans[0]?.textContent || '';
+  const last = spans.at(-1)?.textContent || '0%';
+  if (!first.includes('MERCH')) return null;
+  const percent = Number.parseFloat(last.replace('%', '')) || 0;
+  return Math.min(Math.max(percent / 100, 0), 1);
+}
+
+function forceMobileMerchTravel() {
   const isMobile = window.matchMedia('(max-width: 900px)').matches;
   const merchSection = Array.from(document.querySelectorAll('.segment')).find((item) => item.querySelector('h1')?.textContent?.trim() === 'A full collection on the line.');
   const track = merchSection?.querySelector('.hanger-track');
+  const progress = getMerchProgress();
 
-  if (!isMobile || !merchSection?.classList.contains('is-active') || !track) {
-    requestAnimationFrame(extendMobileMerchTravel);
-    return;
+  if (isMobile && merchSection?.classList.contains('is-active') && track && progress !== null) {
+    const rail = merchSection.querySelector('.hanger-rail-wrap');
+    const railWidth = rail?.getBoundingClientRect().width || window.innerWidth;
+    const trackWidth = track.scrollWidth || track.getBoundingClientRect().width || railWidth * 3;
+    const startX = window.innerWidth * 0.58;
+    const endX = Math.min(window.innerWidth * 0.06, railWidth - trackWidth - window.innerWidth * 0.06);
+    const eased = progress < 0.5 ? 2 * progress * progress : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+    const x = startX + (endX - startX) * eased;
+    track.style.setProperty('transform', `translate3d(${x}px, 0, 0)`, 'important');
   }
 
-  const percentText = Array.from(document.querySelectorAll('.scroll-hint span')).at(-1)?.textContent || '0%';
-  const percent = Number.parseFloat(percentText.replace('%', '')) || 0;
-  const progress = Math.min(Math.max(percent / 100, 0), 1);
-  const startX = window.innerWidth * 0.3;
-  const endX = window.innerWidth * -2.3;
-  const x = startX + (endX - startX) * progress;
-
-  track.style.transform = `translateX(${x}px)`;
-  requestAnimationFrame(extendMobileMerchTravel);
+  requestAnimationFrame(forceMobileMerchTravel);
 }
 
 const observer = new MutationObserver(addSectionButtons);
 observer.observe(document.documentElement, { childList: true, subtree: true });
 window.addEventListener('load', addSectionButtons);
 requestAnimationFrame(addSectionButtons);
-requestAnimationFrame(extendMobileMerchTravel);
+requestAnimationFrame(forceMobileMerchTravel);
 setTimeout(addSectionButtons, 500);
