@@ -296,6 +296,8 @@ function App() {
   const activeRef = useRef(0);
   const progressRef = useRef(0);
   const lock = useRef(false);
+  const touchStart = useRef(null);
+  const touchLast = useRef(null);
 
   const goTo = (target) => {
     const next = clamp(target, 0, sections.length - 1);
@@ -315,12 +317,11 @@ function App() {
       setFixed(nextActive > 0 || nextProgress > 0.05);
     };
 
-    const onWheel = (event) => {
-      event.preventDefault();
-      if (lock.current) return;
+    const advance = (delta, divisor = 1900) => {
+      if (lock.current || !delta) return;
 
-      const direction = Math.sign(event.deltaY);
-      const amount = clamp(Math.abs(event.deltaY) / 1900, 0.012, 0.065);
+      const direction = Math.sign(delta);
+      const amount = clamp(Math.abs(delta) / divisor, 0.012, 0.065);
       let nextActive = activeRef.current;
       let nextProgress = progressRef.current + amount * direction;
 
@@ -349,6 +350,31 @@ function App() {
       update(nextActive, clamp(nextProgress, 0, 1));
     };
 
+    const onWheel = (event) => {
+      event.preventDefault();
+      advance(event.deltaY, 1900);
+    };
+
+    const onTouchStart = (event) => {
+      const touch = event.touches[0];
+      touchStart.current = touch.clientY;
+      touchLast.current = touch.clientY;
+    };
+
+    const onTouchMove = (event) => {
+      if (touchLast.current === null) return;
+      event.preventDefault();
+      const touch = event.touches[0];
+      const delta = touchLast.current - touch.clientY;
+      touchLast.current = touch.clientY;
+      advance(delta, 620);
+    };
+
+    const onTouchEnd = () => {
+      touchStart.current = null;
+      touchLast.current = null;
+    };
+
     const onKeyDown = (event) => {
       if (['ArrowDown', 'PageDown', ' '].includes(event.key)) {
         event.preventDefault();
@@ -363,11 +389,19 @@ function App() {
     };
 
     window.addEventListener('wheel', onWheel, { passive: false });
+    window.addEventListener('touchstart', onTouchStart, { passive: false });
+    window.addEventListener('touchmove', onTouchMove, { passive: false });
+    window.addEventListener('touchend', onTouchEnd);
+    window.addEventListener('touchcancel', onTouchEnd);
     window.addEventListener('keydown', onKeyDown);
     document.body.classList.add('no-scroll');
 
     return () => {
       window.removeEventListener('wheel', onWheel);
+      window.removeEventListener('touchstart', onTouchStart);
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onTouchEnd);
+      window.removeEventListener('touchcancel', onTouchEnd);
       window.removeEventListener('keydown', onKeyDown);
       document.body.classList.remove('no-scroll');
     };
