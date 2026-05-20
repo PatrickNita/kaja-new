@@ -12,10 +12,10 @@ const sections = [
   {
     label: 'INTRO',
     eyebrow: '01 / Intro',
-    title: 'A sharper way to present KAJA.',
-    copy: 'A focused opening scene built around motion, restraint, and a premium product rhythm.',
+    title: 'INTRO',
+    copy: 'A scroll-driven KAJA product sequence with frame-by-frame motion and a fluid spring scale.',
     accent: 'Intro',
-    shape: 'panel'
+    shape: 'intro'
   },
   {
     label: 'STRENGTH',
@@ -238,6 +238,26 @@ function Navigation({ active, fixed, goTo }) {
   );
 }
 
+function IntroVisual({ progress, rawProgress }) {
+  const scale = useTransform(progress, [0, 0.55, 1], [0.965, 1.07, 0.985]);
+  const y = useTransform(progress, [0, 1], ['3vh', '-2vh']);
+  const frameIndex = Math.min(20, Math.max(1, Math.floor(rawProgress * 19) + 1));
+  const frameSrc = `/intro-frames/frame-${String(frameIndex).padStart(2, '0')}.webp`;
+
+  useEffect(() => {
+    for (let index = 1; index <= 20; index += 1) {
+      const image = new Image();
+      image.src = `/intro-frames/frame-${String(index).padStart(2, '0')}.webp`;
+    }
+  }, []);
+
+  return (
+    <motion.div className="intro-sequence" style={{ scale, y }}>
+      <img src={frameSrc} alt="KAJA intro animation frame" draggable="false" />
+    </motion.div>
+  );
+}
+
 function ProductVisual({ type, progress, index }) {
   const y = useTransform(progress, [0, 1], ['8vh', '-10vh']);
   const scale = useTransform(progress, [0, 0.55, 1], [0.92, 1.06, 0.94]);
@@ -309,6 +329,7 @@ function Segment({ section, index, active, rawProgress, isMobile }) {
   const counterY = useTransform(spring, [0, 1], isMobile ? ['0.5vh', '-1.5vh'] : ['2vh', '-5vh']);
   const gridOpacity = useTransform(spring, [0, 1], [0.32, 1]);
   const gridY = useTransform(spring, [0, 1], isMobile ? ['0.6vh', '-0.6vh'] : ['2vh', '-2vh']);
+  const isIntroSection = section.shape === 'intro';
   const isHangerSection = section.shape === 'hanger';
   const isContactSection = section.shape === 'contact';
 
@@ -317,7 +338,7 @@ function Segment({ section, index, active, rawProgress, isMobile }) {
   }, [rawProgress, progress]);
 
   return (
-    <section className={`segment ${active ? 'is-active' : ''} ${isHangerSection ? 'is-hanger-section' : ''} ${isContactSection ? 'is-contact-section' : ''}`} aria-hidden={!active}>
+    <section className={`segment ${active ? 'is-active' : ''} ${isIntroSection ? 'is-intro-section' : ''} ${isHangerSection ? 'is-hanger-section' : ''} ${isContactSection ? 'is-contact-section' : ''}`} aria-hidden={!active}>
       <div className="segment-backdrop">
         <motion.div className="grid-mask" style={{ opacity: gridOpacity, y: gridY }} />
       </div>
@@ -329,7 +350,9 @@ function Segment({ section, index, active, rawProgress, isMobile }) {
           <motion.span style={{ scaleX: spring }} />
         </div>
       </div>
-      {isHangerSection ? (
+      {isIntroSection ? (
+        <IntroVisual progress={spring} rawProgress={rawProgress} />
+      ) : isHangerSection ? (
         <HangerVisual progress={spring} />
       ) : isContactSection ? (
         <ContactVisual progress={spring} />
