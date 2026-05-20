@@ -4,7 +4,8 @@ contactSocialStyle.textContent = `
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
-  margin-top: 18px;
+  margin-top: clamp(18px, 3vh, 34px);
+  width: min(100%, 560px);
 }
 
 .kaja-contact-social-button {
@@ -14,22 +15,23 @@ contactSocialStyle.textContent = `
   gap: 9px;
   height: 54px;
   min-width: 0;
-  border: 1px solid rgba(255,255,255,0.14);
-  border-radius: 18px;
-  background: rgba(0,0,0,0.42);
-  color: rgba(255,255,255,0.88);
+  border: 1px solid rgba(255,255,255,0.22);
+  border-radius: 999px;
+  background: rgba(255,255,255,0.94);
+  color: #000;
   text-decoration: none;
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 850;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   font-family: inherit;
+  box-shadow: 0 20px 55px rgba(0,0,0,0.28);
   transition: background 0.35s ease, border-color 0.35s ease, transform 0.35s ease;
 }
 
 .kaja-contact-social-button:hover {
-  background: rgba(255,255,255,0.12);
-  border-color: rgba(255,255,255,0.3);
+  background: #fff;
+  border-color: rgba(255,255,255,0.36);
   transform: translateY(-2px);
 }
 
@@ -47,12 +49,13 @@ contactSocialStyle.textContent = `
 @media (max-width: 900px) {
   .kaja-contact-socials {
     gap: 8px;
-    margin-top: 10px;
+    margin-top: 13px;
+    width: 100%;
   }
 
   .kaja-contact-social-button {
-    height: 42px;
-    border-radius: 12px;
+    height: 40px;
+    border-radius: 999px;
     gap: 5px;
     font-size: 0;
     letter-spacing: 0;
@@ -94,10 +97,10 @@ const contactSocials = [
 ];
 
 function addContactSocialButtons() {
-  const form = document.querySelector('.kaja-contact-form');
-  if (!form || form.querySelector('.kaja-contact-socials')) return;
+  const contactSection = Array.from(document.querySelectorAll('.segment')).find((item) => item.querySelector('h1')?.textContent?.trim() === 'Start the conversation.');
+  const content = contactSection?.querySelector('.segment-content');
+  if (!content || content.querySelector('.kaja-contact-socials')) return;
 
-  const submitButton = form.querySelector('button[type="submit"]');
   const row = document.createElement('div');
   row.className = 'kaja-contact-socials';
   row.setAttribute('aria-label', 'Contact channels');
@@ -121,11 +124,7 @@ function addContactSocialButtons() {
     row.appendChild(link);
   });
 
-  if (submitButton) {
-    form.insertBefore(row, submitButton);
-  } else {
-    form.appendChild(row);
-  }
+  content.appendChild(row);
 }
 
 const contactSocialObserver = new MutationObserver(addContactSocialButtons);
