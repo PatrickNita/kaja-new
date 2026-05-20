@@ -10,18 +10,18 @@ main,
 
 footer {
   justify-content: flex-end !important;
-  padding-top: max(24px, 5dvh) !important;
-  padding-bottom: max(110px, calc(16dvh + env(safe-area-inset-bottom))) !important;
+  padding-top: max(20px, 4dvh) !important;
+  padding-bottom: max(44px, calc(6dvh + env(safe-area-inset-bottom))) !important;
 }
 
 @media (max-width: 900px) {
   footer {
-    padding-bottom: max(128px, calc(22dvh + env(safe-area-inset-bottom))) !important;
+    padding-bottom: max(58px, calc(8dvh + env(safe-area-inset-bottom))) !important;
   }
 }
 
 @media (max-height: 700px) and (max-width: 900px) {
   footer {
-    padding-bottom: max(96px, calc(18dvh + env(safe-area-inset-bottom))) !important;
+    padding-bottom: max(48px, calc(7dvh + env(safe-area-inset-bottom))) !important;
   }
 }
