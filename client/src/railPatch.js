@@ -39,11 +39,11 @@ patchStyle.textContent = `
   align-self: center;
   display: flex;
   flex-direction: column;
-  width: min(48vw, 590px);
-  min-height: 290px;
-  padding: clamp(24px, 3.2vw, 40px);
+  width: min(54vw, 700px);
+  min-height: 350px;
+  padding: clamp(34px, 4.1vw, 58px);
   border: 1px solid rgba(255,255,255,0.16);
-  border-radius: clamp(22px, 3vw, 34px);
+  border-radius: clamp(24px, 3.2vw, 38px);
   background: linear-gradient(145deg, rgba(255,255,255,0.14), rgba(255,255,255,0.04));
   box-shadow: 0 52px 120px rgba(0,0,0,0.64), inset 0 0 70px rgba(255,255,255,0.035);
   backdrop-filter: blur(18px);
@@ -51,23 +51,23 @@ patchStyle.textContent = `
   will-change: transform, min-height, padding, background;
 }
 .kaja-contact-label {
-  margin: 0 0 14px;
+  margin: 0 0 18px;
   color: rgba(255,255,255,0.58);
   text-transform: uppercase;
   letter-spacing: 0.18em;
-  font-size: 12px;
+  font-size: 13px;
 }
 .kaja-contact-form input,
 .kaja-contact-form select {
   width: 100%;
   border: 1px solid rgba(255,255,255,0.14);
-  border-radius: 16px;
+  border-radius: 18px;
   background: rgba(0,0,0,0.42);
   color: #fff;
-  padding: 14px 16px;
-  font-size: 14px;
+  padding: 17px 19px;
+  font-size: 15px;
   outline: none;
-  margin-top: 12px;
+  margin-top: 15px;
   font-family: inherit;
   transition: border-color 0.25s ease, background 0.25s ease;
 }
@@ -75,10 +75,10 @@ patchStyle.textContent = `
   appearance: none;
   -webkit-appearance: none;
   background-image: linear-gradient(45deg, transparent 50%, rgba(255,255,255,0.72) 50%), linear-gradient(135deg, rgba(255,255,255,0.72) 50%, transparent 50%);
-  background-position: calc(100% - 21px) 52%, calc(100% - 15px) 52%;
-  background-size: 6px 6px, 6px 6px;
+  background-position: calc(100% - 23px) 52%, calc(100% - 16px) 52%;
+  background-size: 7px 7px, 7px 7px;
   background-repeat: no-repeat;
-  padding-right: 42px;
+  padding-right: 46px;
 }
 .kaja-contact-form select option {
   color: #fff;
@@ -91,12 +91,12 @@ patchStyle.textContent = `
 }
 .kaja-contact-form button {
   width: 100%;
-  margin-top: 14px;
+  margin-top: 18px;
   border: 0;
   border-radius: 999px;
   background: #fff;
   color: #000;
-  padding: 14px 18px;
+  padding: 17px 20px;
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.16em;
@@ -273,7 +273,7 @@ function ensureContactForm() {
 }
 
 const merchMotion = { current: 0, target: 0 };
-const contactMotion = { scale: 0.98, height: 0, darkness: 0, targetScale: 0.98, targetHeight: 0, targetDarkness: 0 };
+const contactMotion = { scale: 1, height: 0, darkness: 0, targetScale: 1, targetHeight: 0, targetDarkness: 0 };
 
 function moveMobileMerchTrack() {
   const isMobile = window.matchMedia('(max-width: 900px)').matches;
@@ -303,8 +303,8 @@ function growContactForm() {
   const progress = getProgressForLabel('CONTACT');
 
   if (contactSection?.classList.contains('is-active') && form && progress !== null) {
-    contactMotion.targetScale = 0.98 + progress * 0.045;
-    contactMotion.targetHeight = progress * 18;
+    contactMotion.targetScale = 1 + progress * 0.035;
+    contactMotion.targetHeight = progress * 16;
     contactMotion.targetDarkness = progress;
 
     contactMotion.scale += (contactMotion.targetScale - contactMotion.scale) * 0.12;
@@ -316,9 +316,9 @@ function growContactForm() {
     const blackAlpha = 0.42 + contactMotion.darkness * 0.16;
 
     form.style.transform = `scale(${contactMotion.scale})`;
-    form.style.minHeight = `${290 + contactMotion.height}px`;
-    form.style.paddingTop = `calc(clamp(24px, 3.2vw, 40px) + ${contactMotion.height * 0.25}px)`;
-    form.style.paddingBottom = `calc(clamp(24px, 3.2vw, 40px) + ${contactMotion.height * 0.25}px)`;
+    form.style.minHeight = `${350 + contactMotion.height}px`;
+    form.style.paddingTop = `calc(clamp(34px, 4.1vw, 58px) + ${contactMotion.height * 0.22}px)`;
+    form.style.paddingBottom = `calc(clamp(34px, 4.1vw, 58px) + ${contactMotion.height * 0.22}px)`;
     form.style.background = `linear-gradient(145deg, rgba(255,255,255,${topAlpha}), rgba(255,255,255,${bottomAlpha})), rgba(0,0,0,${blackAlpha})`;
   }
 
