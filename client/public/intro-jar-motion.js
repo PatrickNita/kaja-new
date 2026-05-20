@@ -1,7 +1,7 @@
 const introJarMotionStyle = document.createElement('style');
 introJarMotionStyle.textContent = `
 .is-intro-section .intro-sequence {
-  width: min(36vw, 470px) !important;
+  width: min(44vw, 590px) !important;
   aspect-ratio: 9 / 16 !important;
   border: 0 !important;
   border-radius: 0 !important;
@@ -37,7 +37,7 @@ introJarMotionStyle.textContent = `
 
 @media (max-width: 900px) {
   .is-intro-section .intro-sequence {
-    width: min(68vw, 300px) !important;
+    width: min(82vw, 380px) !important;
     align-self: center !important;
     justify-self: center !important;
   }
@@ -45,7 +45,7 @@ introJarMotionStyle.textContent = `
 
 @media (max-height: 680px) and (max-width: 900px) {
   .is-intro-section .intro-sequence {
-    width: min(55vw, 220px) !important;
+    width: min(68vw, 290px) !important;
   }
 }
 `;
