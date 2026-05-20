@@ -1,10 +1,25 @@
 const catalogueProductDataStyle = document.createElement('style');
 catalogueProductDataStyle.textContent = `
+body > header {
+  z-index: 1000 !important;
+  isolation: isolate !important;
+}
+
+.grid[aria-label="Flavour catalogue"] {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+.grid[aria-label="Flavour catalogue"] .card {
+  z-index: 1 !important;
+  isolation: isolate !important;
+}
+
 .catalogue-ingredient-badges {
   position: absolute !important;
   top: 12px !important;
   left: 12px !important;
-  z-index: 12 !important;
+  z-index: 4 !important;
   display: flex !important;
   flex-wrap: wrap !important;
   gap: 6px !important;
