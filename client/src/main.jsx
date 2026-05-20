@@ -134,11 +134,11 @@ function Navigation({ active, fixed, goTo }) {
 }
 
 function ProductVisual({ type, progress, index }) {
-  const rotate = useTransform(progress, [0, 1], [-22, 18]);
-  const x = useTransform(progress, [0, 1], ['-18vw', '12vw']);
-  const y = useTransform(progress, [0, 1], ['10vh', '-8vh']);
-  const scale = useTransform(progress, [0, 0.55, 1], [0.92, 1.08, 0.92]);
-  const opacity = useTransform(progress, [0, 1], [1, 0.82]);
+  const rotate = useTransform(progress, [0, 1], [-30, 26]);
+  const x = useTransform(progress, [0, 1], ['-24vw', '18vw']);
+  const y = useTransform(progress, [0, 1], ['16vh', '-16vh']);
+  const scale = useTransform(progress, [0, 0.55, 1], [0.88, 1.14, 0.9]);
+  const opacity = useTransform(progress, [0, 0.82, 1], [1, 1, 0.76]);
   const blur = useTransform(progress, [0, 1], ['blur(0px)', 'blur(0px)']);
   const reveal = useTransform(progress, [0, 1], ['inset(0% 0% 0% 0% round 32px)', 'inset(0% 0% 0% 0% round 32px)']);
 
@@ -157,13 +157,19 @@ function ProductVisual({ type, progress, index }) {
 
 function Segment({ section, index, active, rawProgress }) {
   const progress = useMotionValue(rawProgress);
-  const spring = useSpring(progress, { stiffness: 90, damping: 22, mass: 0.6 });
-  const titleY = useTransform(spring, [0, 1], [0, -24]);
+  const spring = useSpring(progress, { stiffness: 76, damping: 24, mass: 0.75 });
+  const titleY = useTransform(spring, [0, 1], [18, -56]);
+  const titleX = useTransform(spring, [0, 1], ['0vw', '-2.8vw']);
   const titleOpacity = useTransform(spring, [0, 1], [1, 1]);
-  const copyY = useTransform(spring, [0, 1], [0, -12]);
-  const accentX = useTransform(spring, [0, 1], ['0%', '8%']);
-  const counterScale = useTransform(spring, [0, 1], [0.92, 1.18]);
-  const gridOpacity = useTransform(spring, [0, 1], [0.35, 1]);
+  const copyY = useTransform(spring, [0, 1], [10, -34]);
+  const copyX = useTransform(spring, [0, 1], ['0vw', '-1.4vw']);
+  const accentX = useTransform(spring, [0, 1], ['-3%', '18%']);
+  const accentY = useTransform(spring, [0, 1], ['2vh', '-4vh']);
+  const counterScale = useTransform(spring, [0, 1], [0.86, 1.3]);
+  const counterY = useTransform(spring, [0, 1], ['3vh', '-7vh']);
+  const gridOpacity = useTransform(spring, [0, 1], [0.32, 1]);
+  const gridX = useTransform(spring, [0, 1], ['-4vw', '4vw']);
+  const gridY = useTransform(spring, [0, 1], ['3vh', '-3vh']);
 
   useEffect(() => {
     progress.set(rawProgress);
@@ -172,19 +178,19 @@ function Segment({ section, index, active, rawProgress }) {
   return (
     <section className={`segment ${active ? 'is-active' : ''}`} aria-hidden={!active}>
       <div className="segment-backdrop">
-        <motion.div className="grid-mask" style={{ opacity: gridOpacity }} />
+        <motion.div className="grid-mask" style={{ opacity: gridOpacity, x: gridX, y: gridY }} />
       </div>
       <div className="segment-content">
-        <motion.p className="eyebrow" style={{ y: copyY, opacity: titleOpacity }}>{section.eyebrow}</motion.p>
-        <motion.h1 style={{ y: titleY, opacity: titleOpacity }}>{section.title}</motion.h1>
-        <motion.p className="copy" style={{ y: copyY, opacity: titleOpacity }}>{section.copy}</motion.p>
+        <motion.p className="eyebrow" style={{ x: copyX, y: copyY, opacity: titleOpacity }}>{section.eyebrow}</motion.p>
+        <motion.h1 style={{ x: titleX, y: titleY, opacity: titleOpacity }}>{section.title}</motion.h1>
+        <motion.p className="copy" style={{ x: copyX, y: copyY, opacity: titleOpacity }}>{section.copy}</motion.p>
         <div className="progress-track">
           <motion.span style={{ scaleX: spring }} />
         </div>
       </div>
       <ProductVisual type={section.shape} progress={spring} index={index} />
-      <motion.div className="huge-accent" style={{ x: accentX }}>{section.accent}</motion.div>
-      <motion.div className="counter" style={{ scale: counterScale }}>{String(index + 1).padStart(2, '0')}</motion.div>
+      <motion.div className="huge-accent" style={{ x: accentX, y: accentY }}>{section.accent}</motion.div>
+      <motion.div className="counter" style={{ y: counterY, scale: counterScale }}>{String(index + 1).padStart(2, '0')}</motion.div>
     </section>
   );
 }
@@ -230,7 +236,7 @@ function App() {
       if (lock.current) return;
 
       const direction = Math.sign(event.deltaY);
-      const amount = clamp(Math.abs(event.deltaY) / 760, 0.035, 0.16);
+      const amount = clamp(Math.abs(event.deltaY) / 1900, 0.012, 0.065);
       let nextActive = activeRef.current;
       let nextProgress = progressRef.current + amount * direction;
 
