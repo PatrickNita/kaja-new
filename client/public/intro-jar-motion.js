@@ -1,7 +1,7 @@
 const introJarMotionStyle = document.createElement('style');
 introJarMotionStyle.textContent = `
 .is-intro-section .intro-sequence {
-  width: min(44vw, 590px) !important;
+  width: min(36vw, 470px) !important;
   aspect-ratio: 9 / 16 !important;
   border: 0 !important;
   border-radius: 0 !important;
@@ -15,7 +15,7 @@ introJarMotionStyle.textContent = `
 .is-intro-section .intro-sequence::before {
   content: '' !important;
   position: absolute !important;
-  inset: 0 !important;
+  inset: -10% !important;
   background-image: url('/intro-jar.webp') !important;
   background-size: contain !important;
   background-position: center !important;
@@ -37,15 +37,19 @@ introJarMotionStyle.textContent = `
 
 @media (max-width: 900px) {
   .is-intro-section .intro-sequence {
-    width: min(82vw, 380px) !important;
+    width: min(68vw, 300px) !important;
     align-self: center !important;
     justify-self: center !important;
+  }
+
+  .is-intro-section .intro-sequence::before {
+    inset: -9% !important;
   }
 }
 
 @media (max-height: 680px) and (max-width: 900px) {
   .is-intro-section .intro-sequence {
-    width: min(68vw, 290px) !important;
+    width: min(55vw, 220px) !important;
   }
 }
 `;
