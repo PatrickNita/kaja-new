@@ -6,8 +6,7 @@ import logo from './assets/kaja-logo.png';
 import hanger from './assets/hanger.png';
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
-const FOOTER_SCROLL_EXTRA = 0.34;
-const MAX_FINAL_PROGRESS = 1 + FOOTER_SCROLL_EXTRA;
+const FOOTER_INDEX = 6;
 
 const sections = [
   {
@@ -79,41 +78,39 @@ const hangerImageStyle = {
 
 const footerBaseStyle = {
   position: 'absolute',
-  left: 0,
-  right: 0,
-  bottom: 'max(0px, env(safe-area-inset-bottom))',
-  zIndex: 70,
+  inset: 0,
+  zIndex: 80,
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
-  justifyContent: 'center',
-  gap: 'clamp(3px, 0.7vw, 8px)',
-  padding: 'clamp(8px, 1.4vw, 18px) clamp(16px, 4vw, 48px)',
+  justifyContent: 'flex-end',
+  gap: 'clamp(6px, 1vw, 12px)',
+  padding: 'clamp(24px, 5vh, 60px) clamp(16px, 5vw, 64px) calc(clamp(26px, 6vh, 70px) + env(safe-area-inset-bottom))',
   textAlign: 'center',
   color: 'rgba(255,255,255,0.62)',
-  background: 'linear-gradient(180deg, transparent, rgba(0,0,0,0.76) 38%, rgba(0,0,0,0.92))',
+  background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.5) 36%, rgba(0,0,0,0.94) 100%)',
   pointerEvents: 'none',
-  transition: 'opacity 0.2s ease, transform 0.2s ease'
+  transition: 'opacity 0.35s ease, transform 0.35s ease'
 };
 
 const footerNoticeStyle = {
   margin: 0,
-  fontSize: 'clamp(10px, 1.05vw, 13px)',
+  fontSize: 'clamp(12px, 3vw, 18px)',
   lineHeight: 1.25,
-  letterSpacing: '0.18em',
-  fontWeight: 760,
+  letterSpacing: '0.16em',
+  fontWeight: 800,
   textTransform: 'uppercase',
-  color: 'rgba(255,255,255,0.86)'
+  color: 'rgba(255,255,255,0.9)'
 };
 
 const footerDetailsStyle = {
   margin: 0,
   maxWidth: 'min(980px, 92vw)',
-  fontSize: 'clamp(9px, 0.85vw, 11px)',
-  lineHeight: 1.45,
+  fontSize: 'clamp(9px, 2.3vw, 12px)',
+  lineHeight: 1.55,
   letterSpacing: '0.08em',
   textTransform: 'uppercase',
-  color: 'rgba(255,255,255,0.46)'
+  color: 'rgba(255,255,255,0.52)'
 };
 
 function ElasticCursor() {
@@ -172,11 +169,12 @@ function ElasticCursor() {
 
 function Navigation({ active, fixed, goTo }) {
   const navRef = useRef(null);
+  const navActive = Math.min(active, sections.length - 1);
 
   useEffect(() => {
     const activeButton = navRef.current?.querySelector('button.active');
     activeButton?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-  }, [active]);
+  }, [navActive]);
 
   return (
     <header className={`top-nav ${fixed ? 'is-fixed' : ''}`}>
@@ -187,7 +185,7 @@ function Navigation({ active, fixed, goTo }) {
         {sections.map((section, index) => (
           <button
             key={section.label}
-            className={active === index ? 'active' : ''}
+            className={navActive === index ? 'active' : ''}
             onClick={() => goTo(index)}
           >
             <span>{String(index + 1).padStart(2, '0')}</span>
@@ -280,22 +278,28 @@ function Segment({ section, index, active, rawProgress }) {
 }
 
 function ScrollHint({ active, progress }) {
-  const displayProgress = Math.min(progress, 1);
+  if (active === FOOTER_INDEX) {
+    return (
+      <div className="scroll-hint">
+        <span>Footer</span>
+        <div><i style={{ height: '100%' }} /></div>
+        <span>End</span>
+      </div>
+    );
+  }
+
   return (
     <div className="scroll-hint">
       <span>Segment {active + 1}/6</span>
-      <div><i style={{ height: `${Math.round(displayProgress * 100)}%` }} /></div>
-      <span>{Math.round(displayProgress * 100)}%</span>
+      <div><i style={{ height: `${Math.round(progress * 100)}%` }} /></div>
+      <span>{Math.round(progress * 100)}%</span>
     </div>
   );
 }
 
-function LegalFooter({ footerProgress }) {
-  const opacity = clamp(footerProgress * 1.25, 0, 1);
-  const offset = Math.round((1 - opacity) * 28);
-
+function LegalFooter({ visible }) {
   return (
-    <footer style={{ ...footerBaseStyle, opacity, transform: `translateY(${offset}px)` }}>
+    <footer style={{ ...footerBaseStyle, opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(44px)' }}>
       <p style={footerNoticeStyle}>PAGE IS DESTINATED FOR PEOPLE OF AGE 18+</p>
       <p style={footerDetailsStyle}>KAJA Studio SRL • Strada Atelierului 18, Bucharest • CUI RO48291035 • Trade Registry J40/18422/2026 • contact@kaja.example • Support Monday-Friday 09:00-17:00</p>
     </footer>
@@ -337,32 +341,44 @@ function App() {
       const amount = clamp(Math.abs(delta) / divisor, 0.014, 0.078);
       let nextActive = activeRef.current;
       let nextProgress = progressRef.current + amount * direction;
-      const isFinalSection = nextActive === sections.length - 1;
-      const maxProgress = isFinalSection ? MAX_FINAL_PROGRESS : 1;
+
+      if (direction > 0 && nextActive === sections.length - 1 && progressRef.current >= 1) {
+        update(FOOTER_INDEX, 1);
+        lock.current = true;
+        window.setTimeout(() => { lock.current = false; }, 260);
+        return;
+      }
+
+      if (direction < 0 && nextActive === FOOTER_INDEX) {
+        update(sections.length - 1, 1);
+        lock.current = true;
+        window.setTimeout(() => { lock.current = false; }, 220);
+        return;
+      }
 
       if (nextProgress >= 1) {
         if (nextActive < sections.length - 1) {
           nextActive += 1;
           nextProgress = 0;
-          lock.current = true;
-          window.setTimeout(() => { lock.current = false; }, 300);
         } else {
-          nextProgress = clamp(nextProgress, 1, MAX_FINAL_PROGRESS);
+          nextProgress = 1;
         }
+        lock.current = true;
+        window.setTimeout(() => { lock.current = false; }, 300);
       }
 
       if (nextProgress <= 0) {
         if (nextActive > 0 && direction < 0) {
           nextActive -= 1;
           nextProgress = 1;
-          lock.current = true;
-          window.setTimeout(() => { lock.current = false; }, 190);
         } else {
           nextProgress = 0;
         }
+        lock.current = true;
+        window.setTimeout(() => { lock.current = false; }, 190);
       }
 
-      update(nextActive, clamp(nextProgress, 0, maxProgress));
+      update(nextActive, clamp(nextProgress, 0, 1));
     };
 
     const onWheel = (event) => {
@@ -396,7 +412,7 @@ function App() {
       if (['ArrowDown', 'PageDown', ' '].includes(event.key)) {
         event.preventDefault();
         if (activeRef.current === sections.length - 1 && progressRef.current >= 1) {
-          update(activeRef.current, MAX_FINAL_PROGRESS);
+          update(FOOTER_INDEX, 1);
         } else if (progressRef.current < 1) {
           update(activeRef.current, 1);
         } else {
@@ -405,8 +421,8 @@ function App() {
       }
       if (['ArrowUp', 'PageUp'].includes(event.key)) {
         event.preventDefault();
-        if (activeRef.current === sections.length - 1 && progressRef.current > 1) {
-          update(activeRef.current, 1);
+        if (activeRef.current === FOOTER_INDEX) {
+          update(sections.length - 1, 1);
         } else if (progressRef.current > 0) {
           update(activeRef.current, 0);
         } else {
@@ -435,25 +451,25 @@ function App() {
   }, []);
 
   const visibleSections = useMemo(() => sections.map((section, index) => ({ section, index })), []);
-  const footerProgress = active === sections.length - 1 ? clamp((progress - 1) / FOOTER_SCROLL_EXTRA, 0, 1) : 0;
+  const footerVisible = active === FOOTER_INDEX;
 
   return (
     <main>
       <ElasticCursor />
-      <Navigation active={active} fixed={fixed} goTo={goTo} />
+      <Navigation active={active} fixed={fixed || footerVisible} goTo={goTo} />
       <div className="stage">
         {visibleSections.map(({ section, index }) => (
           <Segment
             key={section.label}
             section={section}
             index={index}
-            active={active === index}
-            rawProgress={active === index ? Math.min(progress, 1) : active > index ? 1 : 0}
+            active={footerVisible ? index === sections.length - 1 : active === index}
+            rawProgress={footerVisible ? 1 : active === index ? progress : active > index ? 1 : 0}
           />
         ))}
       </div>
       <ScrollHint active={active} progress={progress} />
-      <LegalFooter footerProgress={footerProgress} />
+      <LegalFooter visible={footerVisible} />
     </main>
   );
 }
