@@ -10,11 +10,10 @@
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",
-    "vite": "latest",
+    "framer-motion": "^12.39.0",
+    "gsap": "latest",
     "react": "latest",
     "react-dom": "latest",
-    "framer-motion": "latest",
-    "gsap": "latest"
-  },
-  "devDependencies": {}
+    "vite": "latest"
+  }
 }
