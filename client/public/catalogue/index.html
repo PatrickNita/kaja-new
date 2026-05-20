@@ -59,7 +59,7 @@
         font-size: 11px;
         letter-spacing: .12em;
         text-transform: uppercase;
-        transition: background .32s ease, color .32s ease, transform .32s ease;
+        transition: background .5s cubic-bezier(.22, 1, .36, 1), color .5s cubic-bezier(.22, 1, .36, 1), transform .5s cubic-bezier(.22, 1, .36, 1);
       }
       .back:hover { background: #fff; color: #000; transform: translateY(-2px); }
       main { padding: clamp(24px, 5vw, 64px); }
@@ -87,11 +87,15 @@
         border-radius: 28px;
         background: linear-gradient(145deg, rgba(255,255,255,.13), rgba(255,255,255,.035));
         display: flex;
-        align-items: center;
+        align-items: flex-end;
         justify-content: center;
-        padding: 22px;
+        padding: clamp(16px, 2vw, 24px);
         box-shadow: 0 34px 90px rgba(0,0,0,.42), inset 0 0 60px rgba(255,255,255,.03);
-        transition: background .45s ease, border-color .45s ease, transform .45s ease, box-shadow .45s ease;
+        transition:
+          background .78s cubic-bezier(.22, 1, .36, 1),
+          border-color .78s cubic-bezier(.22, 1, .36, 1),
+          transform .78s cubic-bezier(.22, 1, .36, 1),
+          box-shadow .78s cubic-bezier(.22, 1, .36, 1);
       }
       .card:hover {
         background: linear-gradient(145deg, rgba(255,255,255,.23), rgba(255,255,255,.075));
@@ -101,21 +105,28 @@
       }
       .card strong {
         display: block;
-        max-width: 86%;
+        max-width: 90%;
+        margin-bottom: clamp(2px, .7vw, 10px);
         text-align: center;
-        font-size: clamp(15px, 1.65vw, 22px);
-        line-height: 1.12;
-        letter-spacing: .08em;
+        font-size: clamp(10px, 1vw, 14px);
+        line-height: 1.18;
+        letter-spacing: .12em;
         text-transform: uppercase;
-        font-weight: 700;
-        color: rgba(255,255,255,.86);
+        font-weight: 650;
+        color: rgba(255,255,255,.78);
+        transition: color .78s cubic-bezier(.22, 1, .36, 1), transform .78s cubic-bezier(.22, 1, .36, 1);
+      }
+      .card:hover strong {
+        color: rgba(255,255,255,.94);
+        transform: translateY(-2px);
       }
       @media (max-width: 700px) {
         :root, body, a, button, .card { cursor: auto; }
         .cursor-ring, .cursor-dot { display: none; }
         header { align-items: flex-start; flex-direction: column; }
         main { padding-bottom: calc(34px + env(safe-area-inset-bottom)); }
-        .card { border-radius: 22px; padding: 18px; }
+        .card { border-radius: 22px; padding: 16px; }
+        .card strong { font-size: 10px; letter-spacing: .1em; }
       }
     </style>
   </head>
