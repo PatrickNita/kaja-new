@@ -1,0 +1,21 @@
+h1 {
+  letter-spacing: -0.018em !important;
+}
+
+@media (min-width: 901px) {
+  .segment-content h1 {
+    font-size: clamp(36px, 5.1vw, 82px) !important;
+    letter-spacing: -0.012em !important;
+  }
+
+  body > main > h1 {
+    font-size: clamp(38px, 8vw, 108px) !important;
+    letter-spacing: -0.018em !important;
+  }
+}
+
+@media (max-width: 900px) {
+  h1 {
+    letter-spacing: -0.01em !important;
+  }
+}
