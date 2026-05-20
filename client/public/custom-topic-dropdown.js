@@ -11,143 +11,151 @@ topicDropdownStyle.textContent = `
 }
 
 .kaja-topic-dropdown {
-  position: relative;
-  width: 100%;
-  margin-top: 15px;
-  font-family: inherit;
-  z-index: 20;
+  position: relative !important;
+  width: 100% !important;
+  margin-top: 15px !important;
+  font-family: inherit !important;
+  z-index: 20 !important;
 }
 
-.kaja-topic-trigger {
-  width: 100%;
-  min-height: 0;
-  height: auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  border: 1px solid rgba(255,255,255,0.14);
-  border-radius: 18px;
-  background: rgba(0,0,0,0.42);
-  color: rgba(255,255,255,0.72);
-  padding: 17px 19px;
-  font-size: 15px;
-  line-height: 1.2;
-  outline: none;
-  font-family: inherit;
-  text-align: left;
-  cursor: none;
-  transition: border-color 0.25s ease, background 0.25s ease, color 0.25s ease;
+.kaja-contact-form .kaja-topic-trigger {
+  width: 100% !important;
+  min-height: 0 !important;
+  height: auto !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 14px !important;
+  margin: 0 !important;
+  border: 1px solid rgba(255,255,255,0.14) !important;
+  border-radius: 18px !important;
+  background: rgba(0,0,0,0.42) !important;
+  color: rgba(255,255,255,0.72) !important;
+  padding: 17px 19px !important;
+  font-size: 15px !important;
+  line-height: 1.2 !important;
+  font-weight: 400 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  outline: none !important;
+  font-family: inherit !important;
+  text-align: left !important;
+  cursor: none !important;
+  box-shadow: none !important;
+  transition: border-color 0.25s ease, background 0.25s ease, color 0.25s ease !important;
 }
 
-.kaja-topic-trigger:hover,
-.kaja-topic-dropdown.is-open .kaja-topic-trigger {
-  border-color: rgba(255,255,255,0.34);
-  background: rgba(0,0,0,0.56);
-  color: #fff;
+.kaja-contact-form .kaja-topic-trigger:hover,
+.kaja-contact-form .kaja-topic-dropdown.is-open .kaja-topic-trigger {
+  border-color: rgba(255,255,255,0.34) !important;
+  background: rgba(0,0,0,0.56) !important;
+  color: #fff !important;
+  transform: none !important;
 }
 
 .kaja-topic-trigger span:first-child {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+  text-overflow: ellipsis !important;
 }
 
 .kaja-topic-arrow {
-  width: 7px;
-  height: 7px;
-  border-right: 1.5px solid rgba(255,255,255,0.72);
-  border-bottom: 1.5px solid rgba(255,255,255,0.72);
-  transform: rotate(45deg) translateY(-2px);
-  transition: transform 0.25s ease;
-  flex: 0 0 auto;
+  width: 7px !important;
+  height: 7px !important;
+  border-right: 1.5px solid rgba(255,255,255,0.72) !important;
+  border-bottom: 1.5px solid rgba(255,255,255,0.72) !important;
+  transform: rotate(45deg) translateY(-2px) !important;
+  transition: transform 0.25s ease !important;
+  flex: 0 0 auto !important;
 }
 
 .kaja-topic-dropdown.is-open .kaja-topic-arrow {
-  transform: rotate(225deg) translateY(-2px);
+  transform: rotate(225deg) translateY(-2px) !important;
 }
 
 .kaja-topic-menu {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: calc(100% + 6px);
-  display: grid;
-  gap: 5px;
-  padding: 6px;
-  border: 1px solid rgba(255,255,255,0.14);
-  border-radius: 18px;
-  background: rgba(5,5,5,0.94);
-  box-shadow: 0 22px 60px rgba(0,0,0,0.58), inset 0 0 36px rgba(255,255,255,0.02);
-  backdrop-filter: blur(18px);
-  opacity: 0;
-  transform: translateY(-6px) scale(0.985);
-  pointer-events: none;
-  transition: opacity 0.22s ease, transform 0.22s ease;
+  position: absolute !important;
+  left: 0 !important;
+  right: 0 !important;
+  top: calc(100% + 6px) !important;
+  display: grid !important;
+  gap: 5px !important;
+  padding: 6px !important;
+  border: 1px solid rgba(255,255,255,0.14) !important;
+  border-radius: 18px !important;
+  background: rgba(5,5,5,0.94) !important;
+  box-shadow: 0 22px 60px rgba(0,0,0,0.58), inset 0 0 36px rgba(255,255,255,0.02) !important;
+  backdrop-filter: blur(18px) !important;
+  opacity: 0 !important;
+  transform: translateY(-6px) scale(0.985) !important;
+  pointer-events: none !important;
+  transition: opacity 0.22s ease, transform 0.22s ease !important;
 }
 
 .kaja-topic-dropdown.is-open .kaja-topic-menu {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-  pointer-events: auto;
+  opacity: 1 !important;
+  transform: translateY(0) scale(1) !important;
+  pointer-events: auto !important;
 }
 
-.kaja-topic-option {
-  width: 100%;
-  min-height: 0;
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 13px;
-  background: rgba(255,255,255,0.04);
-  color: rgba(255,255,255,0.82);
-  padding: 12px 14px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.075em;
-  text-transform: uppercase;
-  text-align: left;
-  font-family: inherit;
-  cursor: none;
-  transition: background 0.22s ease, border-color 0.22s ease, color 0.22s ease, transform 0.22s ease;
+.kaja-contact-form .kaja-topic-option {
+  width: 100% !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  border-radius: 13px !important;
+  background: rgba(255,255,255,0.04) !important;
+  color: rgba(255,255,255,0.82) !important;
+  padding: 12px 14px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.075em !important;
+  text-transform: uppercase !important;
+  text-align: left !important;
+  font-family: inherit !important;
+  cursor: none !important;
+  box-shadow: none !important;
+  transition: background 0.22s ease, border-color 0.22s ease, color 0.22s ease, transform 0.22s ease !important;
 }
 
-.kaja-topic-option:hover,
-.kaja-topic-option.is-selected {
-  background: rgba(255,255,255,0.11);
-  border-color: rgba(255,255,255,0.22);
-  color: #fff;
-  transform: translateY(-1px);
+.kaja-contact-form .kaja-topic-option:hover,
+.kaja-contact-form .kaja-topic-option.is-selected {
+  background: rgba(255,255,255,0.11) !important;
+  border-color: rgba(255,255,255,0.22) !important;
+  color: #fff !important;
+  transform: translateY(-1px) !important;
 }
 
 @media (max-width: 900px) {
   .kaja-topic-dropdown {
-    margin-top: 8px;
+    margin-top: 8px !important;
   }
 
-  .kaja-topic-trigger {
-    border-radius: 12px;
-    padding: 10px 12px;
-    font-size: 12px;
-    cursor: auto;
+  .kaja-contact-form .kaja-topic-trigger {
+    border-radius: 12px !important;
+    padding: 10px 12px !important;
+    font-size: 12px !important;
+    cursor: auto !important;
   }
 
   .kaja-topic-arrow {
-    width: 6px;
-    height: 6px;
-    border-width: 1.5px;
+    width: 6px !important;
+    height: 6px !important;
+    border-width: 1.5px !important;
   }
 
   .kaja-topic-menu {
-    border-radius: 12px;
-    gap: 4px;
-    padding: 5px;
-    top: calc(100% + 5px);
+    border-radius: 12px !important;
+    gap: 4px !important;
+    padding: 5px !important;
+    top: calc(100% + 5px) !important;
   }
 
-  .kaja-topic-option {
-    border-radius: 9px;
-    padding: 9px 11px;
-    font-size: 10px;
-    cursor: auto;
+  .kaja-contact-form .kaja-topic-option {
+    border-radius: 9px !important;
+    padding: 9px 11px !important;
+    font-size: 10px !important;
+    cursor: auto !important;
   }
 }
 `;
