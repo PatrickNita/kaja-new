@@ -327,6 +327,124 @@ h1 {
   mix-blend-mode: difference;
 }
 
+.hanger-scene {
+  position: relative;
+  z-index: 4;
+  align-self: stretch;
+  justify-self: stretch;
+  min-height: 58vh;
+  overflow: visible;
+}
+
+.hanger-rail-wrap {
+  position: absolute;
+  inset: 12vh -10vw auto -8vw;
+  height: 430px;
+}
+
+.hanger-rail {
+  position: absolute;
+  top: 34px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.22), #fff, rgba(255,255,255,0.22), transparent);
+  box-shadow: 0 0 36px rgba(255,255,255,0.14);
+}
+
+.hanger-track {
+  position: absolute;
+  top: 34px;
+  left: 0;
+  display: flex;
+  gap: 54px;
+  width: max-content;
+  padding: 0 14vw;
+  will-change: transform;
+}
+
+.hanger-object {
+  position: relative;
+  width: 220px;
+  height: 330px;
+  display: grid;
+  justify-items: center;
+}
+
+.hanger-hook {
+  width: 1px;
+  height: 66px;
+  background: rgba(255,255,255,0.72);
+  display: block;
+}
+
+.hanger-hook::before {
+  content: '';
+  position: absolute;
+  top: -13px;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(255,255,255,0.72);
+  border-bottom-color: transparent;
+  border-left-color: transparent;
+  border-radius: 999px;
+  transform: translateX(-50%) rotate(-28deg);
+}
+
+.hanger-card {
+  width: 220px;
+  height: 250px;
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 28px;
+  background: linear-gradient(155deg, rgba(255,255,255,0.16), rgba(255,255,255,0.035));
+  box-shadow: 0 38px 100px rgba(0,0,0,0.58), inset 0 0 60px rgba(255,255,255,0.04);
+  display: grid;
+  place-items: center;
+  padding: 26px;
+  text-align: center;
+}
+
+.hanger-card img {
+  width: 68%;
+  height: auto;
+  object-fit: contain;
+}
+
+.hanger-card strong {
+  position: absolute;
+  left: 22px;
+  bottom: 20px;
+  color: rgba(255,255,255,0.44);
+  font-size: 34px;
+  letter-spacing: -0.08em;
+}
+
+.hanger-card em {
+  position: absolute;
+  right: 22px;
+  top: 22px;
+  color: rgba(255,255,255,0.58);
+  font-style: normal;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  writing-mode: vertical-rl;
+}
+
+.hanger-object-2,
+.hanger-object-5 {
+  margin-top: 34px;
+}
+
+.hanger-object-3 {
+  margin-top: -18px;
+}
+
+.hanger-object-4,
+.hanger-object-6 {
+  margin-top: 16px;
+}
+
 .huge-accent {
   position: absolute;
   z-index: 2;
@@ -434,6 +552,39 @@ h1 {
     width: 88vw;
     height: 34vh;
     justify-self: start;
+  }
+
+  .hanger-scene {
+    min-height: 38vh;
+  }
+
+  .hanger-rail-wrap {
+    inset: 2vh -30vw auto -30vw;
+    height: 300px;
+  }
+
+  .hanger-track {
+    gap: 28px;
+    padding: 0 28vw;
+  }
+
+  .hanger-object {
+    width: 150px;
+    height: 245px;
+  }
+
+  .hanger-hook {
+    height: 46px;
+  }
+
+  .hanger-card {
+    width: 150px;
+    height: 180px;
+    border-radius: 22px;
+  }
+
+  .hanger-card strong {
+    font-size: 24px;
   }
 
   .scroll-hint {
