@@ -8,9 +8,11 @@ introJarStyle.textContent=`
 document.head.appendChild(introJarStyle);
 const clamp=(v,a,b)=>Math.min(Math.max(v,a),b);
 const smooth=v=>v*v*(3-2*v);
+const motion={introScale:1.12,introY:0,visualScale:1.12,visualY:8};
 function activeLabel(){return document.querySelector('.scroll-hint span')?.textContent||''}
 function percent(){const spans=[...document.querySelectorAll('.scroll-hint span')];const t=spans.at(-1)?.textContent||'0%';const m=t.match(/(\d+)%/);return clamp(m?Number(m[1])/100:0,0,1)}
-function transformFor(p){const grow=smooth(clamp(p/.65,0,1));const shrink=smooth(clamp((p-.65)/.35,0,1));return{scale:1.12+grow*.26-shrink*.34,y:shrink*10}}
+function transformFor(p){const grow=smooth(clamp(p/.65,0,1));const shrink=smooth(clamp((p-.65)/.35,0,1));return{scale:1.12+grow*.26-shrink*.34,y:shrink*4.2}}
 function ensureIntro(){const section=document.querySelector('.is-intro-section');if(!section)return null;let visual=section.querySelector('.intro-jar-clean');if(visual)return visual;visual=document.createElement('div');visual.className='intro-jar-clean';const img=document.createElement('img');img.src='/intro-jar.webp';img.alt='KAJA intro jar';img.draggable=false;visual.appendChild(img);section.appendChild(visual);return visual}
-function tick(){const label=activeLabel();const p=percent();if(label.includes('INTRO')){const visual=ensureIntro();const img=visual?.querySelector('img');if(img){const t=transformFor(p);img.style.setProperty('transform',`translate3d(0,${t.y}vh,0) scale(${t.scale})`,'important')}}else{const visual=document.querySelector('.segment.is-active .visual');if(visual){const t=transformFor(p);visual.style.setProperty('transform',`translateY(${8-(18*p)}vh) scale(${t.scale})`,'important')}}requestAnimationFrame(tick)}
+function spring(current,target,amount){return current+(target-current)*amount}
+function tick(){const label=activeLabel();const p=percent();if(label.includes('INTRO')){const visual=ensureIntro();const img=visual?.querySelector('img');if(img){const t=transformFor(p);motion.introScale=spring(motion.introScale,t.scale,.18);motion.introY=spring(motion.introY,t.y,.16);img.style.setProperty('transform',`translate3d(0,${motion.introY}vh,0) scale(${motion.introScale})`,'important')}}else{const visual=document.querySelector('.segment.is-active .visual');if(visual){const t=transformFor(p);const targetY=8-(18*p);motion.visualScale=spring(motion.visualScale,t.scale,.18);motion.visualY=spring(motion.visualY,targetY,.16);visual.style.setProperty('transform',`translateY(${motion.visualY}vh) scale(${motion.visualScale})`,'important')}}requestAnimationFrame(tick)}
 requestAnimationFrame(tick);
