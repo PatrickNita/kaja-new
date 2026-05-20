@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>KAJA Catalogue</title>
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100dvh;
+        background: radial-gradient(circle at 20% 10%, rgba(255,255,255,.08), transparent 30%), #000;
+        color: #fff;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: clamp(18px, 4vw, 42px);
+        background: rgba(0,0,0,.72);
+        backdrop-filter: blur(16px);
+        border-bottom: 1px solid rgba(255,255,255,.1);
+      }
+      a { color: inherit; text-decoration: none; }
+      .back {
+        border: 1px solid rgba(255,255,255,.18);
+        border-radius: 999px;
+        padding: 10px 14px;
+        font-size: 11px;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+      }
+      main { padding: clamp(24px, 5vw, 64px); }
+      h1 {
+        margin: 0;
+        font-size: clamp(42px, 9vw, 124px);
+        line-height: .9;
+        letter-spacing: -.07em;
+      }
+      .lead {
+        max-width: 720px;
+        margin: 18px 0 42px;
+        color: rgba(255,255,255,.62);
+        font-size: clamp(15px, 2vw, 22px);
+        line-height: 1.5;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+        gap: clamp(14px, 2vw, 24px);
+      }
+      .card {
+        aspect-ratio: 1 / 1;
+        border: 1px solid rgba(255,255,255,.14);
+        border-radius: 28px;
+        background: linear-gradient(145deg, rgba(255,255,255,.13), rgba(255,255,255,.035));
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 22px;
+        box-shadow: 0 34px 90px rgba(0,0,0,.42), inset 0 0 60px rgba(255,255,255,.03);
+      }
+      .card span {
+        color: rgba(255,255,255,.44);
+        font-size: 13px;
+        letter-spacing: .16em;
+        text-transform: uppercase;
+      }
+      .card strong {
+        font-size: clamp(22px, 3vw, 34px);
+        line-height: 1;
+        letter-spacing: -.04em;
+      }
+      @media (max-width: 700px) {
+        header { align-items: flex-start; flex-direction: column; }
+        main { padding-bottom: calc(34px + env(safe-area-inset-bottom)); }
+        .card { border-radius: 22px; padding: 18px; }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <a class="back" href="/">← Back to KAJA</a>
+      <span style="color:rgba(255,255,255,.48);font-size:12px;letter-spacing:.16em;text-transform:uppercase">Catalogue</span>
+    </header>
+    <main>
+      <h1>Catalogue</h1>
+      <p class="lead">Same-size flavour boxes. Replace the placeholders below with your final flavour names, images, and product details.</p>
+      <section class="grid" aria-label="Flavour catalogue">
+        <article class="card"><span>Flavor 01</span><strong>Classic Mint</strong></article>
+        <article class="card"><span>Flavor 02</span><strong>Fresh Berry</strong></article>
+        <article class="card"><span>Flavor 03</span><strong>Citrus Ice</strong></article>
+        <article class="card"><span>Flavor 04</span><strong>Vanilla Smoke</strong></article>
+        <article class="card"><span>Flavor 05</span><strong>Dark Cherry</strong></article>
+        <article class="card"><span>Flavor 06</span><strong>Green Apple</strong></article>
+        <article class="card"><span>Flavor 07</span><strong>Polar Grape</strong></article>
+        <article class="card"><span>Flavor 08</span><strong>Peach Frost</strong></article>
+      </section>
+    </main>
+  </body>
+</html>
