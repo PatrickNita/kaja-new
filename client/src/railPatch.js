@@ -29,25 +29,9 @@ patchStyle.textContent = `
     font-size: 10px;
     letter-spacing: 0.1em;
   }
-  .is-hanger-section .hanger-track {
-    gap: 2vw !important;
-    padding-left: 8vw !important;
-    padding-right: 8vw !important;
+  .is-hanger-section.is-active .hanger-track {
     transition: none !important;
     will-change: transform !important;
-  }
-  .is-hanger-section .hanger-object {
-    width: 12vw !important;
-    min-width: 12vw !important;
-    max-width: 12vw !important;
-    height: auto !important;
-    flex: 0 0 12vw !important;
-  }
-  .is-hanger-section .hanger-object img {
-    width: 12vw !important;
-    min-width: 12vw !important;
-    max-width: 12vw !important;
-    height: auto !important;
   }
 }
 `;
@@ -100,9 +84,8 @@ function forceMobileMerchTravel() {
 
   if (isMobile && merchSection?.classList.contains('is-active') && track && progress !== null) {
     const startX = window.innerWidth * 0.78;
-    const endX = window.innerWidth * -0.02;
-    const eased = progress < 0.5 ? 2 * progress * progress : 1 - Math.pow(-2 * progress + 2, 2) / 2;
-    const x = startX + (endX - startX) * eased;
+    const endX = window.innerWidth * -3.1;
+    const x = startX + (endX - startX) * progress;
     track.style.setProperty('transform', `translate3d(${x}px, 0, 0)`, 'important');
   }
 
