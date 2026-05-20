@@ -6,12 +6,37 @@
     <title>KAJA Catalogue</title>
     <style>
       * { box-sizing: border-box; }
+      :root { cursor: none; }
       body {
         margin: 0;
         min-height: 100dvh;
         background: radial-gradient(circle at 20% 10%, rgba(255,255,255,.08), transparent 30%), #000;
         color: #fff;
         font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        cursor: none;
+      }
+      a, button, .card { cursor: none; }
+      .cursor-ring,
+      .cursor-dot {
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 9999;
+        pointer-events: none;
+        will-change: transform;
+        mix-blend-mode: difference;
+      }
+      .cursor-ring {
+        width: 54px;
+        height: 54px;
+        border: 1.5px solid #fff;
+        border-radius: 999px;
+      }
+      .cursor-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 999px;
+        background: #fff;
       }
       header {
         position: sticky;
@@ -34,7 +59,9 @@
         font-size: 11px;
         letter-spacing: .12em;
         text-transform: uppercase;
+        transition: background .32s ease, color .32s ease, transform .32s ease;
       }
+      .back:hover { background: #fff; color: #000; transform: translateY(-2px); }
       main { padding: clamp(24px, 5vw, 64px); }
       h1 {
         margin: 0;
@@ -60,23 +87,32 @@
         border-radius: 28px;
         background: linear-gradient(145deg, rgba(255,255,255,.13), rgba(255,255,255,.035));
         display: flex;
-        flex-direction: column;
-        justify-content: space-between;
+        align-items: center;
+        justify-content: center;
         padding: 22px;
         box-shadow: 0 34px 90px rgba(0,0,0,.42), inset 0 0 60px rgba(255,255,255,.03);
+        transition: background .45s ease, border-color .45s ease, transform .45s ease, box-shadow .45s ease;
       }
-      .card span {
-        color: rgba(255,255,255,.44);
-        font-size: 13px;
-        letter-spacing: .16em;
-        text-transform: uppercase;
+      .card:hover {
+        background: linear-gradient(145deg, rgba(255,255,255,.23), rgba(255,255,255,.075));
+        border-color: rgba(255,255,255,.28);
+        transform: translateY(-4px);
+        box-shadow: 0 42px 110px rgba(0,0,0,.48), inset 0 0 80px rgba(255,255,255,.055);
       }
       .card strong {
-        font-size: clamp(22px, 3vw, 34px);
-        line-height: 1;
-        letter-spacing: -.04em;
+        display: block;
+        max-width: 86%;
+        text-align: center;
+        font-size: clamp(15px, 1.65vw, 22px);
+        line-height: 1.12;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        font-weight: 700;
+        color: rgba(255,255,255,.86);
       }
       @media (max-width: 700px) {
+        :root, body, a, button, .card { cursor: auto; }
+        .cursor-ring, .cursor-dot { display: none; }
         header { align-items: flex-start; flex-direction: column; }
         main { padding-bottom: calc(34px + env(safe-area-inset-bottom)); }
         .card { border-radius: 22px; padding: 18px; }
@@ -84,6 +120,8 @@
     </style>
   </head>
   <body>
+    <div class="cursor-ring" aria-hidden="true"></div>
+    <div class="cursor-dot" aria-hidden="true"></div>
     <header>
       <a class="back" href="/">← Back to KAJA</a>
       <span style="color:rgba(255,255,255,.48);font-size:12px;letter-spacing:.16em;text-transform:uppercase">Catalogue</span>
@@ -92,15 +130,42 @@
       <h1>Catalogue</h1>
       <p class="lead">Same-size flavour boxes. Replace the placeholders below with your final flavour names, images, and product details.</p>
       <section class="grid" aria-label="Flavour catalogue">
-        <article class="card"><span>Flavor 01</span><strong>Classic Mint</strong></article>
-        <article class="card"><span>Flavor 02</span><strong>Fresh Berry</strong></article>
-        <article class="card"><span>Flavor 03</span><strong>Citrus Ice</strong></article>
-        <article class="card"><span>Flavor 04</span><strong>Vanilla Smoke</strong></article>
-        <article class="card"><span>Flavor 05</span><strong>Dark Cherry</strong></article>
-        <article class="card"><span>Flavor 06</span><strong>Green Apple</strong></article>
-        <article class="card"><span>Flavor 07</span><strong>Polar Grape</strong></article>
-        <article class="card"><span>Flavor 08</span><strong>Peach Frost</strong></article>
+        <article class="card"><strong>Classic Mint</strong></article>
+        <article class="card"><strong>Fresh Berry</strong></article>
+        <article class="card"><strong>Citrus Ice</strong></article>
+        <article class="card"><strong>Vanilla Smoke</strong></article>
+        <article class="card"><strong>Dark Cherry</strong></article>
+        <article class="card"><strong>Green Apple</strong></article>
+        <article class="card"><strong>Polar Grape</strong></article>
+        <article class="card"><strong>Peach Frost</strong></article>
       </section>
     </main>
+    <script>
+      const ring = document.querySelector('.cursor-ring');
+      const dot = document.querySelector('.cursor-dot');
+      const mouse = { x: innerWidth / 2, y: innerHeight / 2 };
+      const pos = { x: mouse.x, y: mouse.y };
+      const prev = { x: mouse.x, y: mouse.y };
+      addEventListener('mousemove', (event) => {
+        mouse.x = event.clientX;
+        mouse.y = event.clientY;
+        if (dot) dot.style.transform = `translate3d(${event.clientX}px, ${event.clientY}px, 0) translate(-50%, -50%)`;
+      });
+      function tick() {
+        pos.x += (mouse.x - pos.x) * 0.17;
+        pos.y += (mouse.y - pos.y) * 0.17;
+        const dx = mouse.x - prev.x;
+        const dy = mouse.y - prev.y;
+        const speed = Math.min(Math.hypot(dx, dy), 80);
+        const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+        const stretch = 1 + speed / 210;
+        const squash = 1 - speed / 420;
+        if (ring) ring.style.transform = `translate3d(${pos.x}px, ${pos.y}px, 0) translate(-50%, -50%) rotate(${angle}deg) scale(${stretch}, ${squash})`;
+        prev.x += dx * 0.35;
+        prev.y += dy * 0.35;
+        requestAnimationFrame(tick);
+      }
+      tick();
+    </script>
   </body>
 </html>
