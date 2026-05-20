@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import './styles.css';
 import logo from './assets/kaja-logo.png';
+import hanger from './assets/hanger.png';
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
@@ -58,6 +59,13 @@ const sections = [
 ];
 
 const hangerObjects = Array.from({ length: 6 }, (_, index) => index + 1);
+const hangerImageStyle = {
+  width: 'clamp(230px, 22vw, 340px)',
+  height: 'auto',
+  display: 'block',
+  filter: 'brightness(0) saturate(100%) brightness(24%)',
+  opacity: 1
+};
 
 function ElasticCursor() {
   const cursor = useRef(null);
@@ -165,12 +173,7 @@ function HangerVisual({ progress }) {
         <motion.div className="hanger-track" style={{ x: trackX }}>
           {hangerObjects.map((item) => (
             <div className={`hanger-object hanger-object-${item}`} key={item}>
-              <div className="hanger-silhouette" aria-label={`Dark grey hanger ${item}`}>
-                <span className="hanger-neck" />
-                <span className="hanger-shoulder hanger-shoulder-left" />
-                <span className="hanger-shoulder hanger-shoulder-right" />
-                <span className="hanger-bottom" />
-              </div>
+              <img src={hanger} alt="" aria-hidden="true" style={hangerImageStyle} />
             </div>
           ))}
         </motion.div>
