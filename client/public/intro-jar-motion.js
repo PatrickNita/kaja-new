@@ -16,7 +16,7 @@ introJarMotionStyle.textContent = `
   content: '' !important;
   position: absolute !important;
   inset: 0 !important;
-  background-image: url('/intro-jar.png') !important;
+  background-image: url('/intro-jar.webp') !important;
   background-size: contain !important;
   background-position: center !important;
   background-repeat: no-repeat !important;
