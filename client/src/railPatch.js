@@ -39,16 +39,16 @@ patchStyle.textContent = `
   align-self: center;
   display: flex;
   flex-direction: column;
-  width: min(46vw, 560px);
-  min-height: 260px;
-  padding: clamp(20px, 3vw, 36px);
+  width: min(48vw, 590px);
+  min-height: 290px;
+  padding: clamp(24px, 3.2vw, 40px);
   border: 1px solid rgba(255,255,255,0.16);
   border-radius: clamp(22px, 3vw, 34px);
-  background: linear-gradient(145deg, rgba(255,255,255,0.13), rgba(255,255,255,0.035));
+  background: linear-gradient(145deg, rgba(255,255,255,0.14), rgba(255,255,255,0.04));
   box-shadow: 0 52px 120px rgba(0,0,0,0.64), inset 0 0 70px rgba(255,255,255,0.035);
   backdrop-filter: blur(18px);
   transform-origin: center center;
-  will-change: transform, min-height, padding;
+  will-change: transform, min-height, padding, background;
 }
 .kaja-contact-label {
   margin: 0 0 14px;
@@ -71,10 +71,23 @@ patchStyle.textContent = `
   font-family: inherit;
   transition: border-color 0.25s ease, background 0.25s ease;
 }
+.kaja-contact-form select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, rgba(255,255,255,0.72) 50%), linear-gradient(135deg, rgba(255,255,255,0.72) 50%, transparent 50%);
+  background-position: calc(100% - 21px) 52%, calc(100% - 15px) 52%;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+  padding-right: 42px;
+}
+.kaja-contact-form select option {
+  color: #fff;
+  background: #111;
+}
 .kaja-contact-form input:focus,
 .kaja-contact-form select:focus {
   border-color: rgba(255,255,255,0.36);
-  background: rgba(0,0,0,0.56);
+  background-color: rgba(0,0,0,0.56);
 }
 .kaja-contact-form button {
   width: 100%;
@@ -127,9 +140,9 @@ patchStyle.textContent = `
     mix-blend-mode: screen;
   }
   .is-contact-section.is-active .kaja-contact-form {
-    width: min(92vw, 420px);
-    min-height: 230px;
-    padding: 15px;
+    width: min(92vw, 430px);
+    min-height: 250px;
+    padding: 18px;
   }
   .kaja-contact-label {
     margin-bottom: 8px;
@@ -141,6 +154,10 @@ patchStyle.textContent = `
     margin-top: 8px;
     font-size: 12px;
     border-radius: 12px;
+  }
+  .kaja-contact-form select {
+    background-position: calc(100% - 18px) 52%, calc(100% - 12px) 52%;
+    padding-right: 36px;
   }
   .kaja-contact-form button {
     padding: 11px 14px;
@@ -255,6 +272,9 @@ function ensureContactForm() {
   return form;
 }
 
+const merchMotion = { current: 0, target: 0 };
+const contactMotion = { scale: 0.98, height: 0, darkness: 0, targetScale: 0.98, targetHeight: 0, targetDarkness: 0 };
+
 function moveMobileMerchTrack() {
   const isMobile = window.matchMedia('(max-width: 900px)').matches;
   const merchSection = getSectionByTitle('A full collection on the line.');
@@ -267,10 +287,11 @@ function moveMobileMerchTrack() {
     const firstItemStartOffset = window.innerWidth * 0.24;
     const firstVisibleLeft = window.innerWidth * 0.04;
     const startX = firstVisibleLeft - firstItemStartOffset;
-    const endX = window.innerWidth * 0.5 - step * 5;
-    const easedProgress = Math.pow(progress, 1.75);
-    const x = startX + (endX - startX) * easedProgress;
-    mobileTrack.style.transform = `translate3d(${x}px, 0, 0)`;
+    const endX = window.innerWidth * 0.38 - step * 5.45;
+    const easedProgress = Math.pow(progress, 1.38);
+    merchMotion.target = startX + (endX - startX) * easedProgress;
+    merchMotion.current += (merchMotion.target - merchMotion.current) * 0.13;
+    mobileTrack.style.transform = `translate3d(${merchMotion.current}px, 0, 0)`;
   }
 
   requestAnimationFrame(moveMobileMerchTrack);
@@ -282,12 +303,23 @@ function growContactForm() {
   const progress = getProgressForLabel('CONTACT');
 
   if (contactSection?.classList.contains('is-active') && form && progress !== null) {
-    const scale = 0.9 + progress * 0.14;
-    const extraHeight = progress * 34;
-    form.style.transform = `scale(${scale})`;
-    form.style.minHeight = `${260 + extraHeight}px`;
-    form.style.paddingTop = `calc(clamp(20px, 3vw, 36px) + ${extraHeight * 0.35}px)`;
-    form.style.paddingBottom = `calc(clamp(20px, 3vw, 36px) + ${extraHeight * 0.35}px)`;
+    contactMotion.targetScale = 0.98 + progress * 0.045;
+    contactMotion.targetHeight = progress * 18;
+    contactMotion.targetDarkness = progress;
+
+    contactMotion.scale += (contactMotion.targetScale - contactMotion.scale) * 0.12;
+    contactMotion.height += (contactMotion.targetHeight - contactMotion.height) * 0.12;
+    contactMotion.darkness += (contactMotion.targetDarkness - contactMotion.darkness) * 0.12;
+
+    const topAlpha = 0.14 - contactMotion.darkness * 0.035;
+    const bottomAlpha = 0.04 - contactMotion.darkness * 0.025;
+    const blackAlpha = 0.42 + contactMotion.darkness * 0.16;
+
+    form.style.transform = `scale(${contactMotion.scale})`;
+    form.style.minHeight = `${290 + contactMotion.height}px`;
+    form.style.paddingTop = `calc(clamp(24px, 3.2vw, 40px) + ${contactMotion.height * 0.25}px)`;
+    form.style.paddingBottom = `calc(clamp(24px, 3.2vw, 40px) + ${contactMotion.height * 0.25}px)`;
+    form.style.background = `linear-gradient(145deg, rgba(255,255,255,${topAlpha}), rgba(255,255,255,${bottomAlpha})), rgba(0,0,0,${blackAlpha})`;
   }
 
   requestAnimationFrame(growContactForm);
