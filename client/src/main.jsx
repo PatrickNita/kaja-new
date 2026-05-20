@@ -64,10 +64,10 @@ const hangerRailWrapStyle = {
   maskImage: 'linear-gradient(90deg, transparent 0%, black 10%, black 100%)'
 };
 const hangerObjectStyle = {
-  transform: 'translateY(26px)'
+  transform: 'translateY(22px)'
 };
 const hangerImageStyle = {
-  width: 'clamp(190px, 22vw, 340px)',
+  width: 'clamp(170px, 20vw, 320px)',
   height: 'auto',
   display: 'block',
   filter: 'brightness(0) saturate(100%) invert(34%) sepia(0%) saturate(0%) hue-rotate(180deg) brightness(82%) contrast(86%)',
@@ -75,8 +75,8 @@ const hangerImageStyle = {
   mixBlendMode: 'screen'
 };
 
-const footerStyle = {
-  position: 'fixed',
+const footerBaseStyle = {
+  position: 'absolute',
   left: 0,
   right: 0,
   bottom: 0,
@@ -90,7 +90,8 @@ const footerStyle = {
   textAlign: 'center',
   color: 'rgba(255,255,255,0.62)',
   background: 'linear-gradient(180deg, transparent, rgba(0,0,0,0.76) 38%, rgba(0,0,0,0.92))',
-  pointerEvents: 'none'
+  pointerEvents: 'none',
+  transition: 'opacity 0.35s ease, transform 0.35s ease'
 };
 
 const footerNoticeStyle = {
@@ -190,8 +191,8 @@ function Navigation({ active, fixed, goTo }) {
 }
 
 function ProductVisual({ type, progress, index }) {
-  const y = useTransform(progress, [0, 1], ['16vh', '-18vh']);
-  const scale = useTransform(progress, [0, 0.55, 1], [0.9, 1.14, 0.92]);
+  const y = useTransform(progress, [0, 1], ['12vh', '-14vh']);
+  const scale = useTransform(progress, [0, 0.55, 1], [0.9, 1.1, 0.92]);
   const opacity = useTransform(progress, [0, 0.82, 1], [1, 1, 0.78]);
   const blur = useTransform(progress, [0, 1], ['blur(0px)', 'blur(0px)']);
   const reveal = useTransform(progress, [0, 1], ['inset(0% 0% 0% 0% round 32px)', 'inset(0% 0% 0% 0% round 32px)']);
@@ -210,7 +211,7 @@ function ProductVisual({ type, progress, index }) {
 }
 
 function HangerVisual({ progress }) {
-  const trackX = useTransform(progress, [0, 1], ['32vw', '-88vw']);
+  const trackX = useTransform(progress, [0, 1], ['30vw', '-68vw']);
 
   return (
     <div className="hanger-scene">
@@ -231,9 +232,9 @@ function HangerVisual({ progress }) {
 function Segment({ section, index, active, rawProgress }) {
   const progress = useMotionValue(rawProgress);
   const spring = useSpring(progress, { stiffness: 76, damping: 24, mass: 0.75 });
-  const titleY = useTransform(spring, [0, 1], [18, -56]);
+  const titleY = useTransform(spring, [0, 1], [14, -42]);
   const titleOpacity = useTransform(spring, [0, 1], [1, 1]);
-  const copyY = useTransform(spring, [0, 1], [10, -34]);
+  const copyY = useTransform(spring, [0, 1], [8, -24]);
   const accentY = useTransform(spring, [0, 1], ['2vh', '-8vh']);
   const counterScale = useTransform(spring, [0, 1], [0.86, 1.3]);
   const counterY = useTransform(spring, [0, 1], ['3vh', '-7vh']);
@@ -279,9 +280,9 @@ function ScrollHint({ active, progress }) {
   );
 }
 
-function LegalFooter() {
+function LegalFooter({ visible }) {
   return (
-    <footer style={footerStyle}>
+    <footer style={{ ...footerBaseStyle, opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(24px)' }}>
       <p style={footerNoticeStyle}>PAGE IS DESTINATED FOR PEOPLE OF AGE 18+</p>
       <p style={footerDetailsStyle}>KAJA Studio SRL • Strada Atelierului 18, Bucharest • CUI RO48291035 • Trade Registry J40/18422/2026 • contact@kaja.example • Support Monday-Friday 09:00-17:00</p>
     </footer>
@@ -373,6 +374,7 @@ function App() {
   }, []);
 
   const visibleSections = useMemo(() => sections.map((section, index) => ({ section, index })), []);
+  const footerVisible = active === sections.length - 1 && progress > 0.96;
 
   return (
     <main>
@@ -390,7 +392,7 @@ function App() {
         ))}
       </div>
       <ScrollHint active={active} progress={progress} />
-      <LegalFooter />
+      <LegalFooter visible={footerVisible} />
     </main>
   );
 }
