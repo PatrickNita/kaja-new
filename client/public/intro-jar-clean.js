@@ -39,20 +39,11 @@ introJarStyle.textContent=`
 document.head.appendChild(introJarStyle);
 const clamp=(v,a,b)=>Math.min(Math.max(v,a),b);
 const smooth=(v)=>v*v*(3-2*v);
-const state={progress:0,scale:1.18,y:0};
-function targetProgress(){
-  const hint=document.querySelector('.scroll-hint');
-  const text=hint?.textContent||'';
+function getPercent(){
+  const text=document.querySelector('.scroll-hint')?.textContent||'';
   if(!text.includes('INTRO'))return null;
   const match=text.match(/(\d+)%/);
-  if(match)return clamp(Number(match[1])/100,0,1);
-  const bar=document.querySelector('.is-intro-section .progress-track span');
-  const transform=bar?getComputedStyle(bar).transform:'';
-  if(transform&&transform!=='none'){
-    const values=transform.match(/matrix\(([^)]+)\)/)?.[1]?.split(',').map(Number);
-    if(values&&Number.isFinite(values[0]))return clamp(values[0],0,1);
-  }
-  return 0;
+  return clamp(match?Number(match[1])/100:0,0,1);
 }
 function ensure(){
   const section=document.querySelector('.is-intro-section');
@@ -72,19 +63,15 @@ function ensure(){
 }
 function tick(){
   const visual=ensure();
-  const target=targetProgress();
+  const percent=getPercent();
   const img=visual?.querySelector('img');
-  if(visual&&img&&target!==null){
-    state.progress+=(target-state.progress)*.105;
-    if(Math.abs(target-state.progress)<.002)state.progress=target;
-    const grow=smooth(clamp(state.progress/.55,0,1));
-    const end=smooth(clamp((state.progress-.68)/.32,0,1));
-    const scale=1.18+grow*.34-end*.42;
-    const y=end*13;
-    state.scale+=(scale-state.scale)*.26;
-    state.y+=(y-state.y)*.26;
+  if(visual&&img&&percent!==null){
+    const grow=smooth(clamp(percent/.65,0,1));
+    const shrink=smooth(clamp((percent-.65)/.35,0,1));
+    const scale=1.12+(grow*.26)-(shrink*.34);
+    const y=shrink*10;
     visual.style.transform='translate3d(0,0,0)';
-    img.style.setProperty('transform',`translate3d(0,${state.y}vh,0) scale(${state.scale})`,'important');
+    img.style.setProperty('transform',`translate3d(0,${y}vh,0) scale(${scale})`,'important');
   }
   requestAnimationFrame(tick);
 }
