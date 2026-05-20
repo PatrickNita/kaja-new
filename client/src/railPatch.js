@@ -95,21 +95,21 @@ function addSectionButtons() {
   });
 }
 
-function getMerchProgress() {
+function getProgressForLabel(label) {
   const spans = Array.from(document.querySelectorAll('.scroll-hint span'));
   const first = spans[0]?.textContent || '';
   const last = spans[spans.length - 1]?.textContent || '0%';
-  if (!first.includes('MERCH')) return null;
+  if (!first.includes(label)) return null;
   const percent = Number.parseFloat(last.replace('%', '')) || 0;
   return Math.min(Math.max(percent / 100, 0), 1);
 }
 
-function getMerchSection() {
-  return Array.from(document.querySelectorAll('.segment')).find((item) => item.querySelector('h1')?.textContent?.trim() === 'A full collection on the line.');
+function getSectionByTitle(title) {
+  return Array.from(document.querySelectorAll('.segment')).find((item) => item.querySelector('h1')?.textContent?.trim() === title);
 }
 
 function ensureMobileMerchTrack() {
-  const merchSection = getMerchSection();
+  const merchSection = getSectionByTitle('A full collection on the line.');
   const railWrap = merchSection?.querySelector('.hanger-rail-wrap');
   const sourceImg = merchSection?.querySelector('.hanger-track img');
   if (!railWrap || !sourceImg) return null;
@@ -137,14 +137,16 @@ function ensureMobileMerchTrack() {
 
 function moveMobileMerchTrack() {
   const isMobile = window.matchMedia('(max-width: 900px)').matches;
-  const merchSection = getMerchSection();
-  const progress = getMerchProgress();
+  const merchSection = getSectionByTitle('A full collection on the line.');
+  const progress = getProgressForLabel('MERCH');
   const mobileTrack = ensureMobileMerchTrack();
 
   if (isMobile && merchSection?.classList.contains('is-active') && mobileTrack && progress !== null) {
     const items = Array.from(mobileTrack.querySelectorAll('.mobile-merch-item'));
     const step = items[1] ? items[1].offsetLeft - items[0].offsetLeft : window.innerWidth * 0.45;
-    const startX = window.innerWidth * 0.82;
+    const firstItemStartOffset = window.innerWidth * 0.24;
+    const firstVisibleLeft = window.innerWidth * 0.04;
+    const startX = firstVisibleLeft - firstItemStartOffset;
     const endX = window.innerWidth * 0.5 - step * 5;
     const x = startX + (endX - startX) * progress;
     mobileTrack.style.transform = `translate3d(${x}px, 0, 0)`;
@@ -153,9 +155,24 @@ function moveMobileMerchTrack() {
   requestAnimationFrame(moveMobileMerchTrack);
 }
 
+function growContactForm() {
+  const contactSection = getSectionByTitle('Start the conversation.');
+  const form = contactSection?.querySelector('.contact-form-panel');
+  const progress = getProgressForLabel('CONTACT');
+
+  if (contactSection?.classList.contains('is-active') && form && progress !== null) {
+    const scale = 0.92 + progress * 0.1;
+    form.style.setProperty('transform', `translate3d(0px, 0px, 0px) scale(${scale})`, 'important');
+    form.style.setProperty('transform-origin', 'center center', 'important');
+  }
+
+  requestAnimationFrame(growContactForm);
+}
+
 const observer = new MutationObserver(addSectionButtons);
 observer.observe(document.documentElement, { childList: true, subtree: true });
 window.addEventListener('load', addSectionButtons);
 requestAnimationFrame(addSectionButtons);
 requestAnimationFrame(moveMobileMerchTrack);
+requestAnimationFrame(growContactForm);
 setTimeout(addSectionButtons, 500);
