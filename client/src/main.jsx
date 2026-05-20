@@ -59,12 +59,12 @@ const sections = [
 ];
 
 const hangerObjects = Array.from({ length: 6 }, (_, index) => index + 1);
-const hangerTrackStyle = {
-  WebkitMaskImage: 'linear-gradient(90deg, transparent 0%, transparent 15%, black 28%, black 100%)',
-  maskImage: 'linear-gradient(90deg, transparent 0%, transparent 15%, black 28%, black 100%)'
+const hangerRailWrapStyle = {
+  WebkitMaskImage: 'linear-gradient(90deg, transparent 0%, transparent 10%, black 20%, black 100%)',
+  maskImage: 'linear-gradient(90deg, transparent 0%, transparent 10%, black 20%, black 100%)'
 };
 const hangerObjectStyle = {
-  transform: 'translateY(46px)'
+  transform: 'translateY(34px)'
 };
 const hangerImageStyle = {
   width: 'clamp(230px, 22vw, 340px)',
@@ -176,9 +176,9 @@ function HangerVisual({ progress }) {
 
   return (
     <div className="hanger-scene">
-      <div className="hanger-rail-wrap">
+      <div className="hanger-rail-wrap" style={hangerRailWrapStyle}>
         <div className="hanger-rail" />
-        <motion.div className="hanger-track" style={{ x: trackX, ...hangerTrackStyle }}>
+        <motion.div className="hanger-track" style={{ x: trackX }}>
           {hangerObjects.map((item) => (
             <div className={`hanger-object hanger-object-${item}`} key={item} style={hangerObjectStyle}>
               <img src={hanger} alt="" aria-hidden="true" style={hangerImageStyle} />
