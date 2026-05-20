@@ -1,4 +1,70 @@
-const css = atob('Lmhhbmdlci1yYWlsLXdyYXB7dG9wOjE1dmg7b3ZlcmZsb3c6aGlkZGVufQouaGFuZ2VyLXJhaWx7dG9wOjUycHh9Ci5oYW5nZXItdHJhY2t7dG9wOjB9Ci5oYW5nZXItc2lsaG91ZXR0ZXt0cmFuc2Zvcm06dHJhbnNsYXRlWSgwKTtjb2xvcjojMjUyNTI1fQouaGFuZ2VyLXNpbGhvdWV0dGU6OmJlZm9yZXt0b3A6NHB4O2JvcmRlci1sZWZ0LWNvbG9yOnRyYW5zcGFyZW50O3RyYW5zZm9ybTp0cmFuc2xhdGVYKC00NCUpIHJvdGF0ZSgtMjVkZWcpfQouaGFuZ2VyLW5lY2t7dG9wOjQ4cHg7aGVpZ2h0OjQycHh9Ci5oYW5nZXItc2hvdWxkZXJ7dG9wOjEwMnB4fQouaGFuZ2VyLWJvdHRvbXtib3R0b206YXV0bzt0b3A6MTU0cHg7bGVmdDo4JTtyaWdodDo4JX0KLmhhbmdlci1ib3R0b206OmJlZm9yZSwuaGFuZ2VyLWJvdHRvbTo6YWZ0ZXJ7dG9wOi0yMnB4O2JvdHRvbTphdXRvO3dpZHRoOjE0cHg7aGVpZ2h0OjQycHg7Ym9yZGVyOjA7Ym9yZGVyLXJhZGl1czo5OTlweDtiYWNrZ3JvdW5kOmN1cnJlbnRDb2xvcn0KLmhhbmdlci1ib3R0b206OmJlZm9yZXt0cmFuc2Zvcm06cm90YXRlKC0xOGRlZyk7dHJhbnNmb3JtLW9yaWdpbjpib3R0b20gY2VudGVyfQouaGFuZ2VyLWJvdHRvbTo6YWZ0ZXJ7dHJhbnNmb3JtOnJvdGF0ZSgxOGRlZyk7dHJhbnNmb3JtLW9yaWdpbjpib3R0b20gY2VudGVyfQpAbWVkaWEobWF4LXdpZHRoOjkwMHB4KXsuaGFuZ2VyLXJhaWx7dG9wOjM4cHh9Lmhhbmdlci10cmFja3t0b3A6MH0uaGFuZ2VyLXNpbGhvdWV0dGV7dHJhbnNmb3JtOnRyYW5zbGF0ZVkoMCl9Lmhhbmdlci1zaWxob3VldHRlOjpiZWZvcmV7dG9wOjA7d2lkdGg6MzRweDtoZWlnaHQ6MzRweDtib3JkZXItd2lkdGg6MTBweH0uaGFuZ2VyLW5lY2t7dG9wOjM2cHg7aGVpZ2h0OjM0cHg7d2lkdGg6MTBweH0uaGFuZ2VyLXNob3VsZGVye3RvcDo4MnB4O2hlaWdodDoxMHB4fS5oYW5nZXItYm90dG9te3RvcDoxMjRweDtoZWlnaHQ6MTBweH0uaGFuZ2VyLWJvdHRvbTo6YmVmb3JlLC5oYW5nZXItYm90dG9tOjphZnRlcnt0b3A6LTE4cHg7d2lkdGg6MTBweDtoZWlnaHQ6MzRweH19');
-const tag = document.createElement('style');
-tag.textContent = css;
-document.head.appendChild(tag);
+const patchStyle = document.createElement('style');
+patchStyle.textContent = `
+.section-link-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: clamp(18px, 3vh, 34px);
+  padding: 13px 20px;
+  border: 1px solid rgba(255,255,255,0.22);
+  border-radius: 999px;
+  background: rgba(255,255,255,0.94);
+  color: #000;
+  font-size: 12px;
+  font-weight: 850;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  box-shadow: 0 20px 55px rgba(0,0,0,0.28);
+  transition: transform 0.22s ease, background 0.22s ease;
+}
+.section-link-button:hover {
+  transform: translateY(-2px);
+  background: #fff;
+}
+@media (max-width: 900px) {
+  .section-link-button {
+    margin-top: 13px;
+    padding: 10px 14px;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+  }
+}
+`;
+document.head.appendChild(patchStyle);
+
+const buttonTargets = [
+  {
+    title: 'A clean path through the collection.',
+    label: 'CHECK CATALOGUE',
+    href: '../catalogue'
+  },
+  {
+    title: 'A full collection on the line.',
+    label: 'CHECK MERCH',
+    href: '../merch'
+  }
+];
+
+function addSectionButtons() {
+  const sections = Array.from(document.querySelectorAll('.segment'));
+
+  buttonTargets.forEach((target) => {
+    const section = sections.find((item) => item.querySelector('h1')?.textContent?.trim() === target.title);
+    const content = section?.querySelector('.segment-content');
+    if (!content || content.querySelector(`[data-section-button="${target.label}"]`)) return;
+
+    const link = document.createElement('a');
+    link.className = 'section-link-button';
+    link.href = target.href;
+    link.dataset.sectionButton = target.label;
+    link.textContent = target.label;
+    content.appendChild(link);
+  });
+}
+
+const observer = new MutationObserver(addSectionButtons);
+observer.observe(document.documentElement, { childList: true, subtree: true });
+window.addEventListener('load', addSectionButtons);
+requestAnimationFrame(addSectionButtons);
+setTimeout(addSectionButtons, 500);
