@@ -22,8 +22,67 @@ patchStyle.textContent = `
   transform: translateY(-2px);
   background: #fff;
 }
-.mobile-merch-track {
+.mobile-merch-track,
+.contact-form-fixed-overlay {
   display: none;
+}
+.is-contact-section.is-active > .contact-form-panel {
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+.is-contact-section.is-active .contact-form-fixed-overlay {
+  position: relative;
+  z-index: 4;
+  justify-self: center;
+  display: block;
+  width: min(46vw, 560px);
+  padding: clamp(20px, 3vw, 38px);
+  border: 1px solid rgba(255,255,255,0.16);
+  border-radius: clamp(22px, 3vw, 34px);
+  background: linear-gradient(145deg, rgba(255,255,255,0.13), rgba(255,255,255,0.035));
+  box-shadow: 0 52px 120px rgba(0,0,0,0.64), inset 0 0 70px rgba(255,255,255,0.035);
+  backdrop-filter: blur(18px);
+  transform-origin: center center;
+  will-change: transform;
+}
+.contact-form-fixed-overlay p {
+  margin: 0 0 14px;
+  color: rgba(255,255,255,0.58);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 12px;
+}
+.contact-form-fixed-overlay input,
+.contact-form-fixed-overlay select,
+.contact-form-fixed-overlay textarea {
+  width: 100%;
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 16px;
+  background: rgba(0,0,0,0.42);
+  color: #fff;
+  padding: 14px 16px;
+  font-size: 14px;
+  outline: none;
+  margin-top: 12px;
+  font-family: inherit;
+}
+.contact-form-fixed-overlay textarea {
+  min-height: 118px;
+  resize: none;
+}
+.contact-form-fixed-overlay button {
+  width: 100%;
+  margin-top: 14px;
+  border: 0;
+  border-radius: 999px;
+  background: #fff;
+  color: #000;
+  padding: 14px 18px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-family: inherit;
 }
 @media (max-width: 900px) {
   .section-link-button {
@@ -60,6 +119,26 @@ patchStyle.textContent = `
     filter: brightness(0) saturate(100%) invert(34%) sepia(0%) saturate(0%) hue-rotate(180deg) brightness(82%) contrast(86%);
     opacity: 0.95;
     mix-blend-mode: screen;
+  }
+  .is-contact-section.is-active .contact-form-fixed-overlay {
+    width: min(92vw, 420px);
+    padding: 16px;
+  }
+  .contact-form-fixed-overlay input,
+  .contact-form-fixed-overlay select,
+  .contact-form-fixed-overlay textarea {
+    padding: 10px 12px;
+    margin-top: 8px;
+    font-size: 12px;
+    border-radius: 12px;
+  }
+  .contact-form-fixed-overlay textarea {
+    min-height: 78px;
+  }
+  .contact-form-fixed-overlay button {
+    padding: 11px 14px;
+    margin-top: 10px;
+    font-size: 10px;
   }
 }
 `;
@@ -135,6 +214,22 @@ function ensureMobileMerchTrack() {
   return mobileTrack;
 }
 
+function ensureContactOverlay() {
+  const contactSection = getSectionByTitle('Start the conversation.');
+  const originalForm = contactSection?.querySelector(':scope > .contact-form-panel');
+  if (!contactSection || !originalForm) return null;
+
+  let overlay = contactSection.querySelector(':scope > .contact-form-fixed-overlay');
+  if (overlay) return overlay;
+
+  overlay = document.createElement('form');
+  overlay.className = 'contact-form-fixed-overlay';
+  overlay.innerHTML = originalForm.innerHTML;
+  overlay.addEventListener('submit', (event) => event.preventDefault());
+  contactSection.insertBefore(overlay, originalForm.nextSibling);
+  return overlay;
+}
+
 function moveMobileMerchTrack() {
   const isMobile = window.matchMedia('(max-width: 900px)').matches;
   const merchSection = getSectionByTitle('A full collection on the line.');
@@ -156,31 +251,33 @@ function moveMobileMerchTrack() {
   requestAnimationFrame(moveMobileMerchTrack);
 }
 
-function applyCenteredContactGrowth() {
+function growContactOverlay() {
   const contactSection = getSectionByTitle('Start the conversation.');
-  const form = contactSection?.querySelector('.contact-form-panel');
+  const overlay = ensureContactOverlay();
   const progress = getProgressForLabel('CONTACT');
 
-  if (contactSection?.classList.contains('is-active') && form && progress !== null) {
-    const scale = 0.92 + progress * 0.1;
-    form.style.setProperty('transform', `translate3d(0px, 0px, 0px) scale(${scale})`, 'important');
-    form.style.setProperty('transform-origin', 'center center', 'important');
+  if (contactSection?.classList.contains('is-active') && overlay && progress !== null) {
+    const scale = 0.88 + progress * 0.16;
+    const extraHeight = progress * 24;
+    overlay.style.transform = `translate3d(0, 0, 0) scale(${scale})`;
+    overlay.style.paddingTop = `calc(clamp(20px, 3vw, 38px) + ${extraHeight}px)`;
+    overlay.style.paddingBottom = `calc(clamp(20px, 3vw, 38px) + ${extraHeight}px)`;
   }
+
+  requestAnimationFrame(growContactOverlay);
 }
 
-function growContactForm() {
-  requestAnimationFrame(() => {
-    setTimeout(applyCenteredContactGrowth, 0);
-    setTimeout(applyCenteredContactGrowth, 16);
-    setTimeout(applyCenteredContactGrowth, 32);
-    requestAnimationFrame(growContactForm);
-  });
-}
-
-const observer = new MutationObserver(addSectionButtons);
+const observer = new MutationObserver(() => {
+  addSectionButtons();
+  ensureContactOverlay();
+});
 observer.observe(document.documentElement, { childList: true, subtree: true });
-window.addEventListener('load', addSectionButtons);
+window.addEventListener('load', () => {
+  addSectionButtons();
+  ensureContactOverlay();
+});
 requestAnimationFrame(addSectionButtons);
 requestAnimationFrame(moveMobileMerchTrack);
-growContactForm();
+requestAnimationFrame(growContactOverlay);
 setTimeout(addSectionButtons, 500);
+setTimeout(ensureContactOverlay, 500);
