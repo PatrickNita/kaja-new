@@ -1,0 +1,27 @@
+html, body, #root, main, .stage {
+  min-height: 100dvh;
+}
+
+body.no-scroll,
+main,
+.stage {
+  height: 100dvh !important;
+}
+
+footer {
+  justify-content: flex-end !important;
+  padding-top: max(24px, 5dvh) !important;
+  padding-bottom: max(110px, calc(16dvh + env(safe-area-inset-bottom))) !important;
+}
+
+@media (max-width: 900px) {
+  footer {
+    padding-bottom: max(128px, calc(22dvh + env(safe-area-inset-bottom))) !important;
+  }
+}
+
+@media (max-height: 700px) and (max-width: 900px) {
+  footer {
+    padding-bottom: max(96px, calc(18dvh + env(safe-area-inset-bottom))) !important;
+  }
+}
