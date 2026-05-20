@@ -57,13 +57,17 @@ document.head.appendChild(introJarMotionStyle);
 
 const introJarState = {
   y: 0,
-  scale: 1,
+  scale: 1.06,
   targetY: 0,
-  targetScale: 1
+  targetScale: 1.06
 };
 
 function clampIntroJar(value, min, max) {
   return Math.min(Math.max(value, min), max);
+}
+
+function smoothIntroJar(value) {
+  return value * value * (3 - 2 * value);
 }
 
 function getIntroScrollProgress() {
@@ -84,15 +88,18 @@ function updateIntroJarMotion() {
   const progress = getIntroScrollProgress();
 
   if (intro && progress !== null) {
-    const grow = Math.sin(clampIntroJar(progress / 0.72, 0, 1) * Math.PI * 0.5);
-    const end = clampIntroJar((progress - 0.72) / 0.28, 0, 1);
-    const endEase = end * end * (3 - 2 * end);
+    const growProgress = smoothIntroJar(clampIntroJar(progress / 0.62, 0, 1));
+    const endProgress = smoothIntroJar(clampIntroJar((progress - 0.72) / 0.28, 0, 1));
 
-    introJarState.targetScale = 1 + grow * 0.13 - endEase * 0.12;
-    introJarState.targetY = endEase * window.innerHeight * 0.075;
+    const baseScale = 1.06;
+    const maxExtraScale = 0.13;
+    const endShrink = 0.17;
 
-    introJarState.scale += (introJarState.targetScale - introJarState.scale) * 0.115;
-    introJarState.y += (introJarState.targetY - introJarState.y) * 0.115;
+    introJarState.targetScale = baseScale + growProgress * maxExtraScale - endProgress * endShrink;
+    introJarState.targetY = endProgress * window.innerHeight * 0.075;
+
+    introJarState.scale += (introJarState.targetScale - introJarState.scale) * 0.13;
+    introJarState.y += (introJarState.targetY - introJarState.y) * 0.13;
 
     intro.style.transform = `translate3d(0, ${introJarState.y}px, 0) scale(${introJarState.scale})`;
   }
