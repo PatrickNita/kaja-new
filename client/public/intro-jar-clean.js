@@ -15,45 +15,44 @@ introJarStyle.textContent=`
   background:linear-gradient(145deg,rgba(255,255,255,.14),rgba(255,255,255,.025))!important;
   box-shadow:0 60px 140px rgba(0,0,0,.7),inset 0 0 90px rgba(255,255,255,.04)!important;
   transform-origin:center center!important;
-  will-change:transform!important;
   pointer-events:none!important;
 }
 .is-intro-section .intro-jar-clean img{
   position:absolute!important;
-  inset:-2%!important;
-  width:104%!important;
-  height:104%!important;
+  inset:-8%!important;
+  width:116%!important;
+  height:116%!important;
   object-fit:contain!important;
   object-position:center!important;
   display:block!important;
   filter:drop-shadow(0 46px 70px rgba(0,0,0,.62))!important;
+  transform-origin:center center!important;
+  will-change:transform!important;
   user-select:none!important;
   pointer-events:none!important;
 }
 @media(max-width:900px){
-  .is-intro-section .intro-jar-clean{
-    grid-column:1!important;
-    grid-row:2!important;
-    width:min(84vw,400px)!important;
-    height:min(33vh,270px)!important;
-    border-radius:22px!important;
-  }
-  .is-intro-section .intro-jar-clean img{inset:-4%!important;width:108%!important;height:108%!important;}
+  .is-intro-section .intro-jar-clean{grid-column:1!important;grid-row:2!important;width:min(84vw,400px)!important;height:min(33vh,270px)!important;border-radius:22px!important;}
+  .is-intro-section .intro-jar-clean img{inset:-10%!important;width:120%!important;height:120%!important;}
 }
 `;
 document.head.appendChild(introJarStyle);
 const clamp=(v,a,b)=>Math.min(Math.max(v,a),b);
 const smooth=(v)=>v*v*(3-2*v);
-const state={scale:1.16,y:0,targetScale:1.16,targetY:0};
-let fallbackProgress=0;
+const state={scale:1.18,y:0,targetScale:1.18,targetY:0};
 function progress(){
-  const text=document.querySelector('.scroll-hint')?.textContent||'';
-  if(text.includes('INTRO')){
-    const match=text.match(/(\d+)%/);
-    fallbackProgress=clamp(match?Number(match[1])/100:0,0,1);
-    return fallbackProgress;
+  const hint=document.querySelector('.scroll-hint');
+  const text=hint?.textContent||'';
+  if(!text.includes('INTRO'))return null;
+  const match=text.match(/(\d+)%/);
+  if(match)return clamp(Number(match[1])/100,0,1);
+  const bar=document.querySelector('.is-intro-section .progress-track span');
+  const transform=bar?getComputedStyle(bar).transform:'';
+  if(transform&&transform!=='none'){
+    const values=transform.match(/matrix\(([^)]+)\)/)?.[1]?.split(',').map(Number);
+    if(values&&Number.isFinite(values[0]))return clamp(values[0],0,1);
   }
-  return null;
+  return 0;
 }
 function ensure(){
   const section=document.querySelector('.is-intro-section');
@@ -74,14 +73,16 @@ function ensure(){
 function tick(){
   const visual=ensure();
   const p=progress();
-  if(visual&&p!==null){
-    const grow=smooth(clamp(p/.56,0,1));
+  const img=visual?.querySelector('img');
+  if(visual&&img&&p!==null){
+    const grow=smooth(clamp(p/.55,0,1));
     const end=smooth(clamp((p-.68)/.32,0,1));
-    state.targetScale=1.16+grow*.28-end*.34;
-    state.targetY=end*10;
-    state.scale+=(state.targetScale-state.scale)*.24;
-    state.y+=(state.targetY-state.y)*.24;
-    visual.style.transform=`translate3d(0,${state.y}vh,0) scale(${state.scale})`;
+    state.targetScale=1.18+grow*.34-end*.42;
+    state.targetY=end*13;
+    state.scale+=(state.targetScale-state.scale)*.32;
+    state.y+=(state.targetY-state.y)*.32;
+    visual.style.transform='translate3d(0,0,0)';
+    img.style.setProperty('transform',`translate3d(0,${state.y}vh,0) scale(${state.scale})`,'important');
   }
   requestAnimationFrame(tick);
 }
