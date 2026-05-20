@@ -22,6 +22,9 @@ patchStyle.textContent = `
   transform: translateY(-2px);
   background: #fff;
 }
+.mobile-merch-track {
+  display: none;
+}
 @media (max-width: 900px) {
   .section-link-button {
     margin-top: 13px;
@@ -30,8 +33,33 @@ patchStyle.textContent = `
     letter-spacing: 0.1em;
   }
   .is-hanger-section.is-active .hanger-track {
-    transition: none !important;
-    will-change: transform !important;
+    visibility: hidden !important;
+  }
+  .is-hanger-section.is-active .mobile-merch-track {
+    position: absolute;
+    left: 0;
+    top: 42px;
+    z-index: 5;
+    display: flex;
+    align-items: flex-start;
+    gap: 26px;
+    width: max-content;
+    padding: 0 24vw;
+    will-change: transform;
+    pointer-events: none;
+  }
+  .mobile-merch-item {
+    flex: 0 0 auto;
+    width: clamp(132px, 38vw, 170px);
+    transform: translateY(-28px);
+  }
+  .mobile-merch-item img {
+    width: clamp(170px, 20vw, 320px);
+    height: auto;
+    display: block;
+    filter: brightness(0) saturate(100%) invert(34%) sepia(0%) saturate(0%) hue-rotate(180deg) brightness(82%) contrast(86%);
+    opacity: 0.95;
+    mix-blend-mode: screen;
   }
 }
 `;
@@ -76,32 +104,58 @@ function getMerchProgress() {
   return Math.min(Math.max(percent / 100, 0), 1);
 }
 
-function applyMobileMerchTravel() {
-  const isMobile = window.matchMedia('(max-width: 900px)').matches;
-  const merchSection = Array.from(document.querySelectorAll('.segment')).find((item) => item.querySelector('h1')?.textContent?.trim() === 'A full collection on the line.');
-  const track = merchSection?.querySelector('.hanger-track');
-  const progress = getMerchProgress();
-
-  if (!isMobile || !merchSection?.classList.contains('is-active') || !track || progress === null) return;
-
-  const startX = window.innerWidth * 0.78;
-  const endX = window.innerWidth * -2.22;
-  const x = startX + (endX - startX) * progress;
-  track.style.setProperty('transform', `translate3d(${x}px, 0, 0)`, 'important');
+function getMerchSection() {
+  return Array.from(document.querySelectorAll('.segment')).find((item) => item.querySelector('h1')?.textContent?.trim() === 'A full collection on the line.');
 }
 
-function forceMobileMerchTravel() {
-  requestAnimationFrame(() => {
-    setTimeout(applyMobileMerchTravel, 0);
-    setTimeout(applyMobileMerchTravel, 16);
-    setTimeout(applyMobileMerchTravel, 32);
-    requestAnimationFrame(forceMobileMerchTravel);
-  });
+function ensureMobileMerchTrack() {
+  const merchSection = getMerchSection();
+  const railWrap = merchSection?.querySelector('.hanger-rail-wrap');
+  const sourceImg = merchSection?.querySelector('.hanger-track img');
+  if (!railWrap || !sourceImg) return null;
+
+  let mobileTrack = railWrap.querySelector('.mobile-merch-track');
+  if (mobileTrack) return mobileTrack;
+
+  mobileTrack = document.createElement('div');
+  mobileTrack.className = 'mobile-merch-track';
+
+  for (let index = 0; index < 6; index += 1) {
+    const item = document.createElement('div');
+    item.className = 'mobile-merch-item';
+    const image = document.createElement('img');
+    image.src = sourceImg.src;
+    image.alt = '';
+    image.setAttribute('aria-hidden', 'true');
+    item.appendChild(image);
+    mobileTrack.appendChild(item);
+  }
+
+  railWrap.appendChild(mobileTrack);
+  return mobileTrack;
+}
+
+function moveMobileMerchTrack() {
+  const isMobile = window.matchMedia('(max-width: 900px)').matches;
+  const merchSection = getMerchSection();
+  const progress = getMerchProgress();
+  const mobileTrack = ensureMobileMerchTrack();
+
+  if (isMobile && merchSection?.classList.contains('is-active') && mobileTrack && progress !== null) {
+    const items = Array.from(mobileTrack.querySelectorAll('.mobile-merch-item'));
+    const step = items[1] ? items[1].offsetLeft - items[0].offsetLeft : window.innerWidth * 0.45;
+    const startX = window.innerWidth * 0.82;
+    const endX = window.innerWidth * 0.5 - step * 5;
+    const x = startX + (endX - startX) * progress;
+    mobileTrack.style.transform = `translate3d(${x}px, 0, 0)`;
+  }
+
+  requestAnimationFrame(moveMobileMerchTrack);
 }
 
 const observer = new MutationObserver(addSectionButtons);
 observer.observe(document.documentElement, { childList: true, subtree: true });
 window.addEventListener('load', addSectionButtons);
 requestAnimationFrame(addSectionButtons);
-forceMobileMerchTravel();
+requestAnimationFrame(moveMobileMerchTrack);
 setTimeout(addSectionButtons, 500);
