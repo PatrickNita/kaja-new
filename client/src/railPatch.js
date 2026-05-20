@@ -63,8 +63,30 @@ function addSectionButtons() {
   });
 }
 
+function extendMobileMerchTravel() {
+  const isMobile = window.matchMedia('(max-width: 900px)').matches;
+  const merchSection = Array.from(document.querySelectorAll('.segment')).find((item) => item.querySelector('h1')?.textContent?.trim() === 'A full collection on the line.');
+  const track = merchSection?.querySelector('.hanger-track');
+
+  if (!isMobile || !merchSection?.classList.contains('is-active') || !track) {
+    requestAnimationFrame(extendMobileMerchTravel);
+    return;
+  }
+
+  const percentText = Array.from(document.querySelectorAll('.scroll-hint span')).at(-1)?.textContent || '0%';
+  const percent = Number.parseFloat(percentText.replace('%', '')) || 0;
+  const progress = Math.min(Math.max(percent / 100, 0), 1);
+  const startX = window.innerWidth * 0.3;
+  const endX = window.innerWidth * -2.3;
+  const x = startX + (endX - startX) * progress;
+
+  track.style.transform = `translateX(${x}px)`;
+  requestAnimationFrame(extendMobileMerchTravel);
+}
+
 const observer = new MutationObserver(addSectionButtons);
 observer.observe(document.documentElement, { childList: true, subtree: true });
 window.addEventListener('load', addSectionButtons);
 requestAnimationFrame(addSectionButtons);
+requestAnimationFrame(extendMobileMerchTravel);
 setTimeout(addSectionButtons, 500);
