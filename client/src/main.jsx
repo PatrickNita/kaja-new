@@ -10,52 +10,52 @@ const FOOTER_INDEX = 6;
 
 const sections = [
   {
-    label: 'Origin',
-    eyebrow: '01 / Concept',
-    title: 'Designed to hold attention.',
-    copy: 'KAJA opens with a quiet black stage, then reveals the product through controlled, tactile movement.',
-    accent: 'Precision',
+    label: 'INTRO',
+    eyebrow: '01 / Intro',
+    title: 'A sharper way to present KAJA.',
+    copy: 'A focused opening scene built around motion, restraint, and a premium product rhythm.',
+    accent: 'Intro',
     shape: 'panel'
   },
   {
-    label: 'Material',
-    eyebrow: '02 / Texture',
-    title: 'Soft motion, sharp product logic.',
-    copy: 'Every scroll gesture drives the animation timeline forward or backward before the page moves on.',
-    accent: 'Elastic',
-    shape: 'orb'
-  },
-  {
-    label: 'Performance',
-    eyebrow: '03 / Engine',
-    title: 'Responsive by rhythm, not by accident.',
-    copy: 'The experience blocks free scrolling and snaps into the next fixed scene only after the current reveal is complete.',
-    accent: 'Controlled',
+    label: 'STRENGTH',
+    eyebrow: '02 / Strength',
+    title: 'Built with structure and confidence.',
+    copy: 'Strong visual pacing, controlled transitions, and solid interaction logic keep the experience feeling deliberate.',
+    accent: 'Strong',
     shape: 'stack'
   },
   {
-    label: 'Details',
-    eyebrow: '04 / Interface',
-    title: 'A cursor with weight and memory.',
-    copy: 'The center point stays exact while the surrounding ring stretches and softens according to mouse velocity.',
-    accent: 'Fluid',
-    shape: 'cursor'
-  },
-  {
-    label: 'Launch',
-    eyebrow: '05 / Story',
-    title: 'Six scenes, one product narrative.',
-    copy: 'Each segment behaves like a cinematic frame, with image motion scrubbed directly by the user\'s scroll.',
-    accent: 'Cinematic',
+    label: 'CATALOGUE',
+    eyebrow: '03 / Catalogue',
+    title: 'A clean path through the collection.',
+    copy: 'Catalogue moments are designed to feel organized, visual, and easy to explore across every screen size.',
+    accent: 'Catalogue',
     shape: 'strips'
   },
   {
-    label: 'Contact',
-    eyebrow: '06 / Conversion',
+    label: 'AVAILABILITY',
+    eyebrow: '04 / Availability',
+    title: 'Ready when the demand arrives.',
+    copy: 'Availability messaging stays simple and direct, giving visitors a clear sense of timing, access, and next steps.',
+    accent: 'Available',
+    shape: 'orb'
+  },
+  {
+    label: 'MERCH',
+    eyebrow: '05 / Merch',
     title: 'A full collection on the line.',
     copy: 'A fixed full-width rail holds six grey hangers that glide horizontally from right to left as you scroll.',
-    accent: 'Lineup',
+    accent: 'Merch',
     shape: 'hanger'
+  },
+  {
+    label: 'CONTACT',
+    eyebrow: '06 / Contact',
+    title: 'Start the conversation.',
+    copy: 'Send a message for launch details, catalogue access, collaboration, or product availability.',
+    accent: 'Contact',
+    shape: 'contact'
   }
 ];
 
@@ -74,6 +74,47 @@ const hangerImageStyle = {
   filter: 'brightness(0) saturate(100%) invert(34%) sepia(0%) saturate(0%) hue-rotate(180deg) brightness(82%) contrast(86%)',
   opacity: 0.95,
   mixBlendMode: 'screen'
+};
+
+const contactFormStyle = {
+  position: 'relative',
+  zIndex: 4,
+  justifySelf: 'center',
+  width: 'min(46vw, 560px)',
+  padding: 'clamp(20px, 3vw, 38px)',
+  border: '1px solid rgba(255,255,255,0.16)',
+  borderRadius: 'clamp(22px, 3vw, 34px)',
+  background: 'linear-gradient(145deg, rgba(255,255,255,0.13), rgba(255,255,255,0.035))',
+  boxShadow: '0 52px 120px rgba(0,0,0,0.64), inset 0 0 70px rgba(255,255,255,0.035)',
+  backdropFilter: 'blur(18px)'
+};
+
+const contactFieldStyle = {
+  width: '100%',
+  border: '1px solid rgba(255,255,255,0.14)',
+  borderRadius: '16px',
+  background: 'rgba(0,0,0,0.42)',
+  color: '#fff',
+  padding: '14px 16px',
+  fontSize: '14px',
+  outline: 'none',
+  marginTop: '12px',
+  fontFamily: 'inherit'
+};
+
+const contactButtonStyle = {
+  width: '100%',
+  marginTop: '14px',
+  border: 0,
+  borderRadius: '999px',
+  background: '#fff',
+  color: '#000',
+  padding: '14px 18px',
+  fontSize: '12px',
+  fontWeight: 800,
+  letterSpacing: '0.16em',
+  textTransform: 'uppercase',
+  fontFamily: 'inherit'
 };
 
 const footerBaseStyle = {
@@ -236,25 +277,47 @@ function HangerVisual({ progress }) {
   );
 }
 
-function Segment({ section, index, active, rawProgress }) {
+function ContactVisual({ progress }) {
+  const x = useTransform(progress, [0, 1], ['-2.5vw', '2.5vw']);
+
+  return (
+    <motion.form className="contact-form-panel" style={{ x, ...contactFormStyle }} onSubmit={(event) => event.preventDefault()}>
+      <p style={{ margin: '0 0 14px', color: 'rgba(255,255,255,0.58)', textTransform: 'uppercase', letterSpacing: '0.18em', fontSize: '12px' }}>Contact KAJA</p>
+      <input style={contactFieldStyle} placeholder="Name" aria-label="Name" />
+      <input style={contactFieldStyle} placeholder="Email" aria-label="Email" type="email" />
+      <select style={contactFieldStyle} aria-label="Topic" defaultValue="">
+        <option value="" disabled>Topic</option>
+        <option>Catalogue access</option>
+        <option>Availability</option>
+        <option>Merch collaboration</option>
+        <option>General contact</option>
+      </select>
+      <textarea style={{ ...contactFieldStyle, minHeight: '118px', resize: 'none' }} placeholder="Message" aria-label="Message" />
+      <button style={contactButtonStyle} type="submit">Send request</button>
+    </motion.form>
+  );
+}
+
+function Segment({ section, index, active, rawProgress, isMobile }) {
   const progress = useMotionValue(rawProgress);
   const spring = useSpring(progress, { stiffness: 82, damping: 24, mass: 0.68 });
-  const titleY = useTransform(spring, [0, 1], [6, -18]);
+  const titleY = useTransform(spring, [0, 1], isMobile ? [2, -5] : [6, -18]);
   const titleOpacity = useTransform(spring, [0, 1], [1, 1]);
-  const copyY = useTransform(spring, [0, 1], [3, -10]);
-  const accentY = useTransform(spring, [0, 1], ['1vh', '-5vh']);
-  const counterScale = useTransform(spring, [0, 1], [0.9, 1.18]);
-  const counterY = useTransform(spring, [0, 1], ['2vh', '-5vh']);
+  const copyY = useTransform(spring, [0, 1], isMobile ? [1, -3] : [3, -10]);
+  const accentY = useTransform(spring, [0, 1], isMobile ? ['0.5vh', '-1.5vh'] : ['1vh', '-5vh']);
+  const counterScale = useTransform(spring, [0, 1], isMobile ? [0.96, 1.06] : [0.9, 1.18]);
+  const counterY = useTransform(spring, [0, 1], isMobile ? ['0.5vh', '-1.5vh'] : ['2vh', '-5vh']);
   const gridOpacity = useTransform(spring, [0, 1], [0.32, 1]);
-  const gridY = useTransform(spring, [0, 1], ['2vh', '-2vh']);
+  const gridY = useTransform(spring, [0, 1], isMobile ? ['0.6vh', '-0.6vh'] : ['2vh', '-2vh']);
   const isHangerSection = section.shape === 'hanger';
+  const isContactSection = section.shape === 'contact';
 
   useEffect(() => {
     progress.set(rawProgress);
   }, [rawProgress, progress]);
 
   return (
-    <section className={`segment ${active ? 'is-active' : ''} ${isHangerSection ? 'is-hanger-section' : ''}`} aria-hidden={!active}>
+    <section className={`segment ${active ? 'is-active' : ''} ${isHangerSection ? 'is-hanger-section' : ''} ${isContactSection ? 'is-contact-section' : ''}`} aria-hidden={!active}>
       <div className="segment-backdrop">
         <motion.div className="grid-mask" style={{ opacity: gridOpacity, y: gridY }} />
       </div>
@@ -268,6 +331,8 @@ function Segment({ section, index, active, rawProgress }) {
       </div>
       {isHangerSection ? (
         <HangerVisual progress={spring} />
+      ) : isContactSection ? (
+        <ContactVisual progress={spring} />
       ) : (
         <ProductVisual type={section.shape} progress={spring} index={index} />
       )}
@@ -288,9 +353,11 @@ function ScrollHint({ active, progress }) {
     );
   }
 
+  const section = sections[active] ?? sections[sections.length - 1];
+
   return (
     <div className="scroll-hint">
-      <span>Segment {active + 1}/6</span>
+      <span>{section.label} {active + 1}/{sections.length}</span>
       <div><i style={{ height: `${Math.round(progress * 100)}%` }} /></div>
       <span>{Math.round(progress * 100)}%</span>
     </div>
@@ -310,11 +377,19 @@ function App() {
   const [active, setActive] = useState(0);
   const [progress, setProgress] = useState(0);
   const [fixed, setFixed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const activeRef = useRef(0);
   const progressRef = useRef(0);
   const lock = useRef(false);
   const touchStart = useRef(null);
   const touchLast = useRef(null);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.matchMedia('(max-width: 900px)').matches);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const goTo = (target) => {
     const next = clamp(target, 0, sections.length - 1);
@@ -465,6 +540,7 @@ function App() {
             index={index}
             active={footerVisible ? index === sections.length - 1 : active === index}
             rawProgress={footerVisible ? 1 : active === index ? progress : active > index ? 1 : 0}
+            isMobile={isMobile}
           />
         ))}
       </div>
