@@ -176,6 +176,8 @@ function closeAllTopicDropdowns(except) {
 function buildTopicDropdown(select) {
   if (!select || select.dataset.customTopicReady === 'true') return;
   select.dataset.customTopicReady = 'true';
+  select.value = 'general-contact';
+  select.dispatchEvent(new Event('change', { bubbles: true }));
 
   const dropdown = document.createElement('div');
   dropdown.className = 'kaja-topic-dropdown';
@@ -187,7 +189,7 @@ function buildTopicDropdown(select) {
   trigger.setAttribute('aria-expanded', 'false');
 
   const label = document.createElement('span');
-  label.textContent = 'Topic';
+  label.textContent = 'General contact';
 
   const arrow = document.createElement('span');
   arrow.className = 'kaja-topic-arrow';
@@ -203,10 +205,11 @@ function buildTopicDropdown(select) {
   topicOptions.forEach((option) => {
     const button = document.createElement('button');
     button.type = 'button';
-    button.className = 'kaja-topic-option';
+    button.className = option.value === 'general-contact' ? 'kaja-topic-option is-selected' : 'kaja-topic-option';
     button.textContent = option.label;
     button.dataset.value = option.value;
     button.setAttribute('role', 'option');
+    button.setAttribute('aria-selected', option.value === 'general-contact' ? 'true' : 'false');
 
     button.addEventListener('click', () => {
       select.value = option.value;
@@ -214,8 +217,12 @@ function buildTopicDropdown(select) {
       label.textContent = option.label;
       dropdown.classList.remove('is-open');
       trigger.setAttribute('aria-expanded', 'false');
-      menu.querySelectorAll('.kaja-topic-option').forEach((item) => item.classList.remove('is-selected'));
+      menu.querySelectorAll('.kaja-topic-option').forEach((item) => {
+        item.classList.remove('is-selected');
+        item.setAttribute('aria-selected', 'false');
+      });
       button.classList.add('is-selected');
+      button.setAttribute('aria-selected', 'true');
     });
 
     menu.appendChild(button);
