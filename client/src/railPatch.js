@@ -116,7 +116,7 @@ patchStyle.textContent = `
   .is-hanger-section.is-active .mobile-merch-track {
     position: absolute;
     left: 0;
-    top: 42px;
+    top: 50px;
     z-index: 5;
     display: flex;
     align-items: flex-start;
