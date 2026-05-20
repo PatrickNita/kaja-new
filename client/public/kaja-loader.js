@@ -43,7 +43,7 @@ document.head.appendChild(loaderStyle);
 const loader = document.createElement('div');
 loader.id = 'kaja-loader';
 loader.setAttribute('aria-label', 'Loading KAJA');
-loader.innerHTML = `<img src="/src/assets/kaja-logo.png" alt="KAJA" />`;
+loader.innerHTML = `<img src="/kaja-logo.png" alt="KAJA" />`;
 document.addEventListener('DOMContentLoaded', () => {
   document.body.prepend(loader);
   window.setTimeout(() => {
