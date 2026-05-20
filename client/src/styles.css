@@ -338,111 +338,124 @@ h1 {
 
 .hanger-rail-wrap {
   position: absolute;
-  inset: 12vh -10vw auto -8vw;
-  height: 430px;
+  top: 18vh;
+  left: -7vw;
+  right: -7vw;
+  height: 360px;
+  overflow: visible;
 }
 
 .hanger-rail {
   position: absolute;
-  top: 34px;
+  top: 74px;
   left: 0;
   right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.22), #fff, rgba(255,255,255,0.22), transparent);
-  box-shadow: 0 0 36px rgba(255,255,255,0.14);
+  height: 8px;
+  border-radius: 999px;
+  background: #3a3a3a;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.06), 0 22px 70px rgba(0,0,0,0.7);
 }
 
 .hanger-track {
   position: absolute;
-  top: 34px;
+  top: 74px;
   left: 0;
   display: flex;
-  gap: 54px;
+  gap: clamp(46px, 7vw, 96px);
   width: max-content;
-  padding: 0 14vw;
+  padding: 0 12vw;
   will-change: transform;
 }
 
 .hanger-object {
   position: relative;
-  width: 220px;
-  height: 330px;
-  display: grid;
-  justify-items: center;
+  width: clamp(180px, 18vw, 290px);
+  height: clamp(120px, 12vw, 190px);
+  flex: 0 0 auto;
 }
 
-.hanger-hook {
-  width: 1px;
-  height: 66px;
-  background: rgba(255,255,255,0.72);
-  display: block;
+.hanger-silhouette {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform: translateY(-46px);
+  color: #272727;
+  filter: drop-shadow(0 24px 32px rgba(0,0,0,0.55));
 }
 
-.hanger-hook::before {
+.hanger-silhouette::before {
   content: '';
   position: absolute;
-  top: -13px;
-  width: 34px;
-  height: 34px;
-  border: 1px solid rgba(255,255,255,0.72);
+  left: 50%;
+  top: -24px;
+  width: 50px;
+  height: 50px;
+  border: 14px solid currentColor;
   border-bottom-color: transparent;
-  border-left-color: transparent;
   border-radius: 999px;
-  transform: translateX(-50%) rotate(-28deg);
+  transform: translateX(-50%) rotate(-12deg);
 }
 
-.hanger-card {
-  width: 220px;
-  height: 250px;
-  border: 1px solid rgba(255,255,255,0.18);
-  border-radius: 28px;
-  background: linear-gradient(155deg, rgba(255,255,255,0.16), rgba(255,255,255,0.035));
-  box-shadow: 0 38px 100px rgba(0,0,0,0.58), inset 0 0 60px rgba(255,255,255,0.04);
-  display: grid;
-  place-items: center;
-  padding: 26px;
-  text-align: center;
-}
-
-.hanger-card img {
-  width: 68%;
-  height: auto;
-  object-fit: contain;
-}
-
-.hanger-card strong {
+.hanger-neck {
   position: absolute;
-  left: 22px;
-  bottom: 20px;
-  color: rgba(255,255,255,0.44);
-  font-size: 34px;
-  letter-spacing: -0.08em;
+  left: 50%;
+  top: 30px;
+  width: 14px;
+  height: 48px;
+  border-radius: 0 0 999px 999px;
+  background: currentColor;
+  transform: translateX(-50%);
 }
 
-.hanger-card em {
+.hanger-shoulder {
   position: absolute;
-  right: 22px;
-  top: 22px;
-  color: rgba(255,255,255,0.58);
-  font-style: normal;
-  font-size: 11px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  writing-mode: vertical-rl;
+  top: 76px;
+  width: 52%;
+  height: 14px;
+  border-radius: 999px;
+  background: currentColor;
+  transform-origin: center right;
 }
 
-.hanger-object-2,
-.hanger-object-5 {
-  margin-top: 34px;
+.hanger-shoulder-left {
+  left: 5%;
+  transform: rotate(-24deg);
 }
 
-.hanger-object-3 {
-  margin-top: -18px;
+.hanger-shoulder-right {
+  right: 5%;
+  transform-origin: center left;
+  transform: rotate(24deg);
 }
 
-.hanger-object-4,
-.hanger-object-6 {
-  margin-top: 16px;
+.hanger-bottom {
+  position: absolute;
+  left: 5%;
+  right: 5%;
+  bottom: 0;
+  height: 14px;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.hanger-bottom::before,
+.hanger-bottom::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  width: 28px;
+  height: 28px;
+  border: 14px solid currentColor;
+  border-top: 0;
+  border-radius: 0 0 999px 999px;
+}
+
+.hanger-bottom::before {
+  left: -1px;
+}
+
+.hanger-bottom::after {
+  right: -1px;
 }
 
 .huge-accent {
@@ -555,36 +568,34 @@ h1 {
   }
 
   .hanger-scene {
-    min-height: 38vh;
+    min-height: 32vh;
   }
 
   .hanger-rail-wrap {
-    inset: 2vh -30vw auto -30vw;
-    height: 300px;
+    top: 5vh;
+    left: -22px;
+    right: -22px;
+    height: 230px;
+  }
+
+  .hanger-rail {
+    top: 56px;
+    height: 6px;
   }
 
   .hanger-track {
-    gap: 28px;
+    top: 56px;
+    gap: 34px;
     padding: 0 28vw;
   }
 
   .hanger-object {
-    width: 150px;
-    height: 245px;
+    width: 170px;
+    height: 112px;
   }
 
-  .hanger-hook {
-    height: 46px;
-  }
-
-  .hanger-card {
-    width: 150px;
-    height: 180px;
-    border-radius: 22px;
-  }
-
-  .hanger-card strong {
-    font-size: 24px;
+  .hanger-silhouette {
+    transform: translateY(-34px);
   }
 
   .scroll-hint {
