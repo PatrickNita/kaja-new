@@ -6,16 +6,23 @@ cursorHoverStyle.textContent = `
 }
 
 body.cursor-clickable-hover .cursor-ring {
-  width: 76px !important;
-  height: 76px !important;
-  border-width: 3px !important;
+  width: 66px !important;
+  height: 66px !important;
+  border-width: 2.25px !important;
   opacity: 1 !important;
 }
 
 body.cursor-clickable-hover .cursor-dot {
-  width: 12px !important;
-  height: 12px !important;
+  width: 9px !important;
+  height: 9px !important;
   opacity: 1 !important;
+}
+
+input,
+select,
+textarea,
+[contenteditable="true"] {
+  cursor: none !important;
 }
 
 @media (max-width: 900px), (pointer: coarse) {
@@ -24,6 +31,13 @@ body.cursor-clickable-hover .cursor-dot {
     width: revert !important;
     height: revert !important;
     border-width: revert !important;
+  }
+
+  input,
+  select,
+  textarea,
+  [contenteditable="true"] {
+    cursor: auto !important;
   }
 }
 `;
@@ -35,6 +49,7 @@ const clickableSelector = [
   'input',
   'select',
   'textarea',
+  '[contenteditable="true"]',
   '[role="button"]',
   '[onclick]',
   '.section-link-button',
