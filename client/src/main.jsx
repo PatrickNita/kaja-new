@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { motion, useMotionValue, useMotionValueEvent, useSpring, useTransform } from 'framer-motion';
 import './styles.css';
 import logo from './assets/kaja-logo.png';
 import hanger from './assets/hanger.png';
@@ -238,11 +238,14 @@ function Navigation({ active, fixed, goTo }) {
   );
 }
 
-function IntroVisual({ progress, rawProgress }) {
+function IntroVisual({ progress }) {
   const scale = useTransform(progress, [0, 0.55, 1], [0.965, 1.07, 0.985]);
   const y = useTransform(progress, [0, 1], ['3vh', '-2vh']);
-  const frameIndex = Math.min(20, Math.max(1, Math.floor(rawProgress * 19) + 1));
-  const frameSrc = `/intro-frames/frame-${String(frameIndex).padStart(2, '0')}.webp`;
+  const [currentFrame, setCurrentFrame] = useState(1);
+  const [previousFrame, setPreviousFrame] = useState(1);
+  const [fadeKey, setFadeKey] = useState(0);
+  const lastFrame = useRef(1);
+  const smoothedFrameProgress = useSpring(progress, { stiffness: 52, damping: 19, mass: 0.75 });
 
   useEffect(() => {
     for (let index = 1; index <= 20; index += 1) {
@@ -251,9 +254,32 @@ function IntroVisual({ progress, rawProgress }) {
     }
   }, []);
 
+  useMotionValueEvent(smoothedFrameProgress, 'change', (latest) => {
+    const nextFrame = Math.min(20, Math.max(1, Math.floor(latest * 19) + 1));
+    if (nextFrame === lastFrame.current) return;
+
+    setPreviousFrame(lastFrame.current);
+    setCurrentFrame(nextFrame);
+    setFadeKey((key) => key + 1);
+    lastFrame.current = nextFrame;
+  });
+
+  const currentSrc = `/intro-frames/frame-${String(currentFrame).padStart(2, '0')}.webp`;
+  const previousSrc = `/intro-frames/frame-${String(previousFrame).padStart(2, '0')}.webp`;
+
   return (
     <motion.div className="intro-sequence" style={{ scale, y }}>
-      <img src={frameSrc} alt="KAJA intro animation frame" draggable="false" />
+      <img className="intro-frame intro-frame-previous" src={previousSrc} alt="" aria-hidden="true" draggable="false" />
+      <motion.img
+        key={fadeKey}
+        className="intro-frame intro-frame-current"
+        src={currentSrc}
+        alt="KAJA intro animation frame"
+        draggable="false"
+        initial={{ opacity: 0.18, scale: 1.004 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+      />
     </motion.div>
   );
 }
@@ -351,7 +377,7 @@ function Segment({ section, index, active, rawProgress, isMobile }) {
         </div>
       </div>
       {isIntroSection ? (
-        <IntroVisual progress={spring} rawProgress={rawProgress} />
+        <IntroVisual progress={spring} />
       ) : isHangerSection ? (
         <HangerVisual progress={spring} />
       ) : isContactSection ? (
