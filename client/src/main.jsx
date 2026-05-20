@@ -50,12 +50,14 @@ const sections = [
   {
     label: 'Contact',
     eyebrow: '06 / Conversion',
-    title: 'Ready for a high-end product reveal.',
-    copy: 'The final section closes with a focused call-to-action and a GitHub-ready React + Node structure.',
-    accent: 'Ready',
-    shape: 'final'
+    title: 'A full collection on the line.',
+    copy: 'The last scene becomes a horizontal hanger rail with six product objects sliding across the stage as you scroll.',
+    accent: 'Lineup',
+    shape: 'hanger'
   }
 ];
+
+const hangerObjects = ['Origin', 'Material', 'Engine', 'Cursor', 'Story', 'Launch'];
 
 function ElasticCursor() {
   const cursor = useRef(null);
@@ -134,16 +136,14 @@ function Navigation({ active, fixed, goTo }) {
 }
 
 function ProductVisual({ type, progress, index }) {
-  const rotate = useTransform(progress, [0, 1], [-30, 26]);
-  const x = useTransform(progress, [0, 1], ['-24vw', '18vw']);
-  const y = useTransform(progress, [0, 1], ['16vh', '-16vh']);
-  const scale = useTransform(progress, [0, 0.55, 1], [0.88, 1.14, 0.9]);
-  const opacity = useTransform(progress, [0, 0.82, 1], [1, 1, 0.76]);
+  const y = useTransform(progress, [0, 1], ['16vh', '-18vh']);
+  const scale = useTransform(progress, [0, 0.55, 1], [0.9, 1.14, 0.92]);
+  const opacity = useTransform(progress, [0, 0.82, 1], [1, 1, 0.78]);
   const blur = useTransform(progress, [0, 1], ['blur(0px)', 'blur(0px)']);
   const reveal = useTransform(progress, [0, 1], ['inset(0% 0% 0% 0% round 32px)', 'inset(0% 0% 0% 0% round 32px)']);
 
   return (
-    <motion.div className={`visual visual-${type}`} style={{ rotate, x, y, scale, opacity, filter: blur, clipPath: reveal }}>
+    <motion.div className={`visual visual-${type}`} style={{ y, scale, opacity, filter: blur, clipPath: reveal }}>
       <div className="visual-glow" />
       <div className="visual-core">
         <img src={logo} alt="KAJA product mark" />
@@ -155,41 +155,68 @@ function ProductVisual({ type, progress, index }) {
   );
 }
 
+function HangerVisual({ progress }) {
+  const trackX = useTransform(progress, [0, 1], ['32vw', '-52vw']);
+  const railY = useTransform(progress, [0, 1], ['5vh', '-7vh']);
+  const sceneY = useTransform(progress, [0, 1], ['8vh', '-10vh']);
+
+  return (
+    <motion.div className="hanger-scene" style={{ y: sceneY }}>
+      <motion.div className="hanger-rail-wrap" style={{ y: railY }}>
+        <div className="hanger-rail" />
+        <motion.div className="hanger-track" style={{ x: trackX }}>
+          {hangerObjects.map((item, objectIndex) => (
+            <div className={`hanger-object hanger-object-${objectIndex + 1}`} key={item}>
+              <span className="hanger-hook" />
+              <div className="hanger-card">
+                <img src={logo} alt="KAJA mark" />
+                <strong>{String(objectIndex + 1).padStart(2, '0')}</strong>
+                <em>{item}</em>
+              </div>
+            </div>
+          ))}
+        </motion.div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 function Segment({ section, index, active, rawProgress }) {
   const progress = useMotionValue(rawProgress);
   const spring = useSpring(progress, { stiffness: 76, damping: 24, mass: 0.75 });
   const titleY = useTransform(spring, [0, 1], [18, -56]);
-  const titleX = useTransform(spring, [0, 1], ['0vw', '-2.8vw']);
   const titleOpacity = useTransform(spring, [0, 1], [1, 1]);
   const copyY = useTransform(spring, [0, 1], [10, -34]);
-  const copyX = useTransform(spring, [0, 1], ['0vw', '-1.4vw']);
-  const accentX = useTransform(spring, [0, 1], ['-3%', '18%']);
-  const accentY = useTransform(spring, [0, 1], ['2vh', '-4vh']);
+  const accentY = useTransform(spring, [0, 1], ['2vh', '-8vh']);
   const counterScale = useTransform(spring, [0, 1], [0.86, 1.3]);
   const counterY = useTransform(spring, [0, 1], ['3vh', '-7vh']);
   const gridOpacity = useTransform(spring, [0, 1], [0.32, 1]);
-  const gridX = useTransform(spring, [0, 1], ['-4vw', '4vw']);
-  const gridY = useTransform(spring, [0, 1], ['3vh', '-3vh']);
+  const gridY = useTransform(spring, [0, 1], ['4vh', '-4vh']);
+  const isHangerSection = section.shape === 'hanger';
 
   useEffect(() => {
     progress.set(rawProgress);
   }, [rawProgress, progress]);
 
   return (
-    <section className={`segment ${active ? 'is-active' : ''}`} aria-hidden={!active}>
+    <section className={`segment ${active ? 'is-active' : ''} ${isHangerSection ? 'is-hanger-section' : ''}`} aria-hidden={!active}>
       <div className="segment-backdrop">
-        <motion.div className="grid-mask" style={{ opacity: gridOpacity, x: gridX, y: gridY }} />
+        <motion.div className="grid-mask" style={{ opacity: gridOpacity, y: gridY }} />
       </div>
       <div className="segment-content">
-        <motion.p className="eyebrow" style={{ x: copyX, y: copyY, opacity: titleOpacity }}>{section.eyebrow}</motion.p>
-        <motion.h1 style={{ x: titleX, y: titleY, opacity: titleOpacity }}>{section.title}</motion.h1>
-        <motion.p className="copy" style={{ x: copyX, y: copyY, opacity: titleOpacity }}>{section.copy}</motion.p>
+        <motion.p className="eyebrow" style={{ y: copyY, opacity: titleOpacity }}>{section.eyebrow}</motion.p>
+        <motion.h1 style={{ y: titleY, opacity: titleOpacity }}>{section.title}</motion.h1>
+        <motion.p className="copy" style={{ y: copyY, opacity: titleOpacity }}>{section.copy}</motion.p>
         <div className="progress-track">
           <motion.span style={{ scaleX: spring }} />
         </div>
       </div>
-      <ProductVisual type={section.shape} progress={spring} index={index} />
-      <motion.div className="huge-accent" style={{ x: accentX, y: accentY }}>{section.accent}</motion.div>
+      {isHangerSection ? (
+        <HangerVisual progress={spring} />
+      ) : (
+        <ProductVisual type={section.shape} progress={spring} index={index} />
+      )}
+      <motion.div className="huge-accent" style={{ y: accentY }}>{section.accent}</motion.div>
       <motion.div className="counter" style={{ y: counterY, scale: counterScale }}>{String(index + 1).padStart(2, '0')}</motion.div>
     </section>
   );
