@@ -54,14 +54,6 @@ introCleanJarStyle.textContent = `
 `;
 document.head.appendChild(introCleanJarStyle);
 
-const introCleanJar = {
-  progress: 0,
-  y: 0,
-  scale: 1.06,
-  targetY: 0,
-  targetScale: 1.06
-};
-
 function clampIntroCleanJar(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
@@ -84,18 +76,12 @@ function updateIntroCleanJar() {
   const progress = readIntroCleanProgress();
 
   if (intro && progress !== null) {
-    introCleanJar.progress += (progress - introCleanJar.progress) * 0.16;
+    const growProgress = smoothIntroCleanJar(clampIntroCleanJar(progress / 0.64, 0, 1));
+    const endProgress = smoothIntroCleanJar(clampIntroCleanJar((progress - 0.74) / 0.26, 0, 1));
+    const scale = 1.06 + growProgress * 0.13 - endProgress * 0.17;
+    const y = endProgress * window.innerHeight * 0.075;
 
-    const growProgress = smoothIntroCleanJar(clampIntroCleanJar(introCleanJar.progress / 0.64, 0, 1));
-    const endProgress = smoothIntroCleanJar(clampIntroCleanJar((introCleanJar.progress - 0.74) / 0.26, 0, 1));
-
-    introCleanJar.targetScale = 1.06 + growProgress * 0.13 - endProgress * 0.17;
-    introCleanJar.targetY = endProgress * window.innerHeight * 0.075;
-
-    introCleanJar.scale += (introCleanJar.targetScale - introCleanJar.scale) * 0.16;
-    introCleanJar.y += (introCleanJar.targetY - introCleanJar.y) * 0.16;
-
-    intro.style.transform = `translate3d(0, ${introCleanJar.y}px, 0) scale(${introCleanJar.scale})`;
+    intro.style.transform = `translate3d(0, ${y}px, 0) scale(${scale})`;
   }
 
   requestAnimationFrame(updateIntroCleanJar);
