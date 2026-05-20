@@ -9,12 +9,10 @@ introCleanJarStyle.textContent = `
 }
 
 .is-intro-section .intro-jar-rebuilt {
-  position: relative !important;
-  z-index: 6 !important;
-  grid-column: 2 !important;
-  grid-row: 1 !important;
-  justify-self: center !important;
-  align-self: center !important;
+  position: absolute !important;
+  z-index: 7 !important;
+  left: 64% !important;
+  top: 50% !important;
   width: min(36vw, 470px) !important;
   aspect-ratio: 9 / 16 !important;
   transform-origin: center center !important;
@@ -37,8 +35,8 @@ introCleanJarStyle.textContent = `
 
 @media (max-width: 900px) {
   .is-intro-section .intro-jar-rebuilt {
-    grid-column: 1 !important;
-    grid-row: 2 !important;
+    left: 50% !important;
+    top: 66% !important;
     width: min(68vw, 300px) !important;
   }
 
@@ -69,7 +67,6 @@ function getIntroProgress() {
   const hint = document.querySelector('.scroll-hint');
   const text = hint?.textContent || '';
   if (!text.includes('INTRO')) return null;
-
   const match = text.match(/(\d+)%/);
   return clampIntroJar(match ? Number(match[1]) / 100 : 0, 0, 1);
 }
@@ -77,22 +74,17 @@ function getIntroProgress() {
 function ensureRebuiltIntroJar() {
   const section = document.querySelector('.is-intro-section');
   if (!section) return null;
-
   section.querySelectorAll('.intro-frame-animation').forEach((element) => element.remove());
-
   let jar = section.querySelector('.intro-jar-rebuilt');
   if (jar) return jar;
-
   jar = document.createElement('div');
   jar.className = 'intro-jar-rebuilt';
   jar.setAttribute('aria-label', 'KAJA intro jar visual');
-
   const image = document.createElement('img');
   image.src = '/intro-jar.webp';
   image.alt = 'KAJA product jar';
   image.draggable = false;
   image.decoding = 'async';
-
   jar.appendChild(image);
   section.appendChild(jar);
   return jar;
@@ -101,16 +93,13 @@ function ensureRebuiltIntroJar() {
 function updateRebuiltIntroJar() {
   const jar = ensureRebuiltIntroJar();
   const progress = getIntroProgress();
-
   if (jar && progress !== null) {
     const grow = smoothIntroJar(clampIntroJar(progress / 0.64, 0, 1));
     const end = smoothIntroJar(clampIntroJar((progress - 0.74) / 0.26, 0, 1));
     const scale = 1.06 + grow * 0.13 - end * 0.17;
     const y = end * 7.5;
-
-    jar.style.transform = `translate3d(0, ${y}vh, 0) scale(${scale})`;
+    jar.style.transform = `translate3d(-50%, calc(-50% + ${y}vh), 0) scale(${scale})`;
   }
-
   requestAnimationFrame(updateRebuiltIntroJar);
 }
 
