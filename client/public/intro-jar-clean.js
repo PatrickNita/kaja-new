@@ -39,12 +39,22 @@ introJarStyle.textContent=`
 document.head.appendChild(introJarStyle);
 const clamp=(v,a,b)=>Math.min(Math.max(v,a),b);
 const smooth=(v)=>v*v*(3-2*v);
-function getPercent(){
+const introState={percent:0,lastTouch:null};
+function introActive(){return (document.querySelector('.scroll-hint')?.textContent||'').includes('INTRO')}
+function syncFromLabel(){
   const text=document.querySelector('.scroll-hint')?.textContent||'';
   if(!text.includes('INTRO'))return null;
   const match=text.match(/(\d+)%/);
   return clamp(match?Number(match[1])/100:0,0,1);
 }
+function updateFromDelta(delta){
+  if(!introActive())return;
+  introState.percent=clamp(introState.percent+(delta/1700),0,1);
+}
+window.addEventListener('wheel',event=>updateFromDelta(event.deltaY),{capture:true,passive:true});
+window.addEventListener('touchstart',event=>{introState.lastTouch=event.touches?.[0]?.clientY??null},{capture:true,passive:true});
+window.addEventListener('touchmove',event=>{if(introState.lastTouch===null)return;const y=event.touches?.[0]?.clientY??introState.lastTouch;updateFromDelta((introState.lastTouch-y)*3.15);introState.lastTouch=y},{capture:true,passive:true});
+window.addEventListener('touchend',()=>{introState.lastTouch=null},{capture:true,passive:true});
 function ensure(){
   const section=document.querySelector('.is-intro-section');
   if(!section)return null;
@@ -63,11 +73,13 @@ function ensure(){
 }
 function tick(){
   const visual=ensure();
-  const percent=getPercent();
+  const labelPercent=syncFromLabel();
+  if(labelPercent!==null&&Math.abs(labelPercent-introState.percent)>.18)introState.percent=labelPercent;
   const img=visual?.querySelector('img');
-  if(visual&&img&&percent!==null){
-    const grow=smooth(clamp(percent/.65,0,1));
-    const shrink=smooth(clamp((percent-.65)/.35,0,1));
+  if(visual&&img&&introActive()){
+    const p=introState.percent;
+    const grow=smooth(clamp(p/.65,0,1));
+    const shrink=smooth(clamp((p-.65)/.35,0,1));
     const scale=1.12+(grow*.26)-(shrink*.34);
     const y=shrink*10;
     visual.style.transform='translate3d(0,0,0)';
