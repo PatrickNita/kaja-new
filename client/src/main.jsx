@@ -65,7 +65,7 @@ const hangerRailWrapStyle = {
   maskImage: 'linear-gradient(90deg, transparent 0%, black 10%, black 100%)'
 };
 const hangerObjectStyle = {
-  transform: 'translateY(22px)'
+  transform: 'translateY(-28px)'
 };
 const hangerImageStyle = {
   width: 'clamp(170px, 20vw, 320px)',
