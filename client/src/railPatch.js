@@ -29,9 +29,25 @@ patchStyle.textContent = `
     font-size: 10px;
     letter-spacing: 0.1em;
   }
-  .is-hanger-section.is-active .hanger-track {
+  .is-hanger-section .hanger-track {
+    gap: 2vw !important;
+    padding-left: 8vw !important;
+    padding-right: 8vw !important;
     transition: none !important;
     will-change: transform !important;
+  }
+  .is-hanger-section .hanger-object {
+    width: 12vw !important;
+    min-width: 12vw !important;
+    max-width: 12vw !important;
+    height: auto !important;
+    flex: 0 0 12vw !important;
+  }
+  .is-hanger-section .hanger-object img {
+    width: 12vw !important;
+    min-width: 12vw !important;
+    max-width: 12vw !important;
+    height: auto !important;
   }
 }
 `;
@@ -70,7 +86,7 @@ function addSectionButtons() {
 function getMerchProgress() {
   const spans = Array.from(document.querySelectorAll('.scroll-hint span'));
   const first = spans[0]?.textContent || '';
-  const last = spans.at(-1)?.textContent || '0%';
+  const last = spans[spans.length - 1]?.textContent || '0%';
   if (!first.includes('MERCH')) return null;
   const percent = Number.parseFloat(last.replace('%', '')) || 0;
   return Math.min(Math.max(percent / 100, 0), 1);
@@ -83,11 +99,8 @@ function forceMobileMerchTravel() {
   const progress = getMerchProgress();
 
   if (isMobile && merchSection?.classList.contains('is-active') && track && progress !== null) {
-    const rail = merchSection.querySelector('.hanger-rail-wrap');
-    const railWidth = rail?.getBoundingClientRect().width || window.innerWidth;
-    const trackWidth = track.scrollWidth || track.getBoundingClientRect().width || railWidth * 3;
-    const startX = window.innerWidth * 0.58;
-    const endX = Math.min(window.innerWidth * 0.06, railWidth - trackWidth - window.innerWidth * 0.06);
+    const startX = window.innerWidth * 0.78;
+    const endX = window.innerWidth * -0.02;
     const eased = progress < 0.5 ? 2 * progress * progress : 1 - Math.pow(-2 * progress + 2, 2) / 2;
     const x = startX + (endX - startX) * eased;
     track.style.setProperty('transform', `translate3d(${x}px, 0, 0)`, 'important');
