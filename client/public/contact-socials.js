@@ -77,22 +77,22 @@ const contactSocials = [
   {
     label: 'Instagram',
     href: '#instagram',
-    icon: '/contact-icons/instagram.png'
+    icon: '/socials/telegram.webp'
   },
   {
     label: 'WhatsApp',
     href: '#whatsapp',
-    icon: '/contact-icons/whatsapp.png'
+    icon: '/socials/whatsapp.webp'
   },
   {
     label: 'Telegram',
     href: '#telegram',
-    icon: '/contact-icons/telegram.png'
+    icon: '/socials/telegram.webp'
   },
   {
     label: 'E-mail',
     href: 'mailto:contact@kaja.example',
-    icon: '/contact-icons/email.png'
+    icon: '/socials/mail.webp'
   }
 ];
 
