@@ -53,7 +53,8 @@ function drawCatalogueFrame(scene,frame){
   const canvas=scene.querySelector('canvas');
   if(!canvas)return;
   sizeCatalogueCanvas(scene,canvas);
-  const img=loadCatalogueFrame(frame+1);
+  const reversedFrame=(catalogueFrameCount-1)-frame;
+  const img=loadCatalogueFrame(reversedFrame+1);
   if(!img.complete||!img.naturalWidth)return;
   if(frame===motion.catalogueDrawnIndex)return;
   const ctx=canvas.getContext('2d',{alpha:true});
