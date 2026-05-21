@@ -3,13 +3,13 @@ introJarStyle.textContent=`
 .is-intro-section .intro-sequence,.is-hanger-section ~ .segment .intro-sequence{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}
 .is-intro-section .intro-jar-clean,.strength-leaf-scene,.catalogue-frame-sequence,.availability-frame-sequence{position:relative!important;z-index:5!important;grid-column:2!important;grid-row:1!important;justify-self:center!important;align-self:center!important;width:min(46vw,680px)!important;height:min(52vh,560px)!important;border:1px solid rgba(255,255,255,.16)!important;border-radius:clamp(20px,3vw,32px)!important;overflow:visible!important;background:linear-gradient(145deg,rgba(255,255,255,.14),rgba(255,255,255,.025))!important;box-shadow:0 60px 140px rgba(0,0,0,.7),inset 0 0 90px rgba(255,255,255,.04)!important;transform-origin:center center!important;pointer-events:none!important}
 .catalogue-frame-sequence,.availability-frame-sequence{overflow:visible!important;contain:layout!important;backface-visibility:hidden!important;transform:translateZ(0)!important}
-.availability-frame-sequence::after{content:''!important;position:absolute!important;inset:-2%!important;z-index:9!important;pointer-events:none!important;border-radius:inherit!important;background:radial-gradient(circle at 50% 52%,rgba(255,255,255,.12),rgba(255,255,255,.055) 35%,rgba(0,0,0,.18) 100%),linear-gradient(145deg,rgba(0,0,0,.18),rgba(255,255,255,.10) 52%,rgba(0,0,0,.14))!important;mix-blend-mode:soft-light!important;opacity:.72!important}
+.availability-frame-sequence::after{content:''!important;position:absolute!important;inset:-2%!important;z-index:9!important;pointer-events:none!important;border-radius:inherit!important;background:radial-gradient(circle at 50% 52%,rgba(255,255,255,.22),rgba(255,255,255,.11) 38%,rgba(255,255,255,.035) 66%,rgba(0,0,0,.08) 100%),linear-gradient(145deg,rgba(255,255,255,.12),rgba(255,255,255,.18) 52%,rgba(0,0,0,.06))!important;mix-blend-mode:screen!important;opacity:.46!important}
 .is-intro-section .intro-jar-clean img{position:absolute!important;left:50%!important;top:50%!important;width:auto!important;height:116%!important;max-width:116%!important;object-fit:contain!important;object-position:center!important;display:block!important;filter:drop-shadow(0 46px 70px rgba(0,0,0,.62))!important;transform-origin:center center!important;transform:translate3d(-50%,-50%,0) scale(1.24)!important;will-change:transform!important;user-select:none!important;pointer-events:none!important}
 .strength-leaf-scene img{position:absolute!important;display:block!important;object-fit:contain!important;object-position:center!important;filter:drop-shadow(0 34px 45px rgba(0,0,0,.52))!important;transform-origin:center center!important;will-change:transform!important;user-select:none!important;pointer-events:none!important}
 .strength-leaf-middle{left:50%!important;top:50%!important;width:auto!important;height:78%!important;max-width:78%!important;z-index:5!important;transform:translate3d(-50%,-50%,0) scale(1)!important}
 .strength-leaf{z-index:4!important;width:auto!important;height:22%!important;max-width:28%!important;opacity:.92!important}
 .catalogue-frame-sequence canvas,.availability-frame-sequence canvas{position:absolute!important;z-index:8!important;left:50%!important;top:50%!important;width:170%!important;height:170%!important;display:block!important;transform:translate3d(-50%,-50%,0)!important;filter:drop-shadow(0 42px 64px rgba(0,0,0,.62))!important;will-change:contents!important;user-select:none!important;pointer-events:none!important;backface-visibility:hidden!important}
-.availability-frame-sequence canvas{width:145%!important;height:145%!important;filter:brightness(.94) contrast(.84) saturate(.9) drop-shadow(0 38px 58px rgba(0,0,0,.58))!important}
+.availability-frame-sequence canvas{width:145%!important;height:145%!important;filter:brightness(1.08) contrast(.72) saturate(.92) drop-shadow(0 38px 58px rgba(0,0,0,.58))!important}
 @media(max-width:900px){.is-intro-section .intro-jar-clean,.strength-leaf-scene,.catalogue-frame-sequence,.availability-frame-sequence{grid-column:1!important;grid-row:2!important;width:min(84vw,400px)!important;height:min(33vh,270px)!important;border-radius:22px!important}.is-intro-section .intro-jar-clean img{width:auto!important;height:120%!important;max-width:120%!important}.strength-leaf-middle{height:76%!important;max-width:76%!important}.strength-leaf{height:24%!important;max-width:30%!important}.catalogue-frame-sequence canvas{width:185%!important;height:185%!important}.availability-frame-sequence canvas{width:158%!important;height:158%!important}}
 `;
 document.head.appendChild(introJarStyle);
@@ -66,11 +66,12 @@ function applyExposureBalance(ctx,w,h){
     if(a===0)continue;
     const r=data[i],g=data[i+1],b=data[i+2];
     const l=(0.2126*r+0.7152*g+0.0722*b)/255;
-    const lift=clamp((0.46-l)*0.22,0,.16);
-    const dim=clamp((l-0.66)*0.34,0,.18);
-    data[i]=clamp(r*(1-dim)+255*lift,0,255);
-    data[i+1]=clamp(g*(1-dim)+255*lift,0,255);
-    data[i+2]=clamp(b*(1-dim)+255*lift,0,255);
+    const lift=clamp((0.72-l)*0.44,0,.34);
+    const dim=clamp((l-0.72)*0.28,0,.14);
+    const gamma=.78;
+    data[i]=clamp(Math.pow((r*(1-dim)+255*lift)/255,gamma)*255,0,255);
+    data[i+1]=clamp(Math.pow((g*(1-dim)+255*lift)/255,gamma)*255,0,255);
+    data[i+2]=clamp(Math.pow((b*(1-dim)+255*lift)/255,gamma)*255,0,255);
   }
   ctx.putImageData(imageData,0,0);
 }
