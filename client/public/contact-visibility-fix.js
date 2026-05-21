@@ -40,6 +40,22 @@
       pointer-events: auto !important;
     }
 
+    .is-contact-section .kaja-contact-form select,
+    .is-contact-section .kaja-contact-form select:hover,
+    .is-contact-section .kaja-contact-form select:focus,
+    .is-contact-section .kaja-contact-form select:active {
+      background: rgba(0,0,0,0.42) !important;
+      color: #fff !important;
+      border-color: rgba(255,255,255,0.18) !important;
+      outline: none !important;
+      box-shadow: none !important;
+    }
+
+    .is-contact-section .kaja-contact-form select option {
+      background: #111 !important;
+      color: #fff !important;
+    }
+
     .is-contact-section .kaja-contact-form button {
       cursor: none !important;
       transition: transform 0.22s ease, background 0.22s ease, box-shadow 0.22s ease !important;
@@ -146,6 +162,13 @@
       counter.style.setProperty('visibility', 'hidden', 'important');
       counter.style.setProperty('opacity', '0', 'important');
       counter.style.setProperty('pointer-events', 'none', 'important');
+    }
+
+    const select = form.querySelector('select');
+    if (select) {
+      select.style.setProperty('background', 'rgba(0,0,0,0.42)', 'important');
+      select.style.setProperty('color', '#fff', 'important');
+      select.style.setProperty('border-color', 'rgba(255,255,255,0.18)', 'important');
     }
 
     const visible = section.classList.contains('is-active');
