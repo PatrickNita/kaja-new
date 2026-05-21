@@ -89,13 +89,6 @@
       width: min(100%, 560px);
     }
 
-    .contact-form-panel .kaja-contact-socials {
-      width: 100%;
-      margin-top: 18px;
-      padding-top: 16px;
-      border-top: 1px solid rgba(255,255,255,0.12);
-    }
-
     .kaja-contact-social-button {
       display: flex;
       align-items: center;
@@ -248,10 +241,10 @@
   }
 
   function addContactSocialButtons(section) {
-    const panel = section?.querySelector('.contact-form-panel');
-    if (!panel || panel.querySelector('.kaja-contact-socials')) return;
+    const content = section?.querySelector('.segment-content');
+    if (!content || content.querySelector('.kaja-contact-socials')) return;
 
-    section.querySelector('.segment-content .kaja-contact-socials')?.remove();
+    section.querySelector('.contact-form-panel .kaja-contact-socials')?.remove();
 
     const row = document.createElement('div');
     row.className = 'kaja-contact-socials';
@@ -276,7 +269,7 @@
       row.appendChild(link);
     });
 
-    panel.appendChild(row);
+    content.appendChild(row);
   }
 
   function enhanceSections() {
