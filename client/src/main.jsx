@@ -117,6 +117,44 @@ const contactButtonStyle = {
   fontFamily: 'inherit'
 };
 
+const contactSocialLinks = [
+  { label: 'Instagram', src: '/socials/telegram.webp', href: '#instagram' },
+  { label: 'E-mail', src: '/socials/mail.webp', href: '#email' },
+  { label: 'Telegram', src: '/socials/telegram.webp', href: '#telegram' },
+  { label: 'WhatsApp', src: '/socials/whatsapp.webp', href: '#whatsapp' }
+];
+
+const contactSocialRowStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '12px',
+  marginTop: '18px',
+  paddingTop: '16px',
+  borderTop: '1px solid rgba(255,255,255,0.12)'
+};
+
+const contactSocialLinkStyle = {
+  width: '42px',
+  height: '42px',
+  border: '1px solid rgba(255,255,255,0.16)',
+  borderRadius: '999px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  background: 'rgba(255,255,255,0.06)',
+  boxShadow: 'inset 0 0 22px rgba(255,255,255,0.035)',
+  pointerEvents: 'auto'
+};
+
+const contactSocialIconStyle = {
+  width: '22px',
+  height: '22px',
+  objectFit: 'contain',
+  display: 'block',
+  filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.45))'
+};
+
 const footerBaseStyle = {
   position: 'absolute',
   inset: 0,
@@ -298,6 +336,13 @@ function ContactVisual({ progress }) {
       </select>
       <textarea style={{ ...contactFieldStyle, minHeight: '118px', resize: 'none' }} placeholder="Message" aria-label="Message" />
       <button style={contactButtonStyle} type="submit">Send request</button>
+      <div className="contact-social-links" style={contactSocialRowStyle}>
+        {contactSocialLinks.map((item) => (
+          <a className="contact-social-link" href={item.href} aria-label={item.label} title={item.label} style={contactSocialLinkStyle} key={item.label}>
+            <img src={item.src} alt="" aria-hidden="true" draggable="false" style={contactSocialIconStyle} />
+          </a>
+        ))}
+      </div>
     </motion.form>
   );
 }
