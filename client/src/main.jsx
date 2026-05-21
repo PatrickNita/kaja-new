@@ -7,6 +7,7 @@ import hanger from './assets/hanger.png';
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 const FOOTER_INDEX = 6;
+const SPRING_CONFIG = { stiffness: 82, damping: 24, mass: 0.68 };
 
 const sections = [
   {
@@ -192,6 +193,15 @@ const footerDetailsStyle = {
   color: 'rgba(255,255,255,0.52)'
 };
 
+function jumpProgress(value, ...motionValues) {
+  const next = clamp(value, 0, 1);
+  motionValues.forEach((motionValue) => {
+    if (!motionValue) return;
+    if (typeof motionValue.jump === 'function') motionValue.jump(next);
+    else motionValue.set(next);
+  });
+}
+
 function ElasticCursor() {
   const cursor = useRef(null);
   const dot = useRef(null);
@@ -347,9 +357,10 @@ function ContactVisual({ progress }) {
   );
 }
 
-function Segment({ section, index, active, rawProgress, isMobile }) {
-  const progress = useMotionValue(rawProgress);
-  const spring = useSpring(progress, { stiffness: 82, damping: 24, mass: 0.68 });
+function Segment({ section, index, active, rawProgress, sharedProgress, isMobile }) {
+  const localProgress = useMotionValue(rawProgress);
+  const localSpring = useSpring(localProgress, SPRING_CONFIG);
+  const spring = active && sharedProgress ? sharedProgress : localSpring;
   const titleY = useTransform(spring, [0, 1], isMobile ? [2, -5] : [6, -18]);
   const titleOpacity = useTransform(spring, [0, 1], [1, 1]);
   const copyY = useTransform(spring, [0, 1], isMobile ? [1, -3] : [3, -10]);
@@ -363,8 +374,8 @@ function Segment({ section, index, active, rawProgress, isMobile }) {
   const isContactSection = section.shape === 'contact';
 
   useEffect(() => {
-    progress.set(rawProgress);
-  }, [rawProgress, progress]);
+    localProgress.set(rawProgress);
+  }, [rawProgress, localProgress]);
 
   return (
     <section className={`segment ${active ? 'is-active' : ''} ${isIntroSection ? 'is-intro-section' : ''} ${isHangerSection ? 'is-hanger-section' : ''} ${isContactSection ? 'is-contact-section' : ''}`} aria-hidden={!active}>
@@ -406,12 +417,13 @@ function ScrollHint({ active, progress }) {
   }
 
   const section = sections[active] ?? sections[sections.length - 1];
+  const displayPercent = Math.round(clamp(progress, 0, 1) * 100);
 
   return (
     <div className="scroll-hint">
       <span>{section.label} {active + 1}/{sections.length}</span>
-      <div><i style={{ height: `${Math.round(progress * 100)}%` }} /></div>
-      <span>{Math.round(progress * 100)}%</span>
+      <div><i style={{ height: `${displayPercent}%` }} /></div>
+      <span>{displayPercent}%</span>
     </div>
   );
 }
@@ -428,13 +440,64 @@ function LegalFooter({ visible }) {
 function App() {
   const [active, setActive] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [sharedDisplayProgress, setSharedDisplayProgress] = useState(0);
   const [fixed, setFixed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const activeRef = useRef(0);
   const progressRef = useRef(0);
+  const sharedProgressRef = useRef(0);
   const lock = useRef(false);
+  const pendingTransition = useRef(null);
   const touchStart = useRef(null);
   const touchLast = useRef(null);
+  const sharedProgressSource = useMotionValue(0);
+  const sharedProgress = useSpring(sharedProgressSource, SPRING_CONFIG);
+
+  const resetSharedProgress = (value) => {
+    sharedProgressRef.current = clamp(value, 0, 1);
+    setSharedDisplayProgress(sharedProgressRef.current);
+    jumpProgress(sharedProgressRef.current, sharedProgressSource, sharedProgress);
+  };
+
+  useEffect(() => {
+    sharedProgressSource.set(progress);
+  }, [progress, sharedProgressSource]);
+
+  useEffect(() => {
+    const unsubscribe = sharedProgress.on('change', (value) => {
+      const next = clamp(value, 0, 1);
+      sharedProgressRef.current = next;
+      setSharedDisplayProgress(next);
+
+      const pending = pendingTransition.current;
+      if (!pending) return;
+
+      if (pending.direction > 0 && next >= 0.995) {
+        const nextProgress = pending.to === FOOTER_INDEX ? 1 : 0;
+        pendingTransition.current = null;
+        activeRef.current = pending.to;
+        progressRef.current = nextProgress;
+        setActive(pending.to);
+        setProgress(nextProgress);
+        setFixed(pending.to > 0 || nextProgress > 0.05);
+        resetSharedProgress(nextProgress);
+        window.setTimeout(() => { lock.current = false; }, 80);
+      }
+
+      if (pending.direction < 0 && next <= 0.005) {
+        pendingTransition.current = null;
+        activeRef.current = pending.to;
+        progressRef.current = pending.toProgress;
+        setActive(pending.to);
+        setProgress(pending.toProgress);
+        setFixed(pending.to > 0 || pending.toProgress > 0.05);
+        resetSharedProgress(pending.toProgress);
+        window.setTimeout(() => { lock.current = false; }, 80);
+      }
+    });
+
+    return unsubscribe;
+  }, [sharedProgress, sharedProgressSource]);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.matchMedia('(max-width: 900px)').matches);
@@ -445,10 +508,13 @@ function App() {
 
   const goTo = (target) => {
     const next = clamp(target, 0, sections.length - 1);
+    pendingTransition.current = null;
+    lock.current = false;
     activeRef.current = next;
     progressRef.current = 0;
     setActive(next);
     setProgress(0);
+    resetSharedProgress(0);
     setFixed(next > 0);
   };
 
@@ -461,6 +527,12 @@ function App() {
       setFixed(nextActive > 0 || nextProgress > 0.05);
     };
 
+    const waitForSharedProgress = (to, direction, toProgress = 0) => {
+      pendingTransition.current = { to, direction, toProgress };
+      lock.current = true;
+      update(activeRef.current, direction > 0 ? 1 : 0);
+    };
+
     const advance = (delta, divisor = 1700) => {
       if (lock.current || !delta) return;
 
@@ -469,40 +541,25 @@ function App() {
       let nextActive = activeRef.current;
       let nextProgress = progressRef.current + amount * direction;
 
-      if (direction > 0 && nextActive === sections.length - 1 && progressRef.current >= 1) {
-        update(FOOTER_INDEX, 1);
-        lock.current = true;
-        window.setTimeout(() => { lock.current = false; }, 260);
-        return;
-      }
+      if (direction > 0 && nextActive === FOOTER_INDEX) return;
 
       if (direction < 0 && nextActive === FOOTER_INDEX) {
-        update(sections.length - 1, 1);
-        lock.current = true;
-        window.setTimeout(() => { lock.current = false; }, 220);
+        waitForSharedProgress(sections.length - 1, -1, 1);
         return;
       }
 
       if (nextProgress >= 1) {
-        if (nextActive < sections.length - 1) {
-          nextActive += 1;
-          nextProgress = 0;
-        } else {
-          nextProgress = 1;
-        }
-        lock.current = true;
-        window.setTimeout(() => { lock.current = false; }, 300);
+        const target = nextActive < sections.length - 1 ? nextActive + 1 : FOOTER_INDEX;
+        waitForSharedProgress(target, 1, target === FOOTER_INDEX ? 1 : 0);
+        return;
       }
 
       if (nextProgress <= 0) {
         if (nextActive > 0 && direction < 0) {
-          nextActive -= 1;
-          nextProgress = 1;
-        } else {
-          nextProgress = 0;
+          waitForSharedProgress(nextActive - 1, -1, 1);
+          return;
         }
-        lock.current = true;
-        window.setTimeout(() => { lock.current = false; }, 190);
+        nextProgress = 0;
       }
 
       update(nextActive, clamp(nextProgress, 0, 1));
@@ -538,22 +595,22 @@ function App() {
     const onKeyDown = (event) => {
       if (['ArrowDown', 'PageDown', ' '].includes(event.key)) {
         event.preventDefault();
-        if (activeRef.current === sections.length - 1 && progressRef.current >= 1) {
-          update(FOOTER_INDEX, 1);
-        } else if (progressRef.current < 1) {
+        if (activeRef.current === FOOTER_INDEX) return;
+        if (progressRef.current < 1) {
           update(activeRef.current, 1);
         } else {
-          goTo(activeRef.current + 1);
+          const target = activeRef.current < sections.length - 1 ? activeRef.current + 1 : FOOTER_INDEX;
+          waitForSharedProgress(target, 1, target === FOOTER_INDEX ? 1 : 0);
         }
       }
       if (['ArrowUp', 'PageUp'].includes(event.key)) {
         event.preventDefault();
         if (activeRef.current === FOOTER_INDEX) {
-          update(sections.length - 1, 1);
+          waitForSharedProgress(sections.length - 1, -1, 1);
         } else if (progressRef.current > 0) {
           update(activeRef.current, 0);
-        } else {
-          goTo(activeRef.current - 1);
+        } else if (activeRef.current > 0) {
+          waitForSharedProgress(activeRef.current - 1, -1, 1);
         }
       }
     };
@@ -592,11 +649,12 @@ function App() {
             index={index}
             active={footerVisible ? index === sections.length - 1 : active === index}
             rawProgress={footerVisible ? 1 : active === index ? progress : active > index ? 1 : 0}
+            sharedProgress={sharedProgress}
             isMobile={isMobile}
           />
         ))}
       </div>
-      <ScrollHint active={active} progress={progress} />
+      <ScrollHint active={active} progress={footerVisible ? 1 : sharedDisplayProgress} />
       <LegalFooter visible={footerVisible} />
     </main>
   );
