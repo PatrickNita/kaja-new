@@ -21,6 +21,8 @@
       visibility: visible !important;
       opacity: 1 !important;
       pointer-events: auto !important;
+      transform-origin: center center !important;
+      will-change: transform !important;
     }
   `;
   document.head.appendChild(style);
@@ -96,6 +98,15 @@
     return form;
   }
 
+  function readScrollPercent() {
+    const spans = Array.from(document.querySelectorAll('.scroll-hint span'));
+    const text = spans.at(-1)?.textContent || '0%';
+    const value = Number.parseFloat(text.replace('%', '')) || 0;
+    return Math.min(Math.max(value / 100, 0), 1);
+  }
+
+  let smoothScale = 1;
+
   function syncKajaContactForm() {
     const section = getContactSection();
     const form = ensureKajaContactForm();
@@ -106,6 +117,16 @@
     form.style.setProperty('visibility', visible ? 'visible' : 'hidden', 'important');
     form.style.setProperty('opacity', visible ? '1' : '0', 'important');
     form.style.setProperty('pointer-events', visible ? 'auto' : 'none', 'important');
+
+    if (!visible) {
+      smoothScale += (1 - smoothScale) * 0.18;
+      form.style.setProperty('transform', `scale(${smoothScale})`, 'important');
+      return;
+    }
+
+    const targetScale = 1 + readScrollPercent() * 0.025;
+    smoothScale += (targetScale - smoothScale) * 0.14;
+    form.style.setProperty('transform', `scale(${smoothScale})`, 'important');
   }
 
   const observer = new MutationObserver(syncKajaContactForm);
