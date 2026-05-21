@@ -1,3 +1,8 @@
+:root {
+  --intro-bg-scale: 1;
+  --intro-bg-dark: 0.08;
+}
+
 .segment.is-intro-section .segment-backdrop::before {
   content: '';
   position: absolute;
@@ -11,13 +16,18 @@
   background-repeat: no-repeat;
   opacity: 1;
   pointer-events: none;
+  transform: scale(var(--intro-bg-scale));
+  transform-origin: center bottom;
+  will-change: transform;
 }
 
 .segment.is-intro-section .segment-backdrop::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 68% 48%, rgba(0,0,0,0.08), rgba(0,0,0,0.62) 72%);
+  background:
+    linear-gradient(rgba(0,0,0,var(--intro-bg-dark)), rgba(0,0,0,var(--intro-bg-dark))),
+    radial-gradient(circle at 68% 48%, rgba(0,0,0,0.08), rgba(0,0,0,0.62) 72%);
   pointer-events: none;
 }
 
