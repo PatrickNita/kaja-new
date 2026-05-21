@@ -9,8 +9,11 @@
       pointer-events: none !important;
     }
 
-    .is-contact-section .counter {
-      z-index: 1 !important;
+    .is-contact-section .counter,
+    .is-contact-section.is-active .counter {
+      position: absolute !important;
+      z-index: -1 !important;
+      opacity: 0.18 !important;
       pointer-events: none !important;
     }
 
@@ -21,15 +24,20 @@
       pointer-events: none !important;
     }
 
+    .is-contact-section .kaja-contact-form,
+    .is-contact-section.is-active .kaja-contact-form {
+      position: relative !important;
+      z-index: 80 !important;
+      transform-origin: center center !important;
+      will-change: transform !important;
+      isolation: isolate !important;
+    }
+
     .is-contact-section.is-active .kaja-contact-form {
       display: flex !important;
       visibility: visible !important;
       opacity: 1 !important;
       pointer-events: auto !important;
-      position: relative !important;
-      z-index: 50 !important;
-      transform-origin: center center !important;
-      will-change: transform !important;
     }
 
     .is-contact-section .kaja-contact-form button {
@@ -63,6 +71,7 @@
     const section = getContactSection();
     if (!section) return null;
 
+    section.style.setProperty('isolation', 'isolate', 'important');
     section.querySelectorAll('.contact-form-panel, .contact-form-fixed-overlay').forEach((item) => item.remove());
     section.querySelectorAll('.kaja-contact-form .contact-social-links, .kaja-contact-form .kaja-contact-socials').forEach((item) => item.remove());
 
@@ -133,7 +142,9 @@
 
     const counter = section.querySelector('.counter');
     if (counter) {
-      counter.style.setProperty('z-index', '1', 'important');
+      counter.style.setProperty('position', 'absolute', 'important');
+      counter.style.setProperty('z-index', '-1', 'important');
+      counter.style.setProperty('opacity', '0.18', 'important');
       counter.style.setProperty('pointer-events', 'none', 'important');
     }
 
@@ -143,7 +154,7 @@
     form.style.setProperty('opacity', visible ? '1' : '0', 'important');
     form.style.setProperty('pointer-events', visible ? 'auto' : 'none', 'important');
     form.style.setProperty('position', 'relative', 'important');
-    form.style.setProperty('z-index', '50', 'important');
+    form.style.setProperty('z-index', '80', 'important');
 
     if (!visible) {
       smoothScale += (1 - smoothScale) * 0.18;
