@@ -459,6 +459,18 @@ function App() {
     jumpProgress(sharedProgressRef.current, sharedProgressSource, sharedProgress);
   };
 
+  const completeTransition = (pending) => {
+    const nextProgress = pending.direction > 0 && pending.to === FOOTER_INDEX ? 1 : pending.toProgress;
+    pendingTransition.current = null;
+    activeRef.current = pending.to;
+    progressRef.current = nextProgress;
+    setActive(pending.to);
+    setProgress(nextProgress);
+    setFixed(pending.to > 0 || nextProgress > 0.05);
+    resetSharedProgress(nextProgress);
+    window.setTimeout(() => { lock.current = false; }, 80);
+  };
+
   useEffect(() => {
     sharedProgressSource.set(progress);
   }, [progress, sharedProgressSource]);
@@ -472,28 +484,8 @@ function App() {
       const pending = pendingTransition.current;
       if (!pending) return;
 
-      if (pending.direction > 0 && next >= 0.995) {
-        const nextProgress = pending.to === FOOTER_INDEX ? 1 : 0;
-        pendingTransition.current = null;
-        activeRef.current = pending.to;
-        progressRef.current = nextProgress;
-        setActive(pending.to);
-        setProgress(nextProgress);
-        setFixed(pending.to > 0 || nextProgress > 0.05);
-        resetSharedProgress(nextProgress);
-        window.setTimeout(() => { lock.current = false; }, 80);
-      }
-
-      if (pending.direction < 0 && next <= 0.005) {
-        pendingTransition.current = null;
-        activeRef.current = pending.to;
-        progressRef.current = pending.toProgress;
-        setActive(pending.to);
-        setProgress(pending.toProgress);
-        setFixed(pending.to > 0 || pending.toProgress > 0.05);
-        resetSharedProgress(pending.toProgress);
-        window.setTimeout(() => { lock.current = false; }, 80);
-      }
+      if (pending.direction > 0 && next >= 0.995) completeTransition(pending);
+      if (pending.direction < 0 && next <= 0.005) completeTransition(pending);
     });
 
     return unsubscribe;
@@ -528,7 +520,16 @@ function App() {
     };
 
     const waitForSharedProgress = (to, direction, toProgress = 0) => {
-      pendingTransition.current = { to, direction, toProgress };
+      const pending = { to, direction, toProgress };
+      const currentSharedProgress = sharedProgressRef.current;
+
+      if ((direction > 0 && currentSharedProgress >= 0.995) || (direction < 0 && currentSharedProgress <= 0.005)) {
+        lock.current = true;
+        completeTransition(pending);
+        return;
+      }
+
+      pendingTransition.current = pending;
       lock.current = true;
       update(activeRef.current, direction > 0 ? 1 : 0);
     };
