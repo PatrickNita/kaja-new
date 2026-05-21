@@ -40,27 +40,30 @@
       pointer-events: auto !important;
     }
 
-    .is-contact-section .kaja-contact-form select,
-    .is-contact-section .kaja-contact-form select:hover,
-    .is-contact-section .kaja-contact-form select:focus,
-    .is-contact-section .kaja-contact-form select:focus-visible,
-    .is-contact-section .kaja-contact-form select:active {
-      background-color: rgba(0,0,0,0.42) !important;
-      background-image: none !important;
+    .kaja-contact-form .kaja-topic-trigger,
+    .kaja-contact-form .kaja-topic-trigger:hover,
+    .kaja-contact-form .kaja-topic-trigger:focus,
+    .kaja-contact-form .kaja-topic-trigger:focus-visible,
+    .kaja-contact-form .kaja-topic-trigger:active,
+    .kaja-contact-form .kaja-topic-dropdown.is-open .kaja-topic-trigger {
+      background: rgba(0,0,0,0.56) !important;
       color: #fff !important;
-      border-color: rgba(255,255,255,0.18) !important;
-      outline: none !important;
+      border-color: rgba(255,255,255,0.34) !important;
       box-shadow: none !important;
-      -webkit-tap-highlight-color: transparent !important;
+      transform: none !important;
     }
 
-    .is-contact-section .kaja-contact-form select option,
-    .is-contact-section .kaja-contact-form select option:hover,
-    .is-contact-section .kaja-contact-form select option:checked,
-    .is-contact-section .kaja-contact-form select option:focus,
-    .is-contact-section .kaja-contact-form select option:active {
-      background-color: #111 !important;
+    .kaja-contact-form .kaja-topic-option,
+    .kaja-contact-form .kaja-topic-option:hover,
+    .kaja-contact-form .kaja-topic-option:focus,
+    .kaja-contact-form .kaja-topic-option:focus-visible,
+    .kaja-contact-form .kaja-topic-option:active,
+    .kaja-contact-form .kaja-topic-option.is-selected {
+      background: rgba(255,255,255,0.09) !important;
       color: #fff !important;
+      border-color: rgba(255,255,255,0.20) !important;
+      box-shadow: none !important;
+      transform: none !important;
     }
 
     .is-contact-section .kaja-contact-form button {
@@ -87,8 +90,6 @@
     item.textContent = label;
     item.disabled = disabled;
     item.selected = selected;
-    item.style.setProperty('background-color', '#111', 'important');
-    item.style.setProperty('color', '#fff', 'important');
     return item;
   }
 
@@ -173,17 +174,17 @@
       counter.style.setProperty('pointer-events', 'none', 'important');
     }
 
-    const select = form.querySelector('select');
-    if (select) {
-      select.style.setProperty('background-color', 'rgba(0,0,0,0.42)', 'important');
-      select.style.setProperty('background-image', 'none', 'important');
-      select.style.setProperty('color', '#fff', 'important');
-      select.style.setProperty('border-color', 'rgba(255,255,255,0.18)', 'important');
-      select.querySelectorAll('option').forEach((item) => {
-        item.style.setProperty('background-color', '#111', 'important');
-        item.style.setProperty('color', '#fff', 'important');
-      });
-    }
+    form.querySelectorAll('.kaja-topic-trigger').forEach((item) => {
+      item.style.setProperty('background', 'rgba(0,0,0,0.56)', 'important');
+      item.style.setProperty('color', '#fff', 'important');
+      item.style.setProperty('box-shadow', 'none', 'important');
+    });
+
+    form.querySelectorAll('.kaja-topic-option').forEach((item) => {
+      item.style.setProperty('background', 'rgba(255,255,255,0.09)', 'important');
+      item.style.setProperty('color', '#fff', 'important');
+      item.style.setProperty('box-shadow', 'none', 'important');
+    });
 
     const visible = section.classList.contains('is-active');
     form.style.setProperty('display', visible ? 'flex' : 'none', 'important');
