@@ -9,6 +9,20 @@
       pointer-events: auto !important;
     }
 
+    .segment:not(.is-active) .kaja-section-cta-row,
+    .segment:not(.is-active) .section-link-button,
+    .segment:not(.is-active) .kaja-contact-socials {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+
+    .segment.is-active .kaja-section-cta-row,
+    .segment.is-active .kaja-contact-socials {
+      pointer-events: auto !important;
+    }
+
     .kaja-section-cta-row {
       display: flex;
       align-items: center;
@@ -36,6 +50,11 @@
       box-shadow: 0 20px 55px rgba(0,0,0,0.28);
       transition: background 0.35s ease, border-color 0.35s ease, transform 0.35s ease;
       pointer-events: auto;
+    }
+
+    .segment:not(.is-active) .kaja-section-cta-button,
+    .segment:not(.is-active) .kaja-contact-social-button {
+      pointer-events: none !important;
     }
 
     .kaja-section-cta-button:hover {
@@ -200,6 +219,29 @@
     content.appendChild(row);
   }
 
+  function syncInactiveButtons() {
+    document.querySelectorAll('.segment:not(.is-active) .kaja-section-cta-row, .segment:not(.is-active) .section-link-button, .segment:not(.is-active) .kaja-contact-socials').forEach((item) => {
+      item.style.setProperty('display', 'none', 'important');
+      item.style.setProperty('visibility', 'hidden', 'important');
+      item.style.setProperty('opacity', '0', 'important');
+      item.style.setProperty('pointer-events', 'none', 'important');
+    });
+
+    document.querySelectorAll('.segment.is-active .kaja-section-cta-row').forEach((item) => {
+      item.style.setProperty('display', 'flex', 'important');
+      item.style.setProperty('visibility', 'visible', 'important');
+      item.style.setProperty('opacity', '1', 'important');
+      item.style.setProperty('pointer-events', 'auto', 'important');
+    });
+
+    document.querySelectorAll('.segment.is-active .kaja-contact-socials').forEach((item) => {
+      item.style.setProperty('display', 'grid', 'important');
+      item.style.setProperty('visibility', 'visible', 'important');
+      item.style.setProperty('opacity', '1', 'important');
+      item.style.setProperty('pointer-events', 'auto', 'important');
+    });
+  }
+
   function enhanceSections() {
     const catalogueSection = byIndex(2);
     const merchSection = byIndex(4);
@@ -209,10 +251,11 @@
     addCta(merchSection, 'kaja-merch-cta', 'Check Merch', '#merch');
     addContactTextField(contactSection);
     addContactSocialButtons(contactSection);
+    syncInactiveButtons();
   }
 
   const observer = new MutationObserver(enhanceSections);
-  observer.observe(document.documentElement, { childList: true, subtree: true });
+  observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style'] });
 
   window.addEventListener('load', enhanceSections);
   requestAnimationFrame(function tick() {
