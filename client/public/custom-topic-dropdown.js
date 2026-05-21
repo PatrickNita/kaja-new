@@ -18,6 +18,25 @@ topicDropdownStyle.textContent = `
   z-index: 20 !important;
 }
 
+.kaja-contact-message-input {
+  width: 100% !important;
+  border: 1px solid rgba(255,255,255,0.14) !important;
+  border-radius: 18px !important;
+  background: rgba(0,0,0,0.42) !important;
+  color: #fff !important;
+  padding: 17px 19px !important;
+  font-size: 15px !important;
+  line-height: 1.2 !important;
+  outline: none !important;
+  margin-top: 15px !important;
+  font-family: inherit !important;
+  box-sizing: border-box !important;
+}
+
+.kaja-contact-message-input::placeholder {
+  color: rgba(255,255,255,0.48) !important;
+}
+
 .kaja-contact-form .kaja-topic-trigger {
   width: 100% !important;
   min-height: 0 !important;
@@ -131,6 +150,13 @@ topicDropdownStyle.textContent = `
     margin-top: 8px !important;
   }
 
+  .kaja-contact-message-input {
+    border-radius: 12px !important;
+    padding: 10px 12px !important;
+    font-size: 12px !important;
+    margin-top: 8px !important;
+  }
+
   .kaja-contact-form .kaja-topic-trigger {
     border-radius: 12px !important;
     padding: 10px 12px !important;
@@ -173,8 +199,28 @@ function closeAllTopicDropdowns(except) {
   });
 }
 
+function addMessageField(form, dropdown) {
+  if (!form || !dropdown || form.querySelector('.kaja-contact-message-input')) return;
+
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.name = 'message';
+  input.className = 'kaja-contact-message-input';
+  input.placeholder = 'Message';
+  input.setAttribute('aria-label', 'Message');
+
+  dropdown.insertAdjacentElement('afterend', input);
+}
+
 function buildTopicDropdown(select) {
-  if (!select || select.dataset.customTopicReady === 'true') return;
+  if (!select) return;
+  const form = select.closest('.kaja-contact-form');
+
+  if (select.dataset.customTopicReady === 'true') {
+    addMessageField(form, form?.querySelector('.kaja-topic-dropdown'));
+    return;
+  }
+
   select.dataset.customTopicReady = 'true';
   select.value = 'general-contact';
   select.dispatchEvent(new Event('change', { bubbles: true }));
@@ -238,6 +284,7 @@ function buildTopicDropdown(select) {
   dropdown.appendChild(trigger);
   dropdown.appendChild(menu);
   select.insertAdjacentElement('afterend', dropdown);
+  addMessageField(form, dropdown);
 }
 
 function initTopicDropdowns() {
