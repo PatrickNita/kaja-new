@@ -9,6 +9,11 @@
       pointer-events: none !important;
     }
 
+    .is-contact-section .counter {
+      z-index: 1 !important;
+      pointer-events: none !important;
+    }
+
     .is-contact-section:not(.is-active) .kaja-contact-form {
       display: none !important;
       visibility: hidden !important;
@@ -21,6 +26,8 @@
       visibility: visible !important;
       opacity: 1 !important;
       pointer-events: auto !important;
+      position: relative !important;
+      z-index: 50 !important;
       transform-origin: center center !important;
       will-change: transform !important;
     }
@@ -124,11 +131,19 @@
     const form = ensureKajaContactForm();
     if (!section || !form) return;
 
+    const counter = section.querySelector('.counter');
+    if (counter) {
+      counter.style.setProperty('z-index', '1', 'important');
+      counter.style.setProperty('pointer-events', 'none', 'important');
+    }
+
     const visible = section.classList.contains('is-active');
     form.style.setProperty('display', visible ? 'flex' : 'none', 'important');
     form.style.setProperty('visibility', visible ? 'visible' : 'hidden', 'important');
     form.style.setProperty('opacity', visible ? '1' : '0', 'important');
     form.style.setProperty('pointer-events', visible ? 'auto' : 'none', 'important');
+    form.style.setProperty('position', 'relative', 'important');
+    form.style.setProperty('z-index', '50', 'important');
 
     if (!visible) {
       smoothScale += (1 - smoothScale) * 0.18;
