@@ -15,10 +15,25 @@
       opacity: 1 !important;
       pointer-events: auto !important;
     }
+
+    .is-contact-section .contact-form-panel .contact-social-links,
+    .is-contact-section .contact-form-panel .kaja-contact-socials {
+      display: none !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+    }
   `;
   document.head.appendChild(style);
 
+  function removeContactFormSocials() {
+    document
+      .querySelectorAll('.is-contact-section .contact-form-panel .contact-social-links, .is-contact-section .contact-form-panel .kaja-contact-socials')
+      .forEach((item) => item.remove());
+  }
+
   function syncContactVisibility() {
+    removeContactFormSocials();
+
     document.querySelectorAll('.is-contact-section').forEach((section) => {
       const visible = section.classList.contains('is-active');
       section.querySelectorAll('.contact-form-panel, .contact-form-fixed-overlay').forEach((item) => {
