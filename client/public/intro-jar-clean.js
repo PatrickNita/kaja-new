@@ -10,7 +10,11 @@ introJarStyle.textContent=`
 .strength-leaf{z-index:4!important;width:auto!important;height:22%!important;max-width:28%!important;opacity:.92!important}
 .catalogue-frame-sequence canvas,.availability-frame-sequence canvas{position:absolute!important;z-index:8!important;left:50%!important;top:50%!important;width:170%!important;height:170%!important;display:block!important;transform:translate3d(-50%,-50%,0)!important;filter:drop-shadow(0 42px 64px rgba(0,0,0,.62))!important;will-change:contents!important;user-select:none!important;pointer-events:none!important;backface-visibility:hidden!important}
 .availability-frame-sequence canvas{width:145%!important;height:145%!important;filter:brightness(1.08) contrast(.72) saturate(.92) drop-shadow(0 38px 58px rgba(0,0,0,.58))!important}
-@media(max-width:900px){.is-intro-section .intro-jar-clean,.strength-leaf-scene,.catalogue-frame-sequence,.availability-frame-sequence{grid-column:1!important;grid-row:2!important;width:min(84vw,400px)!important;height:min(33vh,270px)!important;border-radius:22px!important}.is-intro-section .intro-jar-clean img{width:auto!important;height:120%!important;max-width:120%!important}.strength-leaf-middle{height:76%!important;max-width:76%!important}.strength-leaf{height:24%!important;max-width:30%!important}.catalogue-frame-sequence canvas{width:185%!important;height:185%!important}.availability-frame-sequence canvas{width:158%!important;height:158%!important}}
+.contact-social-links{display:flex!important;align-items:center!important;justify-content:center!important;gap:12px!important;margin-top:18px!important;padding-top:16px!important;border-top:1px solid rgba(255,255,255,.12)!important}
+.contact-social-link{width:42px!important;height:42px!important;border:1px solid rgba(255,255,255,.16)!important;border-radius:999px!important;display:flex!important;align-items:center!important;justify-content:center!important;background:rgba(255,255,255,.06)!important;box-shadow:inset 0 0 22px rgba(255,255,255,.035)!important;transition:transform .22s ease,background .22s ease,border-color .22s ease!important;pointer-events:auto!important}
+.contact-social-link:hover{transform:translateY(-2px) scale(1.04)!important;background:rgba(255,255,255,.13)!important;border-color:rgba(255,255,255,.32)!important}
+.contact-social-link img{width:22px!important;height:22px!important;object-fit:contain!important;display:block!important;filter:drop-shadow(0 8px 16px rgba(0,0,0,.45))!important}
+@media(max-width:900px){.is-intro-section .intro-jar-clean,.strength-leaf-scene,.catalogue-frame-sequence,.availability-frame-sequence{grid-column:1!important;grid-row:2!important;width:min(84vw,400px)!important;height:min(33vh,270px)!important;border-radius:22px!important}.is-intro-section .intro-jar-clean img{width:auto!important;height:120%!important;max-width:120%!important}.strength-leaf-middle{height:76%!important;max-width:76%!important}.strength-leaf{height:24%!important;max-width:30%!important}.catalogue-frame-sequence canvas{width:185%!important;height:185%!important}.availability-frame-sequence canvas{width:158%!important;height:158%!important}.contact-social-link{width:38px!important;height:38px!important}.contact-social-link img{width:20px!important;height:20px!important}}
 `;
 document.head.appendChild(introJarStyle);
 const clamp=(v,a,b)=>Math.min(Math.max(v,a),b);
@@ -50,6 +54,33 @@ function transformFor(p){const grow=smooth(clamp(p/.78,0,1));const shrink=smooth
 function sectionByLabel(label){return [...document.querySelectorAll('.segment')].find(section=>section.querySelector('.eyebrow')?.textContent?.toUpperCase().includes(label))}
 function ensureJar(section,className,alt,oldSelector){if(!section)return null;const oldVisual=section.querySelector(oldSelector);if(oldVisual)oldVisual.style.setProperty('display','none','important');let visual=section.querySelector(`.${className}`);if(visual)return visual;visual=document.createElement('div');visual.className=className;const img=document.createElement('img');img.src='/intro-jar.webp';img.alt=alt;img.draggable=false;visual.appendChild(img);section.appendChild(visual);return visual}
 function ensureIntro(){return ensureJar(document.querySelector('.is-intro-section'),'intro-jar-clean','KAJA intro jar','.intro-sequence')}
+function ensureContactSocials(){
+  const section=sectionByLabel('CONTACT');
+  const panel=section?.querySelector('.contact-form-panel');
+  if(!panel||panel.querySelector('.contact-social-links'))return;
+  const socials=[
+    {label:'Instagram',src:'/socials/telegram.webp',href:'#instagram'},
+    {label:'E-mail',src:'/socials/mail.webp',href:'#email'},
+    {label:'Telegram',src:'/socials/telegram.webp',href:'#telegram'},
+    {label:'WhatsApp',src:'/socials/whatsapp.webp',href:'#whatsapp'}
+  ];
+  const row=document.createElement('div');
+  row.className='contact-social-links';
+  socials.forEach(({label,src,href})=>{
+    const link=document.createElement('a');
+    link.className='contact-social-link';
+    link.href=href;
+    link.setAttribute('aria-label',label);
+    link.title=label;
+    const img=document.createElement('img');
+    img.src=src;
+    img.alt='';
+    img.draggable=false;
+    link.appendChild(img);
+    row.appendChild(link);
+  });
+  panel.appendChild(row);
+}
 function sizeSequenceCanvas(scene,canvas,drawnKey,isAvailability=false){
   const rect=scene.getBoundingClientRect();
   const dpr=Math.min(window.devicePixelRatio||1,2);
@@ -108,5 +139,5 @@ function animateJar(visual,p,scaleKey,yKey){const img=visual?.querySelector('img
 function animateStrengthItems(scene,p){if(!scene)return;motion.leafProgress=spring(motion.leafProgress,p,.15);const eased=smooth(motion.leafProgress);const middle=scene.querySelector('.strength-leaf-middle');if(middle)middle.style.setProperty('transform','translate3d(-50%,-50%,0) scale(1)','important');scene.querySelectorAll('.strength-leaf').forEach((item)=>{const x=Number(item.dataset.x);const y=Number(item.dataset.y);const s=Number(item.dataset.s);const r=Number(item.dataset.r);const dx=Number(item.dataset.dx);const dy=Number(item.dataset.dy);const dr=Number(item.dataset.dr);item.style.left=`${x}%`;item.style.top=`${y}%`;item.style.setProperty('transform',`translate3d(calc(-50% + ${dx*eased}px),calc(-50% + ${dy*eased}px),0) rotate(${r+dr*eased}deg) scale(${s+(eased*.12)})`,'important')})}
 function animateCatalogueFrames(scene,p){if(!scene)return;motion.catalogueFrameProgress=spring(motion.catalogueFrameProgress,p,.12);const frame=clamp(Math.round(motion.catalogueFrameProgress*(catalogueFrameCount-1)),0,catalogueFrameCount-1);drawSequenceFrame(scene,frame,catalogueFrameCount,loadCatalogueFrame,'catalogueDrawnIndex',false);scene.style.setProperty('transform','translateZ(0)','important')}
 function animateAvailabilityFrames(scene,p){if(!scene)return;motion.availabilityFrameProgress=spring(motion.availabilityFrameProgress,p,.12);const frame=clamp(Math.round(motion.availabilityFrameProgress*(availabilityFrameCount-1)),0,availabilityFrameCount-1);drawSequenceFrame(scene,frame,availabilityFrameCount,loadAvailabilityFrame,'availabilityDrawnIndex',true);scene.style.setProperty('transform','translateZ(0)','important')}
-function tick(){const label=activeLabel();const p=percent();if(label.includes('INTRO')){animateJar(ensureIntro(),p,'introScale','introY')}else if(label.includes('STRENGTH')){animateStrengthItems(ensureStrength(),p)}else if(label.includes('CATALOGUE')){animateCatalogueFrames(ensureCatalogue(),p)}else if(label.includes('AVAILABILITY')){animateAvailabilityFrames(ensureAvailability(),p)}else{const visual=document.querySelector('.segment.is-active .visual');if(visual){const t=transformFor(p);const targetY=8-(18*p);motion.visualScale=spring(motion.visualScale,t.scale,.18);motion.visualY=spring(motion.visualY,targetY,.16);visual.style.setProperty('transform',`translateY(${motion.visualY}vh) scale(${motion.visualScale})`,'important')}}requestAnimationFrame(tick)}
+function tick(){const label=activeLabel();const p=percent();if(label.includes('INTRO')){animateJar(ensureIntro(),p,'introScale','introY')}else if(label.includes('STRENGTH')){animateStrengthItems(ensureStrength(),p)}else if(label.includes('CATALOGUE')){animateCatalogueFrames(ensureCatalogue(),p)}else if(label.includes('AVAILABILITY')){animateAvailabilityFrames(ensureAvailability(),p)}else if(label.includes('CONTACT')){ensureContactSocials()}else{const visual=document.querySelector('.segment.is-active .visual');if(visual){const t=transformFor(p);const targetY=8-(18*p);motion.visualScale=spring(motion.visualScale,t.scale,.18);motion.visualY=spring(motion.visualY,targetY,.16);visual.style.setProperty('transform',`translateY(${motion.visualY}vh) scale(${motion.visualScale})`,'important')}}requestAnimationFrame(tick)}
 requestAnimationFrame(tick);
