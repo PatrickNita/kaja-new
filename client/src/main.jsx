@@ -7,7 +7,7 @@ import hanger from './assets/hanger.png';
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 const FOOTER_INDEX = 6;
-const SPRING_CONFIG = { stiffness: 82, damping: 24, mass: 0.68 };
+const SPRING_CONFIG = { stiffness: 126, damping: 18, mass: 0.62 };
 
 const sections = [
   {
