@@ -21,40 +21,40 @@ const sections = [
   {
     label: 'STRENGTH',
     eyebrow: '02 / Strength',
-    title: 'Built with structure and confidence.',
-    copy: 'Strong visual pacing, controlled transitions, and solid interaction logic keep the experience feeling deliberate.',
+    title: 'MEDIUM',
+    copy: 'It delivers character without overpowering. Full-bodied experience with depth and balance.',
     accent: 'Strong',
     shape: 'stack'
   },
   {
     label: 'CATALOGUE',
     eyebrow: '03 / Catalogue',
-    title: 'A clean path through the collection.',
-    copy: 'Catalogue moments are designed to feel organized, visual, and easy to explore across every screen size.',
+    title: 'MIXOLOGY',
+    copy: 'Our catalogue is designed to be simple and ready for mixology, while still offering texture, intensity and a full sensory experience on its own.',
     accent: 'Catalogue',
     shape: 'strips'
   },
   {
     label: 'AVAILABILITY',
     eyebrow: '04 / Availability',
-    title: 'Ready when the demand arrives.',
-    copy: 'Availability messaging stays simple and direct, giving visitors a clear sense of timing, access, and next steps.',
+    title: 'FIND KAJA',
+    copy: 'Available in Moldova, Germany, Spain — with more to come.',
     accent: 'Available',
     shape: 'orb'
   },
   {
     label: 'MERCH',
     eyebrow: '05 / Merch',
-    title: 'A full collection on the line.',
-    copy: 'A fixed full-width rail holds six grey hangers that glide horizontally from right to left as you scroll.',
+    title: 'MERCH',
+    copy: 'Brand pieces made for the KAJA community. Also tools that come in handy.',
     accent: 'Merch',
     shape: 'hanger'
   },
   {
     label: 'CONTACT',
     eyebrow: '06 / Contact',
-    title: 'Start the conversation.',
-    copy: 'Send a message for launch details, catalogue access, collaboration, or product availability.',
+    title: 'START THE CONVERSATION.',
+    copy: 'Have a question about KAJA, collaborations, or distribution? Contact us here or through our social channels.',
     accent: 'Contact',
     shape: 'contact'
   }
