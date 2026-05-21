@@ -20,17 +20,19 @@ topicDropdownStyle.textContent = `
 
 .kaja-contact-message-input {
   width: 100% !important;
+  min-height: 112px !important;
   border: 1px solid rgba(255,255,255,0.14) !important;
   border-radius: 18px !important;
   background: rgba(0,0,0,0.42) !important;
   color: #fff !important;
   padding: 17px 19px !important;
   font-size: 15px !important;
-  line-height: 1.2 !important;
+  line-height: 1.35 !important;
   outline: none !important;
   margin-top: 15px !important;
   font-family: inherit !important;
   box-sizing: border-box !important;
+  resize: none !important;
 }
 
 .kaja-contact-message-input::placeholder {
@@ -151,6 +153,7 @@ topicDropdownStyle.textContent = `
   }
 
   .kaja-contact-message-input {
+    min-height: 84px !important;
     border-radius: 12px !important;
     padding: 10px 12px !important;
     font-size: 12px !important;
@@ -202,12 +205,12 @@ function closeAllTopicDropdowns(except) {
 function addMessageField(form, dropdown) {
   if (!form || !dropdown || form.querySelector('.kaja-contact-message-input')) return;
 
-  const input = document.createElement('input');
-  input.type = 'text';
+  const input = document.createElement('textarea');
   input.name = 'message';
   input.className = 'kaja-contact-message-input';
   input.placeholder = 'Message';
   input.setAttribute('aria-label', 'Message');
+  input.rows = 4;
 
   dropdown.insertAdjacentElement('afterend', input);
 }
