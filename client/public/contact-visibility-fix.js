@@ -17,6 +17,10 @@
       pointer-events: none !important;
     }
 
+    body.kaja-footer-active .is-contact-section .progress-track span {
+      transform: scaleX(1) !important;
+    }
+
     .is-contact-section:not(.is-active) .kaja-contact-form {
       display: none !important;
       visibility: hidden !important;
@@ -159,9 +163,16 @@
     return Math.min(Math.max(value / 100, 0), 1);
   }
 
+  function syncFooterState() {
+    const label = document.querySelector('.scroll-hint span')?.textContent || '';
+    document.body.classList.toggle('kaja-footer-active', label.includes('Footer'));
+  }
+
   let smoothScale = 1;
 
   function syncKajaContactForm() {
+    syncFooterState();
+
     const section = getContactSection();
     const form = ensureKajaContactForm();
     if (!section || !form) return;
