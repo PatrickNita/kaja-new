@@ -1,6 +1,14 @@
 (() => {
   const style = document.createElement('style');
   style.textContent = `
+    .is-contact-section .contact-form-panel,
+    .is-contact-section .contact-form-fixed-overlay {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      pointer-events: auto !important;
+    }
+
     .kaja-section-cta-row {
       display: flex;
       align-items: center;
@@ -34,51 +42,6 @@
       background: #fff;
       border-color: rgba(255,255,255,0.36);
       transform: translateY(-2px);
-    }
-
-    .contact-form-panel.kaja-contact-form-fallback {
-      position: relative !important;
-      z-index: 4 !important;
-      grid-column: 2 !important;
-      grid-row: 1 !important;
-      justify-self: center !important;
-      align-self: center !important;
-      width: min(46vw, 560px) !important;
-      padding: clamp(20px, 3vw, 38px) !important;
-      border: 1px solid rgba(255,255,255,0.16) !important;
-      border-radius: clamp(22px, 3vw, 34px) !important;
-      background: linear-gradient(145deg, rgba(255,255,255,0.13), rgba(255,255,255,0.035)) !important;
-      box-shadow: 0 52px 120px rgba(0,0,0,0.64), inset 0 0 70px rgba(255,255,255,0.035) !important;
-      backdrop-filter: blur(18px) !important;
-      pointer-events: auto !important;
-    }
-
-    .kaja-contact-field {
-      width: 100% !important;
-      border: 1px solid rgba(255,255,255,0.14) !important;
-      border-radius: 16px !important;
-      background: rgba(0,0,0,0.42) !important;
-      color: #fff !important;
-      padding: 14px 16px !important;
-      font-size: 14px !important;
-      outline: none !important;
-      margin-top: 12px !important;
-      font-family: inherit !important;
-    }
-
-    .kaja-contact-submit {
-      width: 100% !important;
-      margin-top: 14px !important;
-      border: 0 !important;
-      border-radius: 999px !important;
-      background: #fff !important;
-      color: #000 !important;
-      padding: 14px 18px !important;
-      font-size: 12px !important;
-      font-weight: 800 !important;
-      letter-spacing: 0.16em !important;
-      text-transform: uppercase !important;
-      font-family: inherit !important;
     }
 
     .kaja-contact-socials {
@@ -139,14 +102,6 @@
         font-size: 9px;
       }
 
-      .contact-form-panel.kaja-contact-form-fallback {
-        grid-column: 1 !important;
-        grid-row: 2 !important;
-        width: min(84vw, 400px) !important;
-        padding: 18px !important;
-        border-radius: 22px !important;
-      }
-
       .kaja-contact-socials {
         gap: 8px;
         margin-top: 13px;
@@ -198,44 +153,17 @@
     { label: 'E-mail', href: 'mailto:contact@kaja-tobacco.com', icon: '/socials/mail.webp' }
   ];
 
-  function createContactForm(section) {
-    if (!section || section.querySelector('.contact-form-panel')) return;
-
-    const form = document.createElement('form');
-    form.className = 'contact-form-panel kaja-contact-form-fallback';
-    form.addEventListener('submit', (event) => event.preventDefault());
-
-    form.innerHTML = `
-      <p style="margin:0 0 14px;color:rgba(255,255,255,0.58);text-transform:uppercase;letter-spacing:0.18em;font-size:12px">Contact KAJA</p>
-      <input class="kaja-contact-field" placeholder="Name" aria-label="Name" />
-      <input class="kaja-contact-field" placeholder="Email" aria-label="Email" type="email" />
-      <select class="kaja-contact-field" aria-label="Topic">
-        <option value="" disabled selected>Topic</option>
-        <option>Catalogue access</option>
-        <option>Availability</option>
-        <option>Merch collaboration</option>
-        <option>General contact</option>
-      </select>
-      <textarea class="kaja-contact-field" style="min-height:118px;resize:none" placeholder="Message" aria-label="Message"></textarea>
-      <button class="kaja-contact-submit" type="submit">Send request</button>
-    `;
-
-    section.appendChild(form);
-  }
-
   function addContactTextField(section) {
     const panel = section?.querySelector('.contact-form-panel');
     const dropdown = panel?.querySelector('select');
     if (!panel || !dropdown || panel.querySelector('.kaja-contact-extra-text')) return;
 
     const input = document.createElement('input');
-    input.className = 'kaja-contact-extra-text kaja-contact-field';
+    input.className = 'kaja-contact-extra-text';
     input.type = 'text';
     input.placeholder = 'Company / Details';
     input.setAttribute('aria-label', 'Company or details');
-    if (!panel.classList.contains('kaja-contact-form-fallback')) {
-      input.style.cssText = dropdown.getAttribute('style') || '';
-    }
+    input.style.cssText = dropdown.getAttribute('style') || '';
 
     dropdown.insertAdjacentElement('afterend', input);
   }
@@ -279,7 +207,6 @@
 
     addCta(catalogueSection, 'kaja-catalogue-cta', 'Check Catalogue', '#catalogue');
     addCta(merchSection, 'kaja-merch-cta', 'Check Merch', '#merch');
-    createContactForm(contactSection);
     addContactTextField(contactSection);
     addContactSocialButtons(contactSection);
   }
