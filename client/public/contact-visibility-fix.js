@@ -17,7 +17,8 @@
       pointer-events: none !important;
     }
 
-    body.kaja-footer-active .is-contact-section .progress-track span {
+    body.kaja-footer-active .is-contact-section .progress-track span,
+    body.kaja-footer-returning .is-contact-section .progress-track span {
       transform: scaleX(1) !important;
     }
 
@@ -163,9 +164,28 @@
     return Math.min(Math.max(value / 100, 0), 1);
   }
 
+  let footerWasActive = false;
+  let holdContactLoader = false;
+
   function syncFooterState() {
     const label = document.querySelector('.scroll-hint span')?.textContent || '';
-    document.body.classList.toggle('kaja-footer-active', label.includes('Footer'));
+    const footerActive = label.includes('Footer');
+    const contactActive = label.includes('CONTACT');
+    const percent = readScrollPercent();
+
+    if (footerActive) {
+      footerWasActive = true;
+      holdContactLoader = true;
+    } else if (footerWasActive && contactActive) {
+      holdContactLoader = percent < 0.995;
+      if (!holdContactLoader) footerWasActive = false;
+    } else if (!contactActive) {
+      footerWasActive = false;
+      holdContactLoader = false;
+    }
+
+    document.body.classList.toggle('kaja-footer-active', footerActive);
+    document.body.classList.toggle('kaja-footer-returning', holdContactLoader && contactActive);
   }
 
   let smoothScale = 1;
