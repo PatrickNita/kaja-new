@@ -24,6 +24,18 @@
       transform-origin: center center !important;
       will-change: transform !important;
     }
+
+    .is-contact-section .kaja-contact-form button {
+      cursor: pointer !important;
+      transition: transform 0.22s ease, background 0.22s ease, box-shadow 0.22s ease !important;
+      will-change: transform !important;
+    }
+
+    .is-contact-section .kaja-contact-form button:hover {
+      transform: translateY(-2px) !important;
+      background: #fff !important;
+      box-shadow: 0 20px 55px rgba(0,0,0,0.28) !important;
+    }
   `;
   document.head.appendChild(style);
 
