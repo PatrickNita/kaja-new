@@ -1,0 +1,23 @@
+.segment.is-intro-section .segment-backdrop::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url('/background-design.webp');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 1;
+  pointer-events: none;
+}
+
+.segment.is-intro-section .segment-backdrop::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 68% 48%, rgba(0,0,0,0.08), rgba(0,0,0,0.62) 72%);
+  pointer-events: none;
+}
+
+.segment.is-intro-section .grid-mask {
+  opacity: 0.18;
+}
