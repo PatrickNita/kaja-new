@@ -7,8 +7,8 @@ introJarStyle.textContent=`
 .strength-leaf-scene img{position:absolute!important;display:block!important;object-fit:contain!important;object-position:center!important;filter:drop-shadow(0 34px 45px rgba(0,0,0,.52))!important;transform-origin:center center!important;will-change:transform!important;user-select:none!important;pointer-events:none!important}
 .strength-leaf-middle{left:50%!important;top:50%!important;width:auto!important;height:78%!important;max-width:78%!important;z-index:5!important;transform:translate3d(-50%,-50%,0) scale(1)!important}
 .strength-leaf{z-index:4!important;width:auto!important;height:22%!important;max-width:28%!important;opacity:.92!important}
-.catalogue-frame-sequence canvas{position:absolute!important;left:50%!important;top:50%!important;width:142%!important;height:142%!important;display:block!important;transform:translate3d(-50%,-50%,0)!important;filter:drop-shadow(0 42px 64px rgba(0,0,0,.62))!important;will-change:contents!important;user-select:none!important;pointer-events:none!important;backface-visibility:hidden!important}
-@media(max-width:900px){.is-intro-section .intro-jar-clean,.strength-leaf-scene,.catalogue-frame-sequence{grid-column:1!important;grid-row:2!important;width:min(84vw,400px)!important;height:min(33vh,270px)!important;border-radius:22px!important}.is-intro-section .intro-jar-clean img{width:auto!important;height:120%!important;max-width:120%!important}.strength-leaf-middle{height:76%!important;max-width:76%!important}.strength-leaf{height:24%!important;max-width:30%!important}.catalogue-frame-sequence canvas{width:155%!important;height:155%!important}}
+.catalogue-frame-sequence canvas{position:absolute!important;left:50%!important;top:50%!important;width:170%!important;height:170%!important;display:block!important;transform:translate3d(-50%,-50%,0)!important;filter:drop-shadow(0 42px 64px rgba(0,0,0,.62))!important;will-change:contents!important;user-select:none!important;pointer-events:none!important;backface-visibility:hidden!important}
+@media(max-width:900px){.is-intro-section .intro-jar-clean,.strength-leaf-scene,.catalogue-frame-sequence{grid-column:1!important;grid-row:2!important;width:min(84vw,400px)!important;height:min(33vh,270px)!important;border-radius:22px!important}.is-intro-section .intro-jar-clean img{width:auto!important;height:120%!important;max-width:120%!important}.strength-leaf-middle{height:76%!important;max-width:76%!important}.strength-leaf{height:24%!important;max-width:30%!important}.catalogue-frame-sequence canvas{width:185%!important;height:185%!important}}
 `;
 document.head.appendChild(introJarStyle);
 const clamp=(v,a,b)=>Math.min(Math.max(v,a),b);
@@ -45,8 +45,8 @@ function ensureIntro(){return ensureJar(document.querySelector('.is-intro-sectio
 function sizeCatalogueCanvas(scene,canvas){
   const rect=scene.getBoundingClientRect();
   const dpr=Math.min(window.devicePixelRatio||1,2);
-  const w=Math.max(1,Math.round(rect.width*1.55*dpr));
-  const h=Math.max(1,Math.round(rect.height*1.55*dpr));
+  const w=Math.max(1,Math.round(rect.width*1.85*dpr));
+  const h=Math.max(1,Math.round(rect.height*1.85*dpr));
   if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;motion.catalogueDrawnIndex=-1}
 }
 function drawCatalogueFrame(scene,frame){
@@ -60,7 +60,7 @@ function drawCatalogueFrame(scene,frame){
   const ctx=canvas.getContext('2d',{alpha:true});
   const cw=canvas.width,ch=canvas.height;
   ctx.clearRect(0,0,cw,ch);
-  const scale=Math.min(cw/img.naturalWidth,ch/img.naturalHeight);
+  const scale=Math.min(cw/img.naturalWidth,ch/img.naturalHeight)*1.18;
   const dw=img.naturalWidth*scale;
   const dh=img.naturalHeight*scale;
   ctx.drawImage(img,(cw-dw)/2,(ch-dh)/2,dw,dh);
