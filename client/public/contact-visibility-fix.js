@@ -11,9 +11,9 @@
 
     .is-contact-section .counter,
     .is-contact-section.is-active .counter {
-      position: absolute !important;
-      z-index: -1 !important;
-      opacity: 0.18 !important;
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
       pointer-events: none !important;
     }
 
@@ -142,9 +142,9 @@
 
     const counter = section.querySelector('.counter');
     if (counter) {
-      counter.style.setProperty('position', 'absolute', 'important');
-      counter.style.setProperty('z-index', '-1', 'important');
-      counter.style.setProperty('opacity', '0.18', 'important');
+      counter.style.setProperty('display', 'none', 'important');
+      counter.style.setProperty('visibility', 'hidden', 'important');
+      counter.style.setProperty('opacity', '0', 'important');
       counter.style.setProperty('pointer-events', 'none', 'important');
     }
 
