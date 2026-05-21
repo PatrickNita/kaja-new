@@ -33,7 +33,7 @@
     }
 
     .is-contact-section .kaja-contact-form button {
-      cursor: pointer !important;
+      cursor: none !important;
       transition: transform 0.22s ease, background 0.22s ease, box-shadow 0.22s ease !important;
       will-change: transform !important;
     }
