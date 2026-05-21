@@ -11,12 +11,12 @@ const SPRING_CONFIG = { stiffness: 126, damping: 18, mass: 0.62 };
 
 const sections = [
   {
-    label: 'INTRO',
-    eyebrow: '01 / Intro',
-    title: 'INTRO',
+    label: 'KAJA',
+    eyebrow: '01 / KAJA',
+    title: 'KAJA',
     copy: 'A scroll-driven KAJA product sequence with frame-by-frame motion and a fluid spring scale.',
-    accent: 'Intro',
-    shape: 'intro'
+    accent: 'KAJA',
+    shape: 'KAJA'
   },
   {
     label: 'STRENGTH',
