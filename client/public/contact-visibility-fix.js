@@ -43,16 +43,23 @@
     .is-contact-section .kaja-contact-form select,
     .is-contact-section .kaja-contact-form select:hover,
     .is-contact-section .kaja-contact-form select:focus,
+    .is-contact-section .kaja-contact-form select:focus-visible,
     .is-contact-section .kaja-contact-form select:active {
-      background: rgba(0,0,0,0.42) !important;
+      background-color: rgba(0,0,0,0.42) !important;
+      background-image: none !important;
       color: #fff !important;
       border-color: rgba(255,255,255,0.18) !important;
       outline: none !important;
       box-shadow: none !important;
+      -webkit-tap-highlight-color: transparent !important;
     }
 
-    .is-contact-section .kaja-contact-form select option {
-      background: #111 !important;
+    .is-contact-section .kaja-contact-form select option,
+    .is-contact-section .kaja-contact-form select option:hover,
+    .is-contact-section .kaja-contact-form select option:checked,
+    .is-contact-section .kaja-contact-form select option:focus,
+    .is-contact-section .kaja-contact-form select option:active {
+      background-color: #111 !important;
       color: #fff !important;
     }
 
@@ -80,6 +87,8 @@
     item.textContent = label;
     item.disabled = disabled;
     item.selected = selected;
+    item.style.setProperty('background-color', '#111', 'important');
+    item.style.setProperty('color', '#fff', 'important');
     return item;
   }
 
@@ -166,9 +175,14 @@
 
     const select = form.querySelector('select');
     if (select) {
-      select.style.setProperty('background', 'rgba(0,0,0,0.42)', 'important');
+      select.style.setProperty('background-color', 'rgba(0,0,0,0.42)', 'important');
+      select.style.setProperty('background-image', 'none', 'important');
       select.style.setProperty('color', '#fff', 'important');
       select.style.setProperty('border-color', 'rgba(255,255,255,0.18)', 'important');
+      select.querySelectorAll('option').forEach((item) => {
+        item.style.setProperty('background-color', '#111', 'important');
+        item.style.setProperty('color', '#fff', 'important');
+      });
     }
 
     const visible = section.classList.contains('is-active');
