@@ -378,6 +378,25 @@ function Segment({ section, index, active, rawProgress, sharedProgress, isMobile
     localProgress.set(rawProgress);
   }, [rawProgress, localProgress]);
 
+  useEffect(() => {
+    if (!isIntroSection || !active) return;
+
+    const updateIntroBackground = (value) => {
+      const next = clamp(value, 0, 1);
+      document.documentElement.style.setProperty('--intro-bg-scale', String(1 + next * 0.075));
+      document.documentElement.style.setProperty('--intro-bg-dark', String(0.08 + next * 0.22));
+    };
+
+    updateIntroBackground(rawProgress);
+    const unsubscribe = visualProgress.on('change', updateIntroBackground);
+
+    return () => {
+      unsubscribe();
+      document.documentElement.style.setProperty('--intro-bg-scale', '1');
+      document.documentElement.style.setProperty('--intro-bg-dark', '0.08');
+    };
+  }, [isIntroSection, active, visualProgress, rawProgress]);
+
   return (
     <section className={`segment ${active ? 'is-active' : ''} ${isIntroSection ? 'is-intro-section' : ''} ${isHangerSection ? 'is-hanger-section' : ''} ${isContactSection ? 'is-contact-section' : ''}`} aria-hidden={!active}>
       <div className="segment-backdrop">
