@@ -13,8 +13,8 @@ const sections = [
   {
     label: 'KAJA',
     eyebrow: '01 / KAJA',
-    title: '100% BURLEY HOOKAH TOBACCO',
-    copy: 'Made in Moldova. Bold, rich and authentic.',
+    title: '100% BURLEY',
+    copy: 'Hookah tobacco made in Moldova. Bold, rich and authentic.',
     accent: 'Intro',
     shape: 'intro'
   },
