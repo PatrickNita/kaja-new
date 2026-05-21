@@ -3,12 +3,14 @@ introJarStyle.textContent=`
 .is-intro-section .intro-sequence,.is-hanger-section ~ .segment .intro-sequence{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}
 .is-intro-section .intro-jar-clean,.strength-leaf-scene,.catalogue-frame-sequence,.availability-frame-sequence{position:relative!important;z-index:5!important;grid-column:2!important;grid-row:1!important;justify-self:center!important;align-self:center!important;width:min(46vw,680px)!important;height:min(52vh,560px)!important;border:1px solid rgba(255,255,255,.16)!important;border-radius:clamp(20px,3vw,32px)!important;overflow:visible!important;background:linear-gradient(145deg,rgba(255,255,255,.14),rgba(255,255,255,.025))!important;box-shadow:0 60px 140px rgba(0,0,0,.7),inset 0 0 90px rgba(255,255,255,.04)!important;transform-origin:center center!important;pointer-events:none!important}
 .catalogue-frame-sequence,.availability-frame-sequence{overflow:visible!important;contain:layout!important;backface-visibility:hidden!important;transform:translateZ(0)!important}
+.availability-frame-sequence::after{content:''!important;position:absolute!important;inset:-2%!important;z-index:9!important;pointer-events:none!important;border-radius:inherit!important;background:radial-gradient(circle at 50% 52%,rgba(255,255,255,.12),rgba(255,255,255,.055) 35%,rgba(0,0,0,.18) 100%),linear-gradient(145deg,rgba(0,0,0,.18),rgba(255,255,255,.10) 52%,rgba(0,0,0,.14))!important;mix-blend-mode:soft-light!important;opacity:.72!important}
 .is-intro-section .intro-jar-clean img{position:absolute!important;left:50%!important;top:50%!important;width:auto!important;height:116%!important;max-width:116%!important;object-fit:contain!important;object-position:center!important;display:block!important;filter:drop-shadow(0 46px 70px rgba(0,0,0,.62))!important;transform-origin:center center!important;transform:translate3d(-50%,-50%,0) scale(1.24)!important;will-change:transform!important;user-select:none!important;pointer-events:none!important}
 .strength-leaf-scene img{position:absolute!important;display:block!important;object-fit:contain!important;object-position:center!important;filter:drop-shadow(0 34px 45px rgba(0,0,0,.52))!important;transform-origin:center center!important;will-change:transform!important;user-select:none!important;pointer-events:none!important}
 .strength-leaf-middle{left:50%!important;top:50%!important;width:auto!important;height:78%!important;max-width:78%!important;z-index:5!important;transform:translate3d(-50%,-50%,0) scale(1)!important}
 .strength-leaf{z-index:4!important;width:auto!important;height:22%!important;max-width:28%!important;opacity:.92!important}
 .catalogue-frame-sequence canvas,.availability-frame-sequence canvas{position:absolute!important;z-index:8!important;left:50%!important;top:50%!important;width:170%!important;height:170%!important;display:block!important;transform:translate3d(-50%,-50%,0)!important;filter:drop-shadow(0 42px 64px rgba(0,0,0,.62))!important;will-change:contents!important;user-select:none!important;pointer-events:none!important;backface-visibility:hidden!important}
-@media(max-width:900px){.is-intro-section .intro-jar-clean,.strength-leaf-scene,.catalogue-frame-sequence,.availability-frame-sequence{grid-column:1!important;grid-row:2!important;width:min(84vw,400px)!important;height:min(33vh,270px)!important;border-radius:22px!important}.is-intro-section .intro-jar-clean img{width:auto!important;height:120%!important;max-width:120%!important}.strength-leaf-middle{height:76%!important;max-width:76%!important}.strength-leaf{height:24%!important;max-width:30%!important}.catalogue-frame-sequence canvas,.availability-frame-sequence canvas{width:185%!important;height:185%!important}}
+.availability-frame-sequence canvas{width:145%!important;height:145%!important;filter:brightness(.94) contrast(.84) saturate(.9) drop-shadow(0 38px 58px rgba(0,0,0,.58))!important}
+@media(max-width:900px){.is-intro-section .intro-jar-clean,.strength-leaf-scene,.catalogue-frame-sequence,.availability-frame-sequence{grid-column:1!important;grid-row:2!important;width:min(84vw,400px)!important;height:min(33vh,270px)!important;border-radius:22px!important}.is-intro-section .intro-jar-clean img{width:auto!important;height:120%!important;max-width:120%!important}.strength-leaf-middle{height:76%!important;max-width:76%!important}.strength-leaf{height:24%!important;max-width:30%!important}.catalogue-frame-sequence canvas{width:185%!important;height:185%!important}.availability-frame-sequence canvas{width:158%!important;height:158%!important}}
 `;
 document.head.appendChild(introJarStyle);
 const clamp=(v,a,b)=>Math.min(Math.max(v,a),b);
@@ -48,28 +50,47 @@ function transformFor(p){const grow=smooth(clamp(p/.78,0,1));const shrink=smooth
 function sectionByLabel(label){return [...document.querySelectorAll('.segment')].find(section=>section.querySelector('.eyebrow')?.textContent?.toUpperCase().includes(label))}
 function ensureJar(section,className,alt,oldSelector){if(!section)return null;const oldVisual=section.querySelector(oldSelector);if(oldVisual)oldVisual.style.setProperty('display','none','important');let visual=section.querySelector(`.${className}`);if(visual)return visual;visual=document.createElement('div');visual.className=className;const img=document.createElement('img');img.src='/intro-jar.webp';img.alt=alt;img.draggable=false;visual.appendChild(img);section.appendChild(visual);return visual}
 function ensureIntro(){return ensureJar(document.querySelector('.is-intro-section'),'intro-jar-clean','KAJA intro jar','.intro-sequence')}
-function sizeSequenceCanvas(scene,canvas,drawnKey){
+function sizeSequenceCanvas(scene,canvas,drawnKey,isAvailability=false){
   const rect=scene.getBoundingClientRect();
   const dpr=Math.min(window.devicePixelRatio||1,2);
-  const w=Math.max(1,Math.round(rect.width*1.85*dpr));
-  const h=Math.max(1,Math.round(rect.height*1.85*dpr));
+  const mult=isAvailability?1.58:1.85;
+  const w=Math.max(1,Math.round(rect.width*mult*dpr));
+  const h=Math.max(1,Math.round(rect.height*mult*dpr));
   if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;motion[drawnKey]=-1}
 }
-function drawSequenceFrame(scene,frame,count,loader,drawnKey){
+function applyExposureBalance(ctx,w,h){
+  const imageData=ctx.getImageData(0,0,w,h);
+  const data=imageData.data;
+  for(let i=0;i<data.length;i+=4){
+    const a=data[i+3];
+    if(a===0)continue;
+    const r=data[i],g=data[i+1],b=data[i+2];
+    const l=(0.2126*r+0.7152*g+0.0722*b)/255;
+    const lift=clamp((0.46-l)*0.22,0,.16);
+    const dim=clamp((l-0.66)*0.34,0,.18);
+    data[i]=clamp(r*(1-dim)+255*lift,0,255);
+    data[i+1]=clamp(g*(1-dim)+255*lift,0,255);
+    data[i+2]=clamp(b*(1-dim)+255*lift,0,255);
+  }
+  ctx.putImageData(imageData,0,0);
+}
+function drawSequenceFrame(scene,frame,count,loader,drawnKey,isAvailability=false){
   const canvas=scene.querySelector('canvas');
   if(!canvas)return;
-  sizeSequenceCanvas(scene,canvas,drawnKey);
+  sizeSequenceCanvas(scene,canvas,drawnKey,isAvailability);
   const reversedFrame=(count-1)-frame;
   const img=loader(reversedFrame+1);
   if(!img.complete||!img.naturalWidth)return;
   if(frame===motion[drawnKey])return;
-  const ctx=canvas.getContext('2d',{alpha:true});
+  const ctx=canvas.getContext('2d',{alpha:true,willReadFrequently:isAvailability});
   const cw=canvas.width,ch=canvas.height;
   ctx.clearRect(0,0,cw,ch);
-  const scale=Math.min(cw/img.naturalWidth,ch/img.naturalHeight)*1.18;
+  const drawScale=isAvailability?1.06:1.18;
+  const scale=Math.min(cw/img.naturalWidth,ch/img.naturalHeight)*drawScale;
   const dw=img.naturalWidth*scale;
   const dh=img.naturalHeight*scale;
   ctx.drawImage(img,(cw-dw)/2,(ch-dh)/2,dw,dh);
+  if(isAvailability)applyExposureBalance(ctx,cw,ch);
   motion[drawnKey]=frame;
 }
 function cleanOldSectionVisuals(section){
@@ -84,7 +105,7 @@ function ensureStrength(){const section=sectionByLabel('STRENGTH');if(!section)r
 function spring(current,target,amount){return current+(target-current)*amount}
 function animateJar(visual,p,scaleKey,yKey){const img=visual?.querySelector('img');if(!img)return;const t=transformFor(p);motion[scaleKey]=spring(motion[scaleKey],t.scale,.16);motion[yKey]=spring(motion[yKey],t.y,.14);img.style.setProperty('transform',`translate3d(-50%,calc(-50% + ${motion[yKey]}vh),0) scale(${motion[scaleKey]})`,'important')}
 function animateStrengthItems(scene,p){if(!scene)return;motion.leafProgress=spring(motion.leafProgress,p,.15);const eased=smooth(motion.leafProgress);const middle=scene.querySelector('.strength-leaf-middle');if(middle)middle.style.setProperty('transform','translate3d(-50%,-50%,0) scale(1)','important');scene.querySelectorAll('.strength-leaf').forEach((item)=>{const x=Number(item.dataset.x);const y=Number(item.dataset.y);const s=Number(item.dataset.s);const r=Number(item.dataset.r);const dx=Number(item.dataset.dx);const dy=Number(item.dataset.dy);const dr=Number(item.dataset.dr);item.style.left=`${x}%`;item.style.top=`${y}%`;item.style.setProperty('transform',`translate3d(calc(-50% + ${dx*eased}px),calc(-50% + ${dy*eased}px),0) rotate(${r+dr*eased}deg) scale(${s+(eased*.12)})`,'important')})}
-function animateCatalogueFrames(scene,p){if(!scene)return;motion.catalogueFrameProgress=spring(motion.catalogueFrameProgress,p,.12);const frame=clamp(Math.round(motion.catalogueFrameProgress*(catalogueFrameCount-1)),0,catalogueFrameCount-1);drawSequenceFrame(scene,frame,catalogueFrameCount,loadCatalogueFrame,'catalogueDrawnIndex');scene.style.setProperty('transform','translateZ(0)','important')}
-function animateAvailabilityFrames(scene,p){if(!scene)return;motion.availabilityFrameProgress=spring(motion.availabilityFrameProgress,p,.12);const frame=clamp(Math.round(motion.availabilityFrameProgress*(availabilityFrameCount-1)),0,availabilityFrameCount-1);drawSequenceFrame(scene,frame,availabilityFrameCount,loadAvailabilityFrame,'availabilityDrawnIndex');scene.style.setProperty('transform','translateZ(0)','important')}
+function animateCatalogueFrames(scene,p){if(!scene)return;motion.catalogueFrameProgress=spring(motion.catalogueFrameProgress,p,.12);const frame=clamp(Math.round(motion.catalogueFrameProgress*(catalogueFrameCount-1)),0,catalogueFrameCount-1);drawSequenceFrame(scene,frame,catalogueFrameCount,loadCatalogueFrame,'catalogueDrawnIndex',false);scene.style.setProperty('transform','translateZ(0)','important')}
+function animateAvailabilityFrames(scene,p){if(!scene)return;motion.availabilityFrameProgress=spring(motion.availabilityFrameProgress,p,.12);const frame=clamp(Math.round(motion.availabilityFrameProgress*(availabilityFrameCount-1)),0,availabilityFrameCount-1);drawSequenceFrame(scene,frame,availabilityFrameCount,loadAvailabilityFrame,'availabilityDrawnIndex',true);scene.style.setProperty('transform','translateZ(0)','important')}
 function tick(){const label=activeLabel();const p=percent();if(label.includes('INTRO')){animateJar(ensureIntro(),p,'introScale','introY')}else if(label.includes('STRENGTH')){animateStrengthItems(ensureStrength(),p)}else if(label.includes('CATALOGUE')){animateCatalogueFrames(ensureCatalogue(),p)}else if(label.includes('AVAILABILITY')){animateAvailabilityFrames(ensureAvailability(),p)}else{const visual=document.querySelector('.segment.is-active .visual');if(visual){const t=transformFor(p);const targetY=8-(18*p);motion.visualScale=spring(motion.visualScale,t.scale,.18);motion.visualY=spring(motion.visualY,targetY,.16);visual.style.setProperty('transform',`translateY(${motion.visualY}vh) scale(${motion.visualScale})`,'important')}}requestAnimationFrame(tick)}
 requestAnimationFrame(tick);
