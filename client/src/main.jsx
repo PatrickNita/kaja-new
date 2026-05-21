@@ -400,7 +400,6 @@ function Segment({ section, index, active, rawProgress, sharedProgress, isMobile
       ) : (
         <ProductVisual type={section.shape} progress={visualProgress} index={index} />
       )}
-      <motion.div className="huge-accent" style={{ y: accentY }}>{section.accent}</motion.div>
       <motion.div className="counter" style={{ y: counterY, scale: counterScale }}>{String(index + 1).padStart(2, '0')}</motion.div>
     </section>
   );
