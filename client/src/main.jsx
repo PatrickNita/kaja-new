@@ -360,15 +360,16 @@ function ContactVisual({ progress }) {
 function Segment({ section, index, active, rawProgress, sharedProgress, isMobile }) {
   const localProgress = useMotionValue(rawProgress);
   const localSpring = useSpring(localProgress, SPRING_CONFIG);
-  const spring = active && sharedProgress ? sharedProgress : localSpring;
-  const titleY = useTransform(spring, [0, 1], isMobile ? [2, -5] : [6, -18]);
-  const titleOpacity = useTransform(spring, [0, 1], [1, 1]);
-  const copyY = useTransform(spring, [0, 1], isMobile ? [1, -3] : [3, -10]);
-  const accentY = useTransform(spring, [0, 1], isMobile ? ['0.5vh', '-1.5vh'] : ['1vh', '-5vh']);
-  const counterScale = useTransform(spring, [0, 1], isMobile ? [0.96, 1.06] : [0.9, 1.18]);
-  const counterY = useTransform(spring, [0, 1], isMobile ? ['0.5vh', '-1.5vh'] : ['2vh', '-5vh']);
-  const gridOpacity = useTransform(spring, [0, 1], [0.32, 1]);
-  const gridY = useTransform(spring, [0, 1], isMobile ? ['0.6vh', '-0.6vh'] : ['2vh', '-2vh']);
+  const visualProgress = active && sharedProgress ? sharedProgress : localSpring;
+  const contentProgress = localSpring;
+  const titleY = useTransform(contentProgress, [0, 1], isMobile ? [2, -5] : [6, -18]);
+  const titleOpacity = useTransform(contentProgress, [0, 1], [1, 1]);
+  const copyY = useTransform(contentProgress, [0, 1], isMobile ? [1, -3] : [3, -10]);
+  const accentY = useTransform(contentProgress, [0, 1], isMobile ? ['0.5vh', '-1.5vh'] : ['1vh', '-5vh']);
+  const counterScale = useTransform(contentProgress, [0, 1], isMobile ? [0.96, 1.06] : [0.9, 1.18]);
+  const counterY = useTransform(contentProgress, [0, 1], isMobile ? ['0.5vh', '-1.5vh'] : ['2vh', '-5vh']);
+  const gridOpacity = useTransform(contentProgress, [0, 1], [0.32, 1]);
+  const gridY = useTransform(contentProgress, [0, 1], isMobile ? ['0.6vh', '-0.6vh'] : ['2vh', '-2vh']);
   const isIntroSection = section.shape === 'intro';
   const isHangerSection = section.shape === 'hanger';
   const isContactSection = section.shape === 'contact';
@@ -387,17 +388,17 @@ function Segment({ section, index, active, rawProgress, sharedProgress, isMobile
         <motion.h1 style={{ y: titleY, opacity: titleOpacity }}>{section.title}</motion.h1>
         <motion.p className="copy" style={{ y: copyY, opacity: titleOpacity }}>{section.copy}</motion.p>
         <div className="progress-track">
-          <motion.span style={{ scaleX: spring }} />
+          <motion.span style={{ scaleX: visualProgress }} />
         </div>
       </div>
       {isIntroSection ? (
         <IntroVisual />
       ) : isHangerSection ? (
-        <HangerVisual progress={spring} />
+        <HangerVisual progress={visualProgress} />
       ) : isContactSection ? (
-        <ContactVisual progress={spring} />
+        <ContactVisual progress={visualProgress} />
       ) : (
-        <ProductVisual type={section.shape} progress={spring} index={index} />
+        <ProductVisual type={section.shape} progress={visualProgress} index={index} />
       )}
       <motion.div className="huge-accent" style={{ y: accentY }}>{section.accent}</motion.div>
       <motion.div className="counter" style={{ y: counterY, scale: counterScale }}>{String(index + 1).padStart(2, '0')}</motion.div>
