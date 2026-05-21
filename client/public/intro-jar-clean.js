@@ -19,7 +19,7 @@ const leafLayout=[
 {x:18,y:22,s:.82,r:-34,dx:-38,dy:-18,dr:-42},{x:32,y:12,s:.62,r:18,dx:-18,dy:-34,dr:28},{x:58,y:14,s:.72,r:-8,dx:18,dy:-30,dr:-24},{x:78,y:24,s:.88,r:31,dx:38,dy:-12,dr:40},{x:86,y:48,s:.64,r:-44,dx:48,dy:4,dr:-38},{x:75,y:74,s:.78,r:12,dx:34,dy:28,dr:32},{x:55,y:86,s:.66,r:-18,dx:12,dy:42,dr:-30},{x:32,y:78,s:.84,r:42,dx:-24,dy:34,dr:46},{x:13,y:58,s:.7,r:-12,dx:-48,dy:14,dr:-28},{x:22,y:42,s:.58,r:24,dx:-36,dy:-4,dr:36},{x:48,y:28,s:.52,r:-52,dx:-8,dy:-24,dr:-44},{x:65,y:56,s:.6,r:54,dx:24,dy:16,dr:48}
 ];
 const catalogueFrameCount=121;
-const catalogueFramePath=index=>`/catalogue-animation/${String(index).padStart(3,'0')}.webp`;
+const catalogueFramePath=index=>`/catalogue-animation/frame_${String(index).padStart(4,'0')}.webp`;
 function activeLabel(){return document.querySelector('.scroll-hint span')?.textContent||''}
 function percent(){const spans=[...document.querySelectorAll('.scroll-hint span')];const t=spans.at(-1)?.textContent||'0%';const m=t.match(/(\d+)%/);return clamp(m?Number(m[1])/100:0,0,1)}
 function transformFor(p){const grow=smooth(clamp(p/.78,0,1));const shrink=smooth(clamp((p-.88)/.12,0,1));return{scale:1.24+grow*.06-shrink*.04,y:0}}
