@@ -8,13 +8,13 @@ introJarStyle.textContent=`
 .strength-leaf-scene img{position:absolute!important;display:block!important;object-fit:contain!important;object-position:center!important;filter:drop-shadow(0 34px 45px rgba(0,0,0,.52))!important;transform-origin:center center!important;will-change:transform!important;user-select:none!important;pointer-events:none!important}
 .strength-leaf-middle{left:50%!important;top:50%!important;width:auto!important;height:90%!important;max-width:90%!important;z-index:5!important;transform:translate3d(-50%,-50%,0) scale(1)!important}
 .strength-leaf{z-index:4!important;width:auto!important;height:28%!important;max-width:34%!important;opacity:.92!important}
-.catalogue-frame-sequence canvas,.availability-frame-sequence canvas{position:absolute!important;z-index:8!important;left:50%!important;top:50%!important;width:170%!important;height:170%!important;display:block!important;transform:translate3d(-50%,-50%,0)!important;filter:drop-shadow(0 42px 64px rgba(0,0,0,.62))!important;will-change:contents!important;user-select:none!important;pointer-events:none!important;backface-visibility:hidden!important}
+.catalogue-frame-sequence canvas,.availability-frame-sequence canvas{position:absolute!important;z-index:8!important;left:50%!important;top:50%!important;width:188%!important;height:188%!important;display:block!important;transform:translate3d(-50%,-50%,0)!important;filter:drop-shadow(0 42px 64px rgba(0,0,0,.62))!important;will-change:contents!important;user-select:none!important;pointer-events:none!important;backface-visibility:hidden!important}
 .availability-frame-sequence canvas{width:145%!important;height:145%!important;filter:brightness(1.08) contrast(.72) saturate(.92) drop-shadow(0 38px 58px rgba(0,0,0,.58))!important}
 .contact-social-links{display:flex!important;align-items:center!important;justify-content:center!important;gap:12px!important;margin-top:18px!important;padding-top:16px!important;border-top:1px solid rgba(255,255,255,.12)!important}
 .contact-social-link{width:42px!important;height:42px!important;border:1px solid rgba(255,255,255,.16)!important;border-radius:999px!important;display:flex!important;align-items:center!important;justify-content:center!important;background:rgba(255,255,255,.06)!important;box-shadow:inset 0 0 22px rgba(255,255,255,.035)!important;transition:transform .22s ease,background .22s ease,border-color .22s ease!important;pointer-events:auto!important}
 .contact-social-link:hover{transform:translateY(-2px) scale(1.04)!important;background:rgba(255,255,255,.13)!important;border-color:rgba(255,255,255,.32)!important}
 .contact-social-link img{width:22px!important;height:22px!important;object-fit:contain!important;display:block!important;filter:drop-shadow(0 8px 16px rgba(0,0,0,.45))!important}
-@media(max-width:900px){.is-intro-section .intro-jar-clean,.strength-leaf-scene,.catalogue-frame-sequence,.availability-frame-sequence{grid-column:1!important;grid-row:2!important;width:min(84vw,400px)!important;height:min(33vh,270px)!important;border-radius:22px!important}.is-intro-section .intro-jar-clean img{width:auto!important;height:132%!important;max-width:132%!important}.strength-leaf-middle{height:88%!important;max-width:88%!important}.strength-leaf{height:30%!important;max-width:36%!important}.catalogue-frame-sequence canvas{width:185%!important;height:185%!important}.availability-frame-sequence canvas{width:158%!important;height:158%!important}.contact-social-link{width:38px!important;height:38px!important}.contact-social-link img{width:20px!important;height:20px!important}}
+@media(max-width:900px){.is-intro-section .intro-jar-clean,.strength-leaf-scene,.catalogue-frame-sequence,.availability-frame-sequence{grid-column:1!important;grid-row:2!important;width:min(84vw,400px)!important;height:min(33vh,270px)!important;border-radius:22px!important}.is-intro-section .intro-jar-clean img{width:auto!important;height:132%!important;max-width:132%!important}.strength-leaf-middle{height:88%!important;max-width:88%!important}.strength-leaf{height:30%!important;max-width:36%!important}.catalogue-frame-sequence canvas{width:205%!important;height:205%!important}.availability-frame-sequence canvas{width:158%!important;height:158%!important}.contact-social-link{width:38px!important;height:38px!important}.contact-social-link img{width:20px!important;height:20px!important}}
 `;
 document.head.appendChild(introJarStyle);
 const clamp=(v,a,b)=>Math.min(Math.max(v,a),b);
@@ -84,7 +84,7 @@ function ensureContactSocials(){
 function sizeSequenceCanvas(scene,canvas,drawnKey,isAvailability=false){
   const rect=scene.getBoundingClientRect();
   const dpr=Math.min(window.devicePixelRatio||1,2);
-  const mult=isAvailability?1.58:1.85;
+  const mult=isAvailability?1.58:2.05;
   const w=Math.max(1,Math.round(rect.width*mult*dpr));
   const h=Math.max(1,Math.round(rect.height*mult*dpr));
   if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;motion[drawnKey]=-1}
@@ -117,7 +117,7 @@ function drawSequenceFrame(scene,frame,count,loader,drawnKey,isAvailability=fals
   const ctx=canvas.getContext('2d',{alpha:true,willReadFrequently:isAvailability});
   const cw=canvas.width,ch=canvas.height;
   ctx.clearRect(0,0,cw,ch);
-  const drawScale=isAvailability?1.06:1.18;
+  const drawScale=isAvailability?1.06:1.28;
   const scale=Math.min(cw/img.naturalWidth,ch/img.naturalHeight)*drawScale;
   const dw=img.naturalWidth*scale;
   const dh=img.naturalHeight*scale;
