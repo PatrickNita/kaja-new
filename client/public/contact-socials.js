@@ -96,7 +96,25 @@ const contactSocials = [
   }
 ];
 
+function addContactTextField() {
+  const contactSection = Array.from(document.querySelectorAll('.segment')).find((item) => item.querySelector('h1')?.textContent?.trim() === 'Start the conversation.');
+  const panel = contactSection?.querySelector('.contact-form-panel');
+  const dropdown = panel?.querySelector('select');
+  if (!panel || !dropdown || panel.querySelector('.kaja-contact-extra-text')) return;
+
+  const input = document.createElement('input');
+  input.className = 'kaja-contact-extra-text';
+  input.type = 'text';
+  input.placeholder = 'Company / Details';
+  input.setAttribute('aria-label', 'Company or details');
+  input.style.cssText = dropdown.getAttribute('style') || '';
+
+  dropdown.insertAdjacentElement('afterend', input);
+}
+
 function addContactSocialButtons() {
+  addContactTextField();
+
   const contactSection = Array.from(document.querySelectorAll('.segment')).find((item) => item.querySelector('h1')?.textContent?.trim() === 'Start the conversation.');
   const content = contactSection?.querySelector('.segment-content');
   if (!content || content.querySelector('.kaja-contact-socials')) return;
