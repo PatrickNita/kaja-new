@@ -77,7 +77,7 @@ const contactSocials = [
   {
     label: 'Instagram',
     href: '#instagram',
-    icon: '/socials/telegram.webp'
+    icon: '/socials/instagram.webp'
   },
   {
     label: 'WhatsApp',
@@ -91,7 +91,7 @@ const contactSocials = [
   },
   {
     label: 'E-mail',
-    href: 'mailto:contact@kaja.example',
+    href: 'mailto:contact@kaja-tobacco.com',
     icon: '/socials/mail.webp'
   }
 ];
