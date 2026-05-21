@@ -11,10 +11,10 @@ const SPRING_CONFIG = { stiffness: 126, damping: 18, mass: 0.62 };
 
 const sections = [
   {
-    label: 'INTRO',
-    eyebrow: '01 / Intro',
-    title: 'INTRO',
-    copy: 'A scroll-driven KAJA product sequence with frame-by-frame motion and a fluid spring scale.',
+    label: 'KAJA',
+    eyebrow: '01 / KAJA',
+    title: '100% BURLEY HOOKAH TOBACCO',
+    copy: 'Made in Moldova. Bold, rich and authentic.',
     accent: 'Intro',
     shape: 'intro'
   },
