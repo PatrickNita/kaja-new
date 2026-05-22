@@ -444,6 +444,7 @@ function Segment({ section, index, sectionRef, isActive, segmentProgress, frozen
   const isHangerSection = section.shape === 'hanger';
   const isContactSection = section.shape === 'contact';
   const isSequenceSection = section.shape === 'strips' || section.shape === 'orb';
+  const sequencePrimedRef = useRef(false);
   const sectionProgressAttr = isSequenceSection
     ? String(Math.round(effectiveProgress * 120) / 120)
     : String(motion.progressScale);
@@ -457,7 +458,13 @@ function Segment({ section, index, sectionRef, isActive, segmentProgress, frozen
   }, [isHangerSection, isActive, effectiveProgress, frozenProgress]);
 
   useLayoutEffect(() => {
-    if (!isSequenceSection || !isActive) return;
+    if (!isSequenceSection) return;
+    if (!isActive) {
+      sequencePrimedRef.current = false;
+      return;
+    }
+    if (sequencePrimedRef.current) return;
+    sequencePrimedRef.current = true;
     window.__kajaPrimeSequenceSection?.(index, effectiveProgress);
   }, [isSequenceSection, isActive, index, effectiveProgress]);
 

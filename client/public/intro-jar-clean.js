@@ -174,13 +174,19 @@ function primeSequenceStartFrame(section,shape,p){
   if(shape==='strips'){
     const scene=ensureCatalogue(section);
     if(!scene)return;
-    ensureSequencePoster(scene,'strips',p);
     const state=sectionMotion(section);
     const frame=sequenceFrameForProgress(p,catalogueFrameCount);
     const loaderIndex=sequenceLoaderIndex(frame,catalogueFrameCount);
     const img=loadCatalogueFrame(loaderIndex);
     state.catalogueFrameProgress=p;
     preloadSequenceWindow(loaderIndex,catalogueFrameCount,loadCatalogueFrame,20);
+    if(state.catalogueDrawnIndex>=0){
+      if(frame!==state.catalogueDrawnIndex&&img.complete&&img.naturalWidth){
+        drawSequenceFrame(scene,frame,catalogueFrameCount,loadCatalogueFrame,state,'catalogueDrawnIndex',false,p);
+      }
+      return;
+    }
+    ensureSequencePoster(scene,'strips',p);
     if(img.complete&&img.naturalWidth)drawSequenceFrame(scene,frame,catalogueFrameCount,loadCatalogueFrame,state,'catalogueDrawnIndex',false,p);
     else if(!img.dataset.pendingPrime){img.dataset.pendingPrime='1';img.addEventListener('load',()=>{delete img.dataset.pendingPrime;scheduleTick()},{once:true});if(img.decode)img.decode().then(()=>scheduleTick()).catch(()=>{})}
     return;
@@ -188,13 +194,19 @@ function primeSequenceStartFrame(section,shape,p){
   if(shape==='orb'){
     const scene=ensureAvailability(section);
     if(!scene)return;
-    ensureSequencePoster(scene,'orb',p);
     const state=sectionMotion(section);
     const frame=sequenceFrameForProgress(p,availabilityFrameCount);
     const loaderIndex=sequenceLoaderIndex(frame,availabilityFrameCount);
     const img=loadAvailabilityFrame(loaderIndex);
     state.availabilityFrameProgress=p;
     preloadSequenceWindow(loaderIndex,availabilityFrameCount,loadAvailabilityFrame,20);
+    if(state.availabilityDrawnIndex>=0){
+      if(frame!==state.availabilityDrawnIndex&&img.complete&&img.naturalWidth){
+        drawSequenceFrame(scene,frame,availabilityFrameCount,loadAvailabilityFrame,state,'availabilityDrawnIndex',true,p);
+      }
+      return;
+    }
+    ensureSequencePoster(scene,'orb',p);
     if(img.complete&&img.naturalWidth)drawSequenceFrame(scene,frame,availabilityFrameCount,loadAvailabilityFrame,state,'availabilityDrawnIndex',true,p);
     else if(!img.dataset.pendingPrime){img.dataset.pendingPrime='1';img.addEventListener('load',()=>{delete img.dataset.pendingPrime;scheduleTick()},{once:true});if(img.decode)img.decode().then(()=>scheduleTick()).catch(()=>{})}
   }
@@ -283,13 +295,13 @@ function drawSequenceFrame(scene,frame,count,loader,state,drawnKey,isAvailabilit
   if(!canvas)return;
   if(!sizeSequenceCanvas(scene,canvas,state,drawnKey,isAvailability)){
     observeSceneLayout(scene);
-    ensureSequencePoster(scene,shape,p);
+    if(state[drawnKey]<0)ensureSequencePoster(scene,shape,p);
     return;
   }
   const reversedFrame=(count-1)-frame;
   const img=loader(reversedFrame+1);
   if(!img.complete||!img.naturalWidth){
-    ensureSequencePoster(scene,shape,p);
+    if(state[drawnKey]<0)ensureSequencePoster(scene,shape,p);
     if(!img.dataset.pendingTick){
       img.dataset.pendingTick='1';
       img.addEventListener('load',()=>{delete img.dataset.pendingTick;scheduleTick()},{once:true});
@@ -324,24 +336,31 @@ function prepareSequenceSection(section){
   const shape=sectionShape(section);
   if(shape==='strips'){
     const scene=ensureCatalogue(section);
-    if(scene)ensureSequencePoster(scene,'strips',sectionProgress(section));
+    if(!scene)return;
+    const state=sectionMotion(section);
+    if(state.catalogueDrawnIndex>=0)return;
+    ensureSequencePoster(scene,'strips',sectionProgress(section));
     return;
   }
   if(shape==='orb'){
     const scene=ensureAvailability(section);
-    if(scene)ensureSequencePoster(scene,'orb',sectionProgress(section));
+    if(!scene)return;
+    const state=sectionMotion(section);
+    if(state.availabilityDrawnIndex>=0)return;
+    ensureSequencePoster(scene,'orb',sectionProgress(section));
   }
 }
-function warmUpcomingSequenceSection(activeSection){
+let lastPreparedUpcomingFrom=-1;
+function prepareUpcomingSequenceSection(activeSection){
   const activeIndex=Number.parseInt(activeSection?.dataset.sectionIndex??'',10);
-  if(Number.isNaN(activeIndex))return;
+  if(Number.isNaN(activeIndex)||lastPreparedUpcomingFrom===activeIndex)return;
+  lastPreparedUpcomingFrom=activeIndex;
   getSections().forEach((section)=>{
     const sectionIndex=Number.parseInt(section.dataset.sectionIndex??'',10);
     if(sectionIndex!==activeIndex+1)return;
     const shape=sectionShape(section);
     if(shape!=='strips'&&shape!=='orb')return;
     prepareSequenceSection(section);
-    primeSequenceStartFrame(section,shape,0);
   });
 }
 function ensureCatalogue(section){if(!section)return null;cleanOldSectionVisuals(section);const oldVisual=section.querySelector('.visual.visual-strips');if(oldVisual)oldVisual.style.setProperty('display','none','important');let scene=section.querySelector('.catalogue-frame-sequence');if(scene)return scene;scene=document.createElement('div');scene.className='catalogue-frame-sequence';const canvas=document.createElement('canvas');canvas.setAttribute('aria-label','Catalogue animation frame');scene.appendChild(canvas);section.appendChild(scene);ensureSequencePoster(scene,'strips',sectionProgress(section));observeSceneLayout(scene);scheduleTick();return scene}
@@ -428,7 +447,7 @@ function tick(){
     const isActive=section.classList.contains('is-active');
     if(isActive&&(shape==='strips'||shape==='orb')){
       if((shape==='strips'&&state.catalogueDrawnIndex<0)||(shape==='orb'&&state.availabilityDrawnIndex<0))primeSequenceStartFrame(section,shape,p);
-      warmUpcomingSequenceSection(section);
+      prepareUpcomingSequenceSection(section);
     }
     warmSectionSequence(shape,p,isActive);
     if(section.classList.contains('is-intro-section')){
@@ -479,9 +498,7 @@ window.__kajaPrimeSequenceSection=(index,progress=0)=>{
   if(!section)return;
   const shape=sectionShape(section);
   if(shape!=='strips'&&shape!=='orb')return;
-  const p=clamp(Number(progress)||0,0,1);
-  prepareSequenceSection(section);
-  primeSequenceStartFrame(section,shape,p);
+  primeSequenceStartFrame(section,shape,clamp(Number(progress)||0,0,1));
   scheduleTick();
 };
 observeSections();
