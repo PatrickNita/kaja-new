@@ -7,12 +7,14 @@ introJarStyle.textContent=`
 .strength-leaf-middle{left:50%!important;top:50%!important;width:auto!important;height:90%!important;max-width:90%!important;z-index:5!important;transform:translate3d(-50%,-50%,0) scale(1)!important}
 .strength-leaf{z-index:4!important;width:auto!important;height:28%!important;max-width:34%!important;opacity:.92!important}
 .catalogue-frame-sequence canvas,.availability-frame-sequence canvas{position:absolute!important;z-index:8!important;left:50%!important;top:50%!important;width:188%!important;height:188%!important;display:block!important;transform:translate3d(-50%,-50%,0)!important;filter:drop-shadow(0 42px 64px rgba(0,0,0,.62))!important;will-change:contents!important;user-select:none!important;pointer-events:none!important;backface-visibility:hidden!important}
+.catalogue-frame-sequence .sequence-poster,.availability-frame-sequence .sequence-poster{position:absolute!important;z-index:7!important;left:50%!important;top:50%!important;width:188%!important;height:188%!important;object-fit:contain!important;transform:translate3d(-50%,-50%,0)!important;filter:drop-shadow(0 42px 64px rgba(0,0,0,.62))!important;pointer-events:none!important;user-select:none!important;transition:opacity .12s ease!important}
 .availability-frame-sequence canvas{width:145%!important;height:145%!important}
+.availability-frame-sequence .sequence-poster{width:145%!important;height:145%!important}
 .contact-social-links{display:flex!important;align-items:center!important;justify-content:center!important;gap:12px!important;margin-top:18px!important;padding-top:16px!important;border-top:1px solid rgba(255,255,255,.12)!important}
 .contact-social-link{width:42px!important;height:42px!important;border:1px solid rgba(255,255,255,.16)!important;border-radius:999px!important;display:flex!important;align-items:center!important;justify-content:center!important;background:rgba(255,255,255,.06)!important;box-shadow:inset 0 0 22px rgba(255,255,255,.035)!important;transition:transform .22s ease,background .22s ease,border-color .22s ease!important;pointer-events:auto!important}
 .contact-social-link:hover{transform:translateY(-2px) scale(1.04)!important;background:rgba(255,255,255,.13)!important;border-color:rgba(255,255,255,.32)!important}
 .contact-social-link img{width:22px!important;height:22px!important;object-fit:contain!important;display:block!important;filter:drop-shadow(0 8px 16px rgba(0,0,0,.45))!important}
-@media(max-width:900px){.is-intro-section .intro-jar-clean,.strength-leaf-scene,.catalogue-frame-sequence,.availability-frame-sequence{grid-column:1!important;grid-row:2!important;width:min(84vw,400px)!important;height:min(33vh,270px)!important;border-radius:22px!important}.is-intro-section .intro-jar-clean img{width:auto!important;height:132%!important;max-width:132%!important}.strength-leaf-middle{height:88%!important;max-width:88%!important}.strength-leaf{height:30%!important;max-width:36%!important}.catalogue-frame-sequence canvas{width:205%!important;height:205%!important}.availability-frame-sequence canvas{width:158%!important;height:158%!important}.contact-social-link{width:38px!important;height:38px!important}.contact-social-link img{width:20px!important;height:20px!important}}
+@media(max-width:900px){.is-intro-section .intro-jar-clean,.strength-leaf-scene,.catalogue-frame-sequence,.availability-frame-sequence{grid-column:1!important;grid-row:2!important;width:min(84vw,400px)!important;height:min(33vh,270px)!important;border-radius:22px!important}.is-intro-section .intro-jar-clean img{width:auto!important;height:132%!important;max-width:132%!important}.strength-leaf-middle{height:88%!important;max-width:88%!important}.strength-leaf{height:30%!important;max-width:36%!important}.catalogue-frame-sequence canvas,.catalogue-frame-sequence .sequence-poster{width:205%!important;height:205%!important}.availability-frame-sequence canvas,.availability-frame-sequence .sequence-poster{width:158%!important;height:158%!important}.contact-social-link{width:38px!important;height:38px!important}.contact-social-link img{width:20px!important;height:20px!important}}
 `;
 document.head.appendChild(introJarStyle);
 const clamp=(v,a,b)=>Math.min(Math.max(v,a),b);
@@ -134,10 +136,37 @@ function scheduleSequencePrime(section,shape,p){
     });
   });
 }
+function sequencePosterPath(shape,p){
+  const count=shape==='strips'?catalogueFrameCount:availabilityFrameCount;
+  const frame=sequenceFrameForProgress(p,count);
+  const loaderIndex=sequenceLoaderIndex(frame,count);
+  return shape==='strips'?catalogueFramePath(loaderIndex):availabilityFramePath(loaderIndex);
+}
+function ensureSequencePoster(scene,shape,p){
+  if(!scene)return null;
+  const src=sequencePosterPath(shape,p);
+  let poster=scene.querySelector('img.sequence-poster');
+  if(!poster){
+    poster=document.createElement('img');
+    poster.className='sequence-poster';
+    poster.alt='';
+    poster.draggable=false;
+    poster.decoding='async';
+    scene.insertBefore(poster,scene.firstChild);
+  }
+  if(poster.getAttribute('src')!==src)poster.src=src;
+  poster.style.setProperty('opacity','1','important');
+  return poster;
+}
+function hideSequencePoster(scene){
+  const poster=scene?.querySelector('img.sequence-poster');
+  if(poster)poster.style.setProperty('opacity','0','important');
+}
 function primeSequenceStartFrame(section,shape,p){
   if(shape==='strips'){
     const scene=ensureCatalogue(section);
     if(!scene)return;
+    ensureSequencePoster(scene,'strips',p);
     const state=sectionMotion(section);
     const frame=sequenceFrameForProgress(p,catalogueFrameCount);
     const loaderIndex=sequenceLoaderIndex(frame,catalogueFrameCount);
@@ -151,6 +180,7 @@ function primeSequenceStartFrame(section,shape,p){
   if(shape==='orb'){
     const scene=ensureAvailability(section);
     if(!scene)return;
+    ensureSequencePoster(scene,'orb',p);
     const state=sectionMotion(section);
     const frame=sequenceFrameForProgress(p,availabilityFrameCount);
     const loaderIndex=sequenceLoaderIndex(frame,availabilityFrameCount);
@@ -259,6 +289,7 @@ function drawSequenceFrame(scene,frame,count,loader,state,drawnKey,isAvailabilit
   const dh=img.naturalHeight*scale;
   ctx.drawImage(img,(cw-dw)/2,(ch-dh)/2,dw,dh);
   state[drawnKey]=frame;
+  hideSequencePoster(scene);
 }
 function cleanOldSectionVisuals(section){
   if(!section)return;
@@ -266,15 +297,15 @@ function cleanOldSectionVisuals(section){
   section.querySelector('.catalogue-book-scene')?.remove();
   section.querySelector('.catalogue-jar-clean')?.remove();
 }
-function ensureCatalogue(section){if(!section)return null;cleanOldSectionVisuals(section);const oldVisual=section.querySelector('.visual.visual-strips');if(oldVisual)oldVisual.style.setProperty('display','none','important');let scene=section.querySelector('.catalogue-frame-sequence');if(scene)return scene;scene=document.createElement('div');scene.className='catalogue-frame-sequence';const canvas=document.createElement('canvas');canvas.setAttribute('aria-label','Catalogue animation frame');scene.appendChild(canvas);section.appendChild(scene);observeSceneLayout(scene);scheduleTick();return scene}
-function ensureAvailability(section){if(!section)return null;const oldVisual=section.querySelector('.visual');if(oldVisual)oldVisual.style.setProperty('display','none','important');let scene=section.querySelector('.availability-frame-sequence');if(scene)return scene;scene=document.createElement('div');scene.className='availability-frame-sequence';const canvas=document.createElement('canvas');canvas.setAttribute('aria-label','Availability animation frame');scene.appendChild(canvas);section.appendChild(scene);observeSceneLayout(scene);scheduleTick();return scene}
+function ensureCatalogue(section){if(!section)return null;cleanOldSectionVisuals(section);const oldVisual=section.querySelector('.visual.visual-strips');if(oldVisual)oldVisual.style.setProperty('display','none','important');let scene=section.querySelector('.catalogue-frame-sequence');if(scene)return scene;scene=document.createElement('div');scene.className='catalogue-frame-sequence';const canvas=document.createElement('canvas');canvas.setAttribute('aria-label','Catalogue animation frame');scene.appendChild(canvas);section.appendChild(scene);ensureSequencePoster(scene,'strips',sectionProgress(section));observeSceneLayout(scene);scheduleTick();return scene}
+function ensureAvailability(section){if(!section)return null;const oldVisual=section.querySelector('.visual');if(oldVisual)oldVisual.style.setProperty('display','none','important');let scene=section.querySelector('.availability-frame-sequence');if(scene)return scene;scene=document.createElement('div');scene.className='availability-frame-sequence';const canvas=document.createElement('canvas');canvas.setAttribute('aria-label','Availability animation frame');scene.appendChild(canvas);section.appendChild(scene);ensureSequencePoster(scene,'orb',sectionProgress(section));observeSceneLayout(scene);scheduleTick();return scene}
 function ensureStrength(section){if(!section)return null;const oldVisual=section.querySelector('.visual.visual-stack');if(oldVisual)oldVisual.style.setProperty('display','none','important');let scene=section.querySelector('.strength-leaf-scene');if(scene)return scene;scene=document.createElement('div');scene.className='strength-leaf-scene';const middle=document.createElement('img');middle.className='strength-leaf-middle';middle.src='/leaf-middle.webp';middle.alt='Strength leaf center';middle.draggable=false;scene.appendChild(middle);for(let i=2;i<=13;i+=1){const img=document.createElement('img');const data=leafLayout[i-2];img.className='strength-leaf';img.src=`/leaf${i}.webp`;img.alt='';img.draggable=false;img.setAttribute('aria-hidden','true');img.dataset.x=data.x;img.dataset.y=data.y;img.dataset.s=data.s;img.dataset.r=data.r;img.dataset.dx=data.dx;img.dataset.dy=data.dy;img.dataset.dr=data.dr;img.style.left=`${data.x}%`;img.style.top=`${data.y}%`;scene.appendChild(img)}section.appendChild(scene);return scene}
 function spring(current,target,amount){return current+(target-current)*amount}
 function applyMotion(state,key,target,frozen,amount){if(frozen){state[key]=target;return target}state[key]=spring(state[key],target,amount);return state[key]}
 function animateJar(visual,p,state,frozen){const img=visual?.querySelector('img');if(!img)return;const t=transformFor(p);const scale=applyMotion(state,'introScale',t.scale,frozen,.22);const y=applyMotion(state,'introY',t.y,frozen,.18);img.style.setProperty('transform',`translate3d(-50%,calc(-50% + ${y}vh),0) scale(${scale})`,'important')}
 function animateStrengthItems(scene,p,state,frozen){if(!scene)return;const eased=smooth(applyMotion(state,'leafProgress',p,frozen,.15));const middle=scene.querySelector('.strength-leaf-middle');if(middle)middle.style.setProperty('transform','translate3d(-50%,-50%,0) scale(1.1)','important');scene.querySelectorAll('.strength-leaf').forEach((item)=>{const x=Number(item.dataset.x);const y=Number(item.dataset.y);const s=Number(item.dataset.s);const r=Number(item.dataset.r);const dx=Number(item.dataset.dx);const dy=Number(item.dataset.dy);const dr=Number(item.dataset.dr);item.style.left=`${x}%`;item.style.top=`${y}%`;item.style.setProperty('transform',`translate3d(calc(-50% + ${dx*eased}px),calc(-50% + ${dy*eased}px),0) rotate(${r+dr*eased}deg) scale(${s+(eased*.14)})`,'important')})}
-function animateCatalogueFrames(scene,p,state,frozen,isActive,shape){if(!scene)return;const snapFirst=Boolean(isActive&&state.catalogueDrawnIndex<0);const progress=applyMotion(state,'catalogueFrameProgress',p,frozen,snapFirst?1:.12);const frame=clamp(Math.round(progress*(catalogueFrameCount-1)),0,catalogueFrameCount-1);drawSequenceFrame(scene,frame,catalogueFrameCount,loadCatalogueFrame,state,'catalogueDrawnIndex',false);preloadSequenceWindow((catalogueFrameCount-1)-frame+1,catalogueFrameCount,loadCatalogueFrame);scheduleSequencePreloadForSection(shape,isActive);scene.style.setProperty('transform','translateZ(0)','important')}
-function animateAvailabilityFrames(scene,p,state,frozen,isActive,shape){if(!scene)return;const snapFirst=Boolean(isActive&&state.availabilityDrawnIndex<0);const progress=applyMotion(state,'availabilityFrameProgress',p,frozen,snapFirst?1:.12);const frame=clamp(Math.round(progress*(availabilityFrameCount-1)),0,availabilityFrameCount-1);drawSequenceFrame(scene,frame,availabilityFrameCount,loadAvailabilityFrame,state,'availabilityDrawnIndex',true);if(frame!==state.availabilityPreloadFrame){state.availabilityPreloadFrame=frame;preloadSequenceWindow((availabilityFrameCount-1)-frame+1,availabilityFrameCount,loadAvailabilityFrame)}if(isActive)scheduleSequencePreloadForSection(shape,isActive);scene.style.setProperty('transform','translateZ(0)','important')}
+function animateCatalogueFrames(scene,p,state,frozen,isActive,shape){if(!scene)return;if(isActive)ensureSequencePoster(scene,'strips',p);const snapFirst=Boolean(isActive&&state.catalogueDrawnIndex<0);const progress=applyMotion(state,'catalogueFrameProgress',p,frozen,snapFirst?1:.12);const frame=clamp(Math.round(progress*(catalogueFrameCount-1)),0,catalogueFrameCount-1);drawSequenceFrame(scene,frame,catalogueFrameCount,loadCatalogueFrame,state,'catalogueDrawnIndex',false);preloadSequenceWindow((catalogueFrameCount-1)-frame+1,catalogueFrameCount,loadCatalogueFrame);scheduleSequencePreloadForSection(shape,isActive);scene.style.setProperty('transform','translateZ(0)','important')}
+function animateAvailabilityFrames(scene,p,state,frozen,isActive,shape){if(!scene)return;if(isActive)ensureSequencePoster(scene,'orb',p);const snapFirst=Boolean(isActive&&state.availabilityDrawnIndex<0);const progress=applyMotion(state,'availabilityFrameProgress',p,frozen,snapFirst?1:.12);const frame=clamp(Math.round(progress*(availabilityFrameCount-1)),0,availabilityFrameCount-1);drawSequenceFrame(scene,frame,availabilityFrameCount,loadAvailabilityFrame,state,'availabilityDrawnIndex',true);if(frame!==state.availabilityPreloadFrame){state.availabilityPreloadFrame=frame;preloadSequenceWindow((availabilityFrameCount-1)-frame+1,availabilityFrameCount,loadAvailabilityFrame)}if(isActive)scheduleSequencePreloadForSection(shape,isActive);scene.style.setProperty('transform','translateZ(0)','important')}
 const sectionNodes=[];
 let sectionsDirty=true;
 const lastProgressByKey={};
@@ -367,9 +398,10 @@ const sectionObserver=new MutationObserver((mutations)=>{
   for(const mutation of mutations){
     if(mutation.type==='childList'){markSectionsDirty();scheduleTick();return}
     if(mutation.attributeName==='data-section-progress'||mutation.attributeName==='data-frozen-progress'||mutation.attributeName==='class'){
-      if(mutation.attributeName==='class'&&mutation.target.classList?.contains('is-active')){
-        const shape=sectionShape(mutation.target);
-        if(shape==='strips'||shape==='orb')scheduleSequencePrime(mutation.target,shape,sectionProgress(mutation.target));
+      const section=mutation.target;
+      if(section?.classList?.contains('is-active')){
+        const shape=sectionShape(section);
+        if(shape==='strips'||shape==='orb')scheduleSequencePrime(section,shape,sectionProgress(section));
       }
       scheduleTick();
       return;

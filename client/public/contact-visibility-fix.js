@@ -94,6 +94,21 @@
       background: #fff !important;
       box-shadow: 0 20px 55px rgba(0,0,0,0.28) !important;
     }
+
+    @media (max-width: 900px) {
+      .is-contact-section .kaja-contact-form,
+      .is-contact-section.is-active .kaja-contact-form {
+        grid-column: 1 !important;
+        justify-self: center !important;
+        align-self: start !important;
+        width: 100% !important;
+        max-width: min(420px, calc(100% - 8px)) !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        transform-origin: top center !important;
+        box-sizing: border-box !important;
+      }
+    }
   `;
   document.head.appendChild(style);
 

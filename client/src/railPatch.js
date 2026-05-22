@@ -186,13 +186,17 @@ patchStyle.textContent = `
     mix-blend-mode: screen;
   }
   .is-contact-section.is-active .kaja-contact-form {
-    width: min(94vw, 420px);
+    grid-column: 1;
+    width: 100%;
+    max-width: min(420px, calc(100% - 8px));
     min-height: 200px;
     padding: 12px 14px;
     align-self: start;
     justify-self: center;
+    margin-inline: auto;
     margin-top: clamp(8px, 2vh, 14px);
     transform-origin: top center;
+    box-sizing: border-box;
   }
   .kaja-contact-label {
     margin-bottom: 6px;

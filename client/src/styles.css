@@ -962,11 +962,15 @@ h1 {
   }
 
   .is-contact-section.is-active .kaja-contact-form {
+    grid-column: 1;
     align-self: start;
     justify-self: center;
-    width: min(94vw, 420px);
+    width: 100%;
+    max-width: min(420px, calc(100% - 8px));
+    margin-inline: auto;
     margin-top: clamp(8px, 2vh, 14px);
     transform-origin: top center;
+    box-sizing: border-box;
   }
 
   .visual {
