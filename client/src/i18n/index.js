@@ -39,6 +39,26 @@ export function getLocalePath(locale = DEFAULT_LOCALE) {
   return locale === DEFAULT_LOCALE ? '/' : `/${locale}/`;
 }
 
+export function stripLocalePrefix(pathname = window.location.pathname) {
+  const normalized = pathname.replace(/\/+$/, '') || '/';
+  if (normalized === '/' || ENGLISH_ALIASES.test(normalized)) return '/';
+
+  const match = normalized.match(LOCALE_PATTERN);
+  if (!match) return normalized;
+
+  const rest = normalized.slice(match[0].length);
+  if (!rest) return '/';
+  return rest.startsWith('/') ? rest : `/${rest}`;
+}
+
+export function getLocaleSwitchPath(targetLocale, pathname = window.location.pathname) {
+  const relativePath = stripLocalePrefix(pathname);
+  if (relativePath === '/') return getLocalePath(targetLocale);
+
+  const cleanPath = relativePath.replace(/^\//, '');
+  return getLocalePagePath(cleanPath, targetLocale);
+}
+
 export function getLocalePagePath(page, locale = DEFAULT_LOCALE) {
   const slug = String(page).replace(/^\//, '');
   if (locale === DEFAULT_LOCALE) return `/${slug}`;

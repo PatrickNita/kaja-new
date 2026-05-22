@@ -10,6 +10,7 @@ import {
   getLocaleCopy,
   getLocaleFromPath,
   getLocalePath,
+  getLocaleSwitchPath,
   publishLocale,
   SECTION_COUNT
 } from './i18n';
@@ -1197,7 +1198,7 @@ function MainSite() {
 
   const navigateToLocale = useCallback((code) => {
     if (code === locale) return;
-    window.location.assign(getLocalePath(code));
+    window.location.assign(getLocaleSwitchPath(code));
   }, [locale]);
 
   const visibleSections = useMemo(() => sections.map((section, index) => ({ section, index })), [sections]);

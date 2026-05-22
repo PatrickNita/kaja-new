@@ -1,12 +1,54 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
-    { "source": "/:locale(ro|ru|es|de)/catalogue/:slug", "destination": "/catalogue/product/index.html" },
+    { "source": "/ro/catalogue/:slug", "destination": "/catalogue/product/index.html" },
+    { "source": "/ro/catalogue/:slug/", "destination": "/catalogue/product/index.html" },
+    { "source": "/ru/catalogue/:slug", "destination": "/catalogue/product/index.html" },
+    { "source": "/ru/catalogue/:slug/", "destination": "/catalogue/product/index.html" },
+    { "source": "/es/catalogue/:slug", "destination": "/catalogue/product/index.html" },
+    { "source": "/es/catalogue/:slug/", "destination": "/catalogue/product/index.html" },
+    { "source": "/de/catalogue/:slug", "destination": "/catalogue/product/index.html" },
+    { "source": "/de/catalogue/:slug/", "destination": "/catalogue/product/index.html" },
     { "source": "/catalogue/:slug", "destination": "/catalogue/product/index.html" },
-    { "source": "/:locale(ro|ru|es|de)/merch/:slug", "destination": "/merch/product/index.html" },
+    { "source": "/catalogue/:slug/", "destination": "/catalogue/product/index.html" },
+
+    { "source": "/ro/merch/:slug", "destination": "/merch/product/index.html" },
+    { "source": "/ro/merch/:slug/", "destination": "/merch/product/index.html" },
+    { "source": "/ru/merch/:slug", "destination": "/merch/product/index.html" },
+    { "source": "/ru/merch/:slug/", "destination": "/merch/product/index.html" },
+    { "source": "/es/merch/:slug", "destination": "/merch/product/index.html" },
+    { "source": "/es/merch/:slug/", "destination": "/merch/product/index.html" },
+    { "source": "/de/merch/:slug", "destination": "/merch/product/index.html" },
+    { "source": "/de/merch/:slug/", "destination": "/merch/product/index.html" },
     { "source": "/merch/:slug", "destination": "/merch/product/index.html" },
-    { "source": "/:locale(ro|ru|es|de)/catalogue", "destination": "/catalogue/index.html" },
-    { "source": "/:locale(ro|ru|es|de)/merch", "destination": "/merch/index.html" },
-    { "source": "/:locale(ro|ru|es|de)", "destination": "/index.html" }
+    { "source": "/merch/:slug/", "destination": "/merch/product/index.html" },
+
+    { "source": "/ro/catalogue", "destination": "/catalogue/index.html" },
+    { "source": "/ro/catalogue/", "destination": "/catalogue/index.html" },
+    { "source": "/ru/catalogue", "destination": "/catalogue/index.html" },
+    { "source": "/ru/catalogue/", "destination": "/catalogue/index.html" },
+    { "source": "/es/catalogue", "destination": "/catalogue/index.html" },
+    { "source": "/es/catalogue/", "destination": "/catalogue/index.html" },
+    { "source": "/de/catalogue", "destination": "/catalogue/index.html" },
+    { "source": "/de/catalogue/", "destination": "/catalogue/index.html" },
+
+    { "source": "/ro/merch", "destination": "/merch/index.html" },
+    { "source": "/ro/merch/", "destination": "/merch/index.html" },
+    { "source": "/ru/merch", "destination": "/merch/index.html" },
+    { "source": "/ru/merch/", "destination": "/merch/index.html" },
+    { "source": "/es/merch", "destination": "/merch/index.html" },
+    { "source": "/es/merch/", "destination": "/merch/index.html" },
+    { "source": "/de/merch", "destination": "/merch/index.html" },
+    { "source": "/de/merch/", "destination": "/merch/index.html" },
+
+    { "source": "/ro", "destination": "/index.html" },
+    { "source": "/ro/", "destination": "/index.html" },
+    { "source": "/ru", "destination": "/index.html" },
+    { "source": "/ru/", "destination": "/index.html" },
+    { "source": "/es", "destination": "/index.html" },
+    { "source": "/es/", "destination": "/index.html" },
+    { "source": "/de", "destination": "/index.html" },
+    { "source": "/de/", "destination": "/index.html" }
   ],
   "redirects": [
     { "source": "/en", "destination": "/", "permanent": true },
@@ -14,6 +56,10 @@
     { "source": "/en/catalogue", "destination": "/catalogue", "permanent": true },
     { "source": "/en/catalogue/", "destination": "/catalogue", "permanent": true },
     { "source": "/en/merch", "destination": "/merch", "permanent": true },
-    { "source": "/en/merch/", "destination": "/merch", "permanent": true }
+    { "source": "/en/merch/", "destination": "/merch", "permanent": true },
+    { "source": "/en/catalogue/:slug", "destination": "/catalogue/:slug", "permanent": true },
+    { "source": "/en/catalogue/:slug/", "destination": "/catalogue/:slug", "permanent": true },
+    { "source": "/en/merch/:slug", "destination": "/merch/:slug", "permanent": true },
+    { "source": "/en/merch/:slug/", "destination": "/merch/:slug", "permanent": true }
   ]
 }
