@@ -921,6 +921,17 @@ function MainSite() {
     sectionTransitionTimerRef.current = window.setTimeout(complete, maxWait);
   }, [applySectionState, finishSectionTransition, applySectionProgresses, syncPresentedHintProgress, snapProgressMotion]);
 
+  const shouldReengageScrollFromFooter = useCallback(() => {
+    const contactEl = sectionRefs.current[CONTACT_INDEX];
+    if (!contactEl) return false;
+
+    const footerEl = footerRef.current;
+    const contactTop = contactEl.offsetTop;
+    const footerTop = footerEl?.offsetTop ?? contactTop + contactEl.offsetHeight;
+
+    return window.scrollY >= footerTop - 48 || window.scrollY > contactTop + 16;
+  }, []);
+
   const lockNativeScroll = useCallback((behavior = 'smooth') => {
     if (!nativeScrollRef.current || lock.current) return;
     lock.current = true;
@@ -930,9 +941,14 @@ function MainSite() {
     applySectionState(CONTACT_INDEX, 1, true);
 
     const contactEl = sectionRefs.current[CONTACT_INDEX];
+    const isMobileView = window.matchMedia('(max-width: 900px)').matches;
+    const scrollBehavior = behavior === 'smooth' && !isMobileView ? 'smooth' : 'auto';
+
     if (contactEl) {
-      contactEl.scrollIntoView({ behavior, block: 'start' });
+      window.scrollTo({ top: contactEl.offsetTop, behavior: scrollBehavior });
     }
+
+    const delay = scrollBehavior === 'smooth' ? SECTION_SCROLL_MS : 80;
 
     window.setTimeout(() => {
       presentedActiveRef.current = CONTACT_INDEX;
@@ -942,9 +958,38 @@ function MainSite() {
       setNativeScrollUnlocked(false);
       document.documentElement.classList.remove('kaja-footer-scroll');
       document.body.classList.remove('kaja-footer-active');
+      armedDirectionRef.current = null;
       lock.current = false;
-    }, behavior === 'smooth' ? SECTION_SCROLL_MS : 100);
+
+      const el = sectionRefs.current[CONTACT_INDEX];
+      if (el) {
+        window.scrollTo({ top: el.offsetTop, behavior: 'auto' });
+      }
+    }, delay);
   }, [applySectionState, syncPresentedHintProgress]);
+
+  useEffect(() => {
+    let lastScrollY = window.scrollY;
+
+    const onScroll = () => {
+      if (nativeScrollRef.current && !lock.current) {
+        const currentY = window.scrollY;
+        const scrollingUp = currentY < lastScrollY - 1;
+
+        if (scrollingUp && shouldReengageScrollFromFooter()) {
+          const isMobileView = window.matchMedia('(max-width: 900px)').matches;
+          lockNativeScroll(isMobileView ? 'auto' : 'smooth');
+          lastScrollY = currentY;
+          return;
+        }
+      }
+
+      lastScrollY = window.scrollY;
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [lockNativeScroll, shouldReengageScrollFromFooter]);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.matchMedia('(max-width: 900px)').matches);
@@ -1073,16 +1118,11 @@ function MainSite() {
 
     const onWheel = (event) => {
       if (nativeScrollRef.current) {
-        const contactEl = sectionRefs.current[CONTACT_INDEX];
-        const footerEl = footerRef.current;
-        const contactTop = contactEl?.offsetTop ?? 0;
-        const footerTop = footerEl?.offsetTop ?? contactTop + (contactEl?.offsetHeight ?? 0);
-        const inFooterZone = window.scrollY >= footerTop - 48;
-
         if (event.deltaY < 0) {
           event.preventDefault();
-          if (inFooterZone || window.scrollY > contactTop + 16) {
-            lockNativeScroll('smooth');
+          if (shouldReengageScrollFromFooter()) {
+            const isMobileView = window.matchMedia('(max-width: 900px)').matches;
+            lockNativeScroll(isMobileView ? 'auto' : 'smooth');
             return;
           }
           lockNativeScroll('smooth');
@@ -1106,7 +1146,6 @@ function MainSite() {
     };
 
     const onTouchStart = (event) => {
-      if (nativeScrollRef.current) return;
       if (event.target.closest('nav, .lang-selector')) return;
       const touch = event.touches[0];
       touchStart.current = touch.clientY;
@@ -1115,13 +1154,22 @@ function MainSite() {
     };
 
     const onTouchMove = (event) => {
-      if (nativeScrollRef.current) return;
       if (event.target.closest('nav, .lang-selector')) return;
       if (touchLast.current === null) return;
-      event.preventDefault();
+
       const touch = event.touches[0];
       const delta = touchLast.current - touch.clientY;
       touchLast.current = touch.clientY;
+
+      if (nativeScrollRef.current) {
+        if (delta < 0 && shouldReengageScrollFromFooter()) {
+          event.preventDefault();
+          lockNativeScroll('auto');
+        }
+        return;
+      }
+
+      event.preventDefault();
 
       if (touchIsFirstMoveRef.current) {
         touchIsFirstMoveRef.current = false;
@@ -1194,7 +1242,7 @@ function MainSite() {
         cancelScrollSettleRef.current();
       }
     };
-  }, [applySectionState, scrollToSection, unlockNativeScroll, lockNativeScroll, displayProgress]);
+  }, [applySectionState, scrollToSection, unlockNativeScroll, lockNativeScroll, shouldReengageScrollFromFooter, displayProgress]);
 
   const navigateToLocale = useCallback((code) => {
     if (code === locale) return;
