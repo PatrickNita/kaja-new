@@ -132,7 +132,8 @@
 
       .kaja-contact-socials {
         gap: 8px;
-        margin-top: 13px;
+        margin-top: 16px;
+        margin-bottom: 8px;
         width: 100%;
       }
 

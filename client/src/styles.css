@@ -910,11 +910,12 @@ h1 {
     grid-template-rows: auto minmax(210px, 1fr);
     align-content: start;
     gap: clamp(14px, 2.8vh, 26px);
-    padding: clamp(88px, 11vh, 108px) clamp(16px, 5vw, 28px) clamp(86px, 13vh, 118px);
+    padding: clamp(104px, 14vh, 126px) clamp(16px, 5vw, 28px) clamp(86px, 13vh, 118px);
   }
 
   .segment-content {
     max-width: 94vw;
+    padding-top: 6px;
   }
 
   .eyebrow {
@@ -939,7 +940,20 @@ h1 {
 
   .progress-track {
     width: min(320px, 78vw);
-    margin-top: 14px;
+    margin-top: 18px;
+  }
+
+  .is-contact-section {
+    gap: clamp(20px, 3.8vh, 32px);
+  }
+
+  .is-contact-section .segment-content {
+    padding-bottom: 10px;
+  }
+
+  .is-contact-section .kaja-contact-socials {
+    margin-top: 16px;
+    margin-bottom: 6px;
   }
 
   .visual {
@@ -1037,7 +1051,7 @@ h1 {
 
 @media (max-height: 680px) and (max-width: 900px) {
   .segment {
-    padding-top: 64px;
+    padding-top: 78px;
     padding-bottom: 82px;
     gap: 10px;
   }
@@ -1057,7 +1071,17 @@ h1 {
   }
 
   .progress-track {
-    margin-top: 10px;
+    margin-top: 14px;
+  }
+
+  .is-contact-section.is-active .kaja-contact-form {
+    margin-top: 14px;
+    min-height: 196px;
+  }
+
+  .is-contact-section .kaja-contact-socials {
+    margin-top: 12px;
+    margin-bottom: 4px;
   }
 
   .visual {

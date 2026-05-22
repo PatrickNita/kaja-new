@@ -186,29 +186,33 @@ patchStyle.textContent = `
     mix-blend-mode: screen;
   }
   .is-contact-section.is-active .kaja-contact-form {
-    width: min(92vw, 430px);
-    min-height: 250px;
-    padding: 18px;
+    width: min(86vw, 360px);
+    min-height: 210px;
+    padding: 14px 15px;
+    align-self: end;
+    margin-top: clamp(20px, 4vh, 34px);
+    transform-origin: center bottom;
   }
   .kaja-contact-label {
-    margin-bottom: 8px;
-    font-size: 10px;
+    margin-bottom: 6px;
+    font-size: 9px;
+    letter-spacing: 0.14em;
   }
   .kaja-contact-form input,
   .kaja-contact-form select {
-    padding: 10px 12px;
-    margin-top: 8px;
-    font-size: 12px;
-    border-radius: 12px;
+    padding: 9px 11px;
+    margin-top: 7px;
+    font-size: 11px;
+    border-radius: 11px;
   }
   .kaja-contact-form select {
-    background-position: calc(100% - 18px) 52%, calc(100% - 12px) 52%;
-    padding-right: 36px;
+    background-position: calc(100% - 16px) 52%, calc(100% - 11px) 52%;
+    padding-right: 32px;
   }
   .kaja-contact-form button {
-    padding: 11px 14px;
-    margin-top: 10px;
-    font-size: 10px;
+    padding: 10px 12px;
+    margin-top: 8px;
+    font-size: 9px;
   }
 }
 `;
@@ -669,8 +673,9 @@ function runPatchAnimations() {
   const isContactActive = contactSection?.classList.contains('is-active');
 
   if (isContactActive && form && contactProgress !== null) {
-    contactMotion.targetScale = 1 + contactProgress * 0.035;
-    contactMotion.targetHeight = contactProgress * 16;
+    const isMobile = window.matchMedia('(max-width: 900px)').matches;
+    contactMotion.targetScale = 1 + contactProgress * (isMobile ? 0.018 : 0.035);
+    contactMotion.targetHeight = contactProgress * (isMobile ? 6 : 16);
 
     if (!contactSectionWasActive) {
       contactMotion.scale = contactMotion.targetScale;
@@ -681,9 +686,15 @@ function runPatchAnimations() {
     }
 
     form.style.transform = `scale(${contactMotion.scale})`;
-    form.style.minHeight = `${350 + contactMotion.height}px`;
-    form.style.paddingTop = `calc(clamp(34px, 4.1vw, 58px) + ${contactMotion.height * 0.22}px)`;
-    form.style.paddingBottom = `calc(clamp(34px, 4.1vw, 58px) + ${contactMotion.height * 0.22}px)`;
+    if (isMobile) {
+      form.style.minHeight = `${210 + contactMotion.height}px`;
+      form.style.paddingTop = `${14 + contactMotion.height * 0.12}px`;
+      form.style.paddingBottom = `${14 + contactMotion.height * 0.12}px`;
+    } else {
+      form.style.minHeight = `${350 + contactMotion.height}px`;
+      form.style.paddingTop = `calc(clamp(34px, 4.1vw, 58px) + ${contactMotion.height * 0.22}px)`;
+      form.style.paddingBottom = `calc(clamp(34px, 4.1vw, 58px) + ${contactMotion.height * 0.22}px)`;
+    }
   }
 
   contactSectionWasActive = Boolean(isContactActive && form && contactProgress !== null);
