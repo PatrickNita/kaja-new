@@ -85,6 +85,7 @@ main {
 html.kaja-footer-scroll,
 html.kaja-footer-scroll body {
   scroll-snap-type: none;
+  overscroll-behavior-y: none;
 }
 
 .cursor-ring,

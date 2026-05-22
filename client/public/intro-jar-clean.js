@@ -99,6 +99,41 @@ if(typeof requestIdleCallback==='function'){
 }
 function sequenceFrameForProgress(p,count){return clamp(Math.round(p*(count-1)),0,count-1)}
 function sequenceLoaderIndex(frame,count){return(count-1)-frame+1}
+function sequenceSceneSelector(shape){
+  if(shape==='strips')return '.catalogue-frame-sequence';
+  if(shape==='orb')return '.availability-frame-sequence';
+  return null;
+}
+const layoutObservers=new WeakMap();
+function sceneLayoutReady(scene){
+  if(!scene)return false;
+  const rect=scene.getBoundingClientRect();
+  return rect.width>24&&rect.height>24;
+}
+function observeSceneLayout(scene){
+  if(!scene||layoutObservers.has(scene)||typeof ResizeObserver==='undefined')return;
+  const ro=new ResizeObserver(()=>{
+    if(!sceneLayoutReady(scene))return;
+    scheduleTick();
+  });
+  ro.observe(scene);
+  layoutObservers.set(scene,ro);
+}
+function sequenceSceneNeedsLayout(section,shape){
+  const selector=sequenceSceneSelector(shape);
+  if(!selector)return false;
+  const scene=section.querySelector(selector);
+  if(!scene)return true;
+  return !sceneLayoutReady(scene);
+}
+function scheduleSequencePrime(section,shape,p){
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      primeSequenceStartFrame(section,shape,p);
+      scheduleTick();
+    });
+  });
+}
 function primeSequenceStartFrame(section,shape,p){
   if(shape==='strips'){
     const scene=ensureCatalogue(section);
@@ -187,17 +222,22 @@ function ensureContactSocials(section){
   panel.appendChild(row);
 }
 function sizeSequenceCanvas(scene,canvas,state,drawnKey,isAvailability=false){
+  if(!sceneLayoutReady(scene))return false;
   const rect=scene.getBoundingClientRect();
   const dpr=Math.min(window.devicePixelRatio||1,2);
   const mult=isAvailability?1.58:2.05;
   const w=Math.max(1,Math.round(rect.width*mult*dpr));
   const h=Math.max(1,Math.round(rect.height*mult*dpr));
   if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;state[drawnKey]=-1}
+  return true;
 }
 function drawSequenceFrame(scene,frame,count,loader,state,drawnKey,isAvailability=false){
   const canvas=scene.querySelector('canvas');
   if(!canvas)return;
-  sizeSequenceCanvas(scene,canvas,state,drawnKey,isAvailability);
+  if(!sizeSequenceCanvas(scene,canvas,state,drawnKey,isAvailability)){
+    observeSceneLayout(scene);
+    return;
+  }
   const reversedFrame=(count-1)-frame;
   const img=loader(reversedFrame+1);
   if(!img.complete||!img.naturalWidth){
@@ -226,8 +266,8 @@ function cleanOldSectionVisuals(section){
   section.querySelector('.catalogue-book-scene')?.remove();
   section.querySelector('.catalogue-jar-clean')?.remove();
 }
-function ensureCatalogue(section){if(!section)return null;cleanOldSectionVisuals(section);const oldVisual=section.querySelector('.visual.visual-strips');if(oldVisual)oldVisual.style.setProperty('display','none','important');let scene=section.querySelector('.catalogue-frame-sequence');if(scene)return scene;scene=document.createElement('div');scene.className='catalogue-frame-sequence';const canvas=document.createElement('canvas');canvas.setAttribute('aria-label','Catalogue animation frame');scene.appendChild(canvas);section.appendChild(scene);return scene}
-function ensureAvailability(section){if(!section)return null;const oldVisual=section.querySelector('.visual');if(oldVisual)oldVisual.style.setProperty('display','none','important');let scene=section.querySelector('.availability-frame-sequence');if(scene)return scene;scene=document.createElement('div');scene.className='availability-frame-sequence';const canvas=document.createElement('canvas');canvas.setAttribute('aria-label','Availability animation frame');scene.appendChild(canvas);section.appendChild(scene);return scene}
+function ensureCatalogue(section){if(!section)return null;cleanOldSectionVisuals(section);const oldVisual=section.querySelector('.visual.visual-strips');if(oldVisual)oldVisual.style.setProperty('display','none','important');let scene=section.querySelector('.catalogue-frame-sequence');if(scene)return scene;scene=document.createElement('div');scene.className='catalogue-frame-sequence';const canvas=document.createElement('canvas');canvas.setAttribute('aria-label','Catalogue animation frame');scene.appendChild(canvas);section.appendChild(scene);observeSceneLayout(scene);scheduleTick();return scene}
+function ensureAvailability(section){if(!section)return null;const oldVisual=section.querySelector('.visual');if(oldVisual)oldVisual.style.setProperty('display','none','important');let scene=section.querySelector('.availability-frame-sequence');if(scene)return scene;scene=document.createElement('div');scene.className='availability-frame-sequence';const canvas=document.createElement('canvas');canvas.setAttribute('aria-label','Availability animation frame');scene.appendChild(canvas);section.appendChild(scene);observeSceneLayout(scene);scheduleTick();return scene}
 function ensureStrength(section){if(!section)return null;const oldVisual=section.querySelector('.visual.visual-stack');if(oldVisual)oldVisual.style.setProperty('display','none','important');let scene=section.querySelector('.strength-leaf-scene');if(scene)return scene;scene=document.createElement('div');scene.className='strength-leaf-scene';const middle=document.createElement('img');middle.className='strength-leaf-middle';middle.src='/leaf-middle.webp';middle.alt='Strength leaf center';middle.draggable=false;scene.appendChild(middle);for(let i=2;i<=13;i+=1){const img=document.createElement('img');const data=leafLayout[i-2];img.className='strength-leaf';img.src=`/leaf${i}.webp`;img.alt='';img.draggable=false;img.setAttribute('aria-hidden','true');img.dataset.x=data.x;img.dataset.y=data.y;img.dataset.s=data.s;img.dataset.r=data.r;img.dataset.dx=data.dx;img.dataset.dy=data.dy;img.dataset.dr=data.dr;img.style.left=`${data.x}%`;img.style.top=`${data.y}%`;scene.appendChild(img)}section.appendChild(scene);return scene}
 function spring(current,target,amount){return current+(target-current)*amount}
 function applyMotion(state,key,target,frozen,amount){if(frozen){state[key]=target;return target}state[key]=spring(state[key],target,amount);return state[key]}
@@ -261,6 +301,7 @@ function sectionNeedsTick(section,p,state,frozen,shape){
   if(frozen)return true;
   const isActive=section.classList.contains('is-active');
   if(isActive&&!sectionVisualReady(section,shape))return true;
+  if(isActive&&(shape==='strips'||shape==='orb')&&sequenceSceneNeedsLayout(section,shape))return true;
   if(isActive&&shape==='strips'&&state.catalogueDrawnIndex<0)return true;
   if(isActive&&shape==='orb'&&state.availabilityDrawnIndex<0)return true;
   return !motionSettled(section,p,state,frozen,shape);
@@ -328,7 +369,7 @@ const sectionObserver=new MutationObserver((mutations)=>{
     if(mutation.attributeName==='data-section-progress'||mutation.attributeName==='data-frozen-progress'||mutation.attributeName==='class'){
       if(mutation.attributeName==='class'&&mutation.target.classList?.contains('is-active')){
         const shape=sectionShape(mutation.target);
-        if(shape==='strips'||shape==='orb')primeSequenceStartFrame(mutation.target,shape,sectionProgress(mutation.target));
+        if(shape==='strips'||shape==='orb')scheduleSequencePrime(mutation.target,shape,sectionProgress(mutation.target));
       }
       scheduleTick();
       return;

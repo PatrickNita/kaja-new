@@ -805,6 +805,12 @@ function MainSite() {
       const footer = footerRef.current;
       if (footer) {
         footer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        window.setTimeout(() => {
+          const maxScrollY = Math.max(0, footer.offsetTop + footer.offsetHeight - window.innerHeight);
+          if (window.scrollY > maxScrollY + 1) {
+            window.scrollTo({ top: maxScrollY, behavior: 'auto' });
+          }
+        }, SECTION_SCROLL_MS + 60);
         return;
       }
       const contactEl = sectionRefs.current[CONTACT_INDEX];
@@ -932,6 +938,22 @@ function MainSite() {
     return window.scrollY >= footerTop - 48 || window.scrollY > contactTop + 16;
   }, []);
 
+  const getFooterMaxScrollY = useCallback(() => {
+    const footerEl = footerRef.current;
+    if (footerEl) {
+      return Math.max(0, footerEl.offsetTop + footerEl.offsetHeight - window.innerHeight);
+    }
+    return Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+  }, []);
+
+  const clampFooterScroll = useCallback(() => {
+    if (!nativeScrollRef.current || lock.current) return;
+    const maxScrollY = getFooterMaxScrollY();
+    if (window.scrollY > maxScrollY + 1) {
+      window.scrollTo({ top: maxScrollY, behavior: 'auto' });
+    }
+  }, [getFooterMaxScrollY]);
+
   const lockNativeScroll = useCallback((behavior = 'smooth') => {
     if (!nativeScrollRef.current || lock.current) return;
     lock.current = true;
@@ -976,6 +998,7 @@ function MainSite() {
 
     const onScroll = () => {
       if (nativeScrollRef.current && !lock.current) {
+        clampFooterScroll();
         const currentY = window.scrollY;
         const scrollingUp = currentY < lastScrollY - 1;
 
@@ -991,7 +1014,7 @@ function MainSite() {
 
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
-  }, [lockNativeScroll, shouldReengageScrollFromFooter]);
+  }, [lockNativeScroll, shouldReengageScrollFromFooter, clampFooterScroll]);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.matchMedia('(max-width: 900px)').matches);
@@ -1014,6 +1037,14 @@ function MainSite() {
 
   useEffect(() => {
     const readVisualProgress = () => clamp(displayProgress.get(), 0, 1);
+    const footerMaxScrollY = () => {
+      const footerEl = footerRef.current;
+      if (footerEl) {
+        return Math.max(0, footerEl.offsetTop + footerEl.offsetHeight - window.innerHeight);
+      }
+      return Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    };
+    const isAtFooterBottom = () => window.scrollY >= footerMaxScrollY() - 2;
 
     const commitProgress = (sectionIndex, requestedProgress) => {
       const visual = readVisualProgress();
@@ -1120,6 +1151,10 @@ function MainSite() {
 
     const onWheel = (event) => {
       if (nativeScrollRef.current) {
+        if (event.deltaY > 0 && isAtFooterBottom()) {
+          event.preventDefault();
+          return;
+        }
         if (event.deltaY < 0) {
           event.preventDefault();
           if (shouldReengageScrollFromFooter()) {
@@ -1163,6 +1198,17 @@ function MainSite() {
       touchLast.current = touch.clientY;
 
       if (nativeScrollRef.current) {
+        const maxScrollY = footerMaxScrollY();
+        const atBottom = window.scrollY >= maxScrollY - 2;
+
+        if (delta > 0 && (atBottom || window.scrollY + delta > maxScrollY)) {
+          event.preventDefault();
+          if (window.scrollY > maxScrollY + 1) {
+            window.scrollTo({ top: maxScrollY, behavior: 'auto' });
+          }
+          return;
+        }
+
         if (delta < 0 && shouldReengageScrollFromFooter()) {
           event.preventDefault();
           lockNativeScroll('smooth');
