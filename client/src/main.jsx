@@ -121,6 +121,7 @@ const GESTURE_IDLE_MS = 160;
 const MOBILE_GESTURE_IDLE_MS = 96;
 const FOOTER_REENGAGE_COOLDOWN_MS = 180;
 const MOBILE_SECTION_TRANSITION_COOLDOWN_MS = 220;
+const MOBILE_SECTION_TRANSITION_COOLDOWN_FORWARD_MS = 96;
 const FRAME_PROGRESS_MAX = 0.038 * SCROLL_SPEED;
 const WHEEL_PROGRESS_DIVISOR = 1700 / SCROLL_SPEED;
 const TOUCH_PROGRESS_DIVISOR = 900 / SCROLL_SPEED;
@@ -949,7 +950,7 @@ function MainSite() {
     }
   }, []);
 
-  const finishSectionTransition = useCallback((index, onComplete) => {
+  const finishSectionTransition = useCallback((index, onComplete, { mobileCooldownMs } = {}) => {
     sectionTransitionTimerRef.current = null;
     if (cancelScrollSettleRef.current) {
       cancelScrollSettleRef.current();
@@ -987,10 +988,11 @@ function MainSite() {
       if (sectionTransitionReleaseTimerRef.current !== null) {
         window.clearTimeout(sectionTransitionReleaseTimerRef.current);
       }
+      const cooldownMs = mobileCooldownMs ?? MOBILE_SECTION_TRANSITION_COOLDOWN_MS;
       sectionTransitionReleaseTimerRef.current = window.setTimeout(() => {
         sectionTransitionReleaseTimerRef.current = null;
         releaseSectionTransitionLock();
-      }, MOBILE_SECTION_TRANSITION_COOLDOWN_MS);
+      }, cooldownMs);
     } else {
       releaseSectionTransitionLock();
     }
@@ -1080,6 +1082,7 @@ function MainSite() {
       window.scrollTo({ top: targetTop, behavior: 'auto' });
     }
 
+    const isForwardSectionTransition = index > leavingIndex;
     let finished = false;
     const complete = () => {
       if (finished || sectionTransitionIdRef.current !== transitionId) return;
@@ -1087,7 +1090,11 @@ function MainSite() {
       if (preserveProgress) {
         snapProgressMotion(toProgress);
       }
-      finishSectionTransition(index, onComplete);
+      finishSectionTransition(index, onComplete, {
+        mobileCooldownMs: isForwardSectionTransition
+          ? MOBILE_SECTION_TRANSITION_COOLDOWN_FORWARD_MS
+          : MOBILE_SECTION_TRANSITION_COOLDOWN_MS
+      });
     };
 
     cancelScrollSettleRef.current = waitForScrollSettle(targetTop, maxWait, complete, settleOptions);
