@@ -947,10 +947,13 @@ function MainSite() {
     headerDeferredRef.current = deferHeader;
     applySectionState(index, toProgress, true, { deferHeader });
 
-    const resolvedBehavior = isMobileRef.current ? 'auto' : behavior;
     const targetTop = el.offsetTop;
-    const maxWait = getSectionScrollDuration(leavingIndex, index, resolvedBehavior, SECTION_SCROLL_MS);
-    window.scrollTo({ top: targetTop, behavior: resolvedBehavior === 'smooth' ? 'smooth' : 'auto' });
+    const maxWait = getSectionScrollDuration(leavingIndex, index, behavior, SECTION_SCROLL_MS);
+    if (behavior === 'smooth') {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      window.scrollTo({ top: targetTop, behavior: 'auto' });
+    }
 
     let finished = false;
     const complete = () => {
