@@ -946,16 +946,16 @@ h1 {
   .is-contact-section {
     grid-template-rows: auto auto;
     align-content: start;
-    gap: clamp(44px, 10vh, 68px);
+    gap: clamp(28px, 6vh, 44px);
   }
 
   .is-contact-section .segment-content {
-    padding-bottom: 16px;
+    padding-bottom: 8px;
   }
 
   .is-contact-section .kaja-contact-socials {
-    margin-top: 16px;
-    margin-bottom: 12px;
+    margin-top: 14px;
+    margin-bottom: 8px;
     position: relative;
     z-index: 12;
   }
@@ -963,7 +963,7 @@ h1 {
   .is-contact-section.is-active .kaja-contact-form {
     align-self: start;
     justify-self: center;
-    margin-top: clamp(36px, 8vh, 56px);
+    margin-top: clamp(20px, 4.5vh, 32px);
     transform-origin: top center;
   }
 
@@ -1086,7 +1086,7 @@ h1 {
   }
 
   .is-contact-section.is-active .kaja-contact-form {
-    margin-top: 28px;
+    margin-top: 18px;
     min-height: 188px;
   }
 
