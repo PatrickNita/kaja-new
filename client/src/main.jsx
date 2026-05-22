@@ -898,6 +898,14 @@ function MainSite() {
       if (Math.abs(window.scrollY - top) > 6) {
         window.scrollTo({ top, behavior: 'auto' });
       }
+      const shape = el.dataset.sectionShape;
+      if (isMobileRef.current && (shape === 'strips' || shape === 'orb')) {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            window.__kajaPrimeSequenceSection?.(index, sectionProgressesRef.current[index] ?? 0);
+          });
+        });
+      }
     }
 
     onComplete?.();
