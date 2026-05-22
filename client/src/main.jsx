@@ -941,11 +941,14 @@ function MainSite() {
     applySectionState(CONTACT_INDEX, 1, true);
 
     const contactEl = sectionRefs.current[CONTACT_INDEX];
-    const isMobileView = window.matchMedia('(max-width: 900px)').matches;
-    const scrollBehavior = behavior === 'smooth' && !isMobileView ? 'smooth' : 'auto';
+    const scrollBehavior = behavior === 'auto' ? 'auto' : 'smooth';
 
     if (contactEl) {
-      window.scrollTo({ top: contactEl.offsetTop, behavior: scrollBehavior });
+      if (scrollBehavior === 'smooth') {
+        contactEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        window.scrollTo({ top: contactEl.offsetTop, behavior: 'auto' });
+      }
     }
 
     const delay = scrollBehavior === 'smooth' ? SECTION_SCROLL_MS : 80;
@@ -977,8 +980,7 @@ function MainSite() {
         const scrollingUp = currentY < lastScrollY - 1;
 
         if (scrollingUp && shouldReengageScrollFromFooter()) {
-          const isMobileView = window.matchMedia('(max-width: 900px)').matches;
-          lockNativeScroll(isMobileView ? 'auto' : 'smooth');
+          lockNativeScroll('smooth');
           lastScrollY = currentY;
           return;
         }
@@ -1121,8 +1123,7 @@ function MainSite() {
         if (event.deltaY < 0) {
           event.preventDefault();
           if (shouldReengageScrollFromFooter()) {
-            const isMobileView = window.matchMedia('(max-width: 900px)').matches;
-            lockNativeScroll(isMobileView ? 'auto' : 'smooth');
+            lockNativeScroll('smooth');
             return;
           }
           lockNativeScroll('smooth');
@@ -1164,7 +1165,7 @@ function MainSite() {
       if (nativeScrollRef.current) {
         if (delta < 0 && shouldReengageScrollFromFooter()) {
           event.preventDefault();
-          lockNativeScroll('auto');
+          lockNativeScroll('smooth');
         }
         return;
       }
