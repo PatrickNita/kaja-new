@@ -456,6 +456,11 @@ function Segment({ section, index, sectionRef, isActive, segmentProgress, frozen
     window.__kajaSyncMerchHangers?.(effectiveProgress);
   }, [isHangerSection, isActive, effectiveProgress, frozenProgress]);
 
+  useLayoutEffect(() => {
+    if (!isSequenceSection || !isActive) return;
+    window.__kajaPrimeSequenceSection?.(index, effectiveProgress);
+  }, [isSequenceSection, isActive, index, effectiveProgress]);
+
   return (
     <section
       ref={sectionRef}
