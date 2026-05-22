@@ -21,9 +21,9 @@ topicDropdownStyle.textContent = `
 .kaja-contact-message-input {
   width: 100% !important;
   min-height: 112px !important;
-  border: 1px solid rgba(255,255,255,0.14) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
   border-radius: 18px !important;
-  background: rgba(0,0,0,0.42) !important;
+  background: #1a1a1a !important;
   color: #fff !important;
   padding: 17px 19px !important;
   font-size: 15px !important;
@@ -48,9 +48,9 @@ topicDropdownStyle.textContent = `
   justify-content: space-between !important;
   gap: 14px !important;
   margin: 0 !important;
-  border: 1px solid rgba(255,255,255,0.14) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
   border-radius: 18px !important;
-  background: rgba(0,0,0,0.42) !important;
+  background: #1a1a1a !important;
   color: rgba(255,255,255,0.72) !important;
   padding: 17px 19px !important;
   font-size: 15px !important;
@@ -68,8 +68,8 @@ topicDropdownStyle.textContent = `
 
 .kaja-contact-form .kaja-topic-trigger:hover,
 .kaja-contact-form .kaja-topic-dropdown.is-open .kaja-topic-trigger {
-  border-color: rgba(255,255,255,0.34) !important;
-  background: rgba(0,0,0,0.56) !important;
+  border-color: rgba(255,255,255,0.22) !important;
+  background: #141414 !important;
   color: #fff !important;
   transform: none !important;
 }
@@ -104,9 +104,10 @@ topicDropdownStyle.textContent = `
   padding: 6px !important;
   border: 1px solid rgba(255,255,255,0.14) !important;
   border-radius: 18px !important;
-  background: rgba(5,5,5,0.94) !important;
-  box-shadow: 0 22px 60px rgba(0,0,0,0.58), inset 0 0 36px rgba(255,255,255,0.02) !important;
-  backdrop-filter: blur(18px) !important;
+  background: #1f1f1f !important;
+  box-shadow: 0 18px 48px rgba(0,0,0,0.5) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
   opacity: 0 !important;
   transform: translateY(-6px) scale(0.985) !important;
   pointer-events: none !important;
@@ -125,7 +126,7 @@ topicDropdownStyle.textContent = `
   margin: 0 !important;
   border: 1px solid rgba(255,255,255,0.08) !important;
   border-radius: 13px !important;
-  background: rgba(255,255,255,0.04) !important;
+  background: #2e2e2e !important;
   color: rgba(255,255,255,0.82) !important;
   padding: 12px 14px !important;
   font-size: 11px !important;
@@ -190,11 +191,20 @@ topicDropdownStyle.textContent = `
 `;
 document.head.appendChild(topicDropdownStyle);
 
-const topicOptions = [
-  { value: 'general-contact', label: 'General contact' },
-  { value: 'collaboration', label: 'Collaboration' },
-  { value: 'distribution', label: 'Distribution' }
-];
+const topicOptions = () => (
+  window.__kajaLocale?.copy?.contact?.topics ?? [
+    { value: 'general-contact', label: 'General contact' },
+    { value: 'collaboration', label: 'Collaboration' },
+    { value: 'distribution', label: 'Distribution' }
+  ]
+);
+
+function readContactCopy() {
+  return window.__kajaLocale?.copy?.contact ?? {
+    topic: 'Topic',
+    message: 'Message'
+  };
+}
 
 function closeAllTopicDropdowns(except) {
   document.querySelectorAll('.kaja-topic-dropdown.is-open').forEach((dropdown) => {
@@ -208,8 +218,9 @@ function addMessageField(form, dropdown) {
   const input = document.createElement('textarea');
   input.name = 'message';
   input.className = 'kaja-contact-message-input';
-  input.placeholder = 'Message';
-  input.setAttribute('aria-label', 'Message');
+  const contact = readContactCopy();
+  input.placeholder = contact.message;
+  input.setAttribute('aria-label', contact.message);
   input.rows = 4;
 
   dropdown.insertAdjacentElement('afterend', input);
@@ -224,8 +235,11 @@ function buildTopicDropdown(select) {
     return;
   }
 
+  const options = topicOptions();
+  const defaultOption = options[0] ?? { value: 'general-contact', label: 'General contact' };
+
   select.dataset.customTopicReady = 'true';
-  select.value = 'general-contact';
+  select.value = defaultOption.value;
   select.dispatchEvent(new Event('change', { bubbles: true }));
 
   const dropdown = document.createElement('div');
@@ -238,7 +252,7 @@ function buildTopicDropdown(select) {
   trigger.setAttribute('aria-expanded', 'false');
 
   const label = document.createElement('span');
-  label.textContent = 'General contact';
+  label.textContent = defaultOption.label;
 
   const arrow = document.createElement('span');
   arrow.className = 'kaja-topic-arrow';
@@ -251,14 +265,14 @@ function buildTopicDropdown(select) {
   menu.className = 'kaja-topic-menu';
   menu.setAttribute('role', 'listbox');
 
-  topicOptions.forEach((option) => {
+  options.forEach((option) => {
     const button = document.createElement('button');
     button.type = 'button';
-    button.className = option.value === 'general-contact' ? 'kaja-topic-option is-selected' : 'kaja-topic-option';
+    button.className = option.value === defaultOption.value ? 'kaja-topic-option is-selected' : 'kaja-topic-option';
     button.textContent = option.label;
     button.dataset.value = option.value;
     button.setAttribute('role', 'option');
-    button.setAttribute('aria-selected', option.value === 'general-contact' ? 'true' : 'false');
+    button.setAttribute('aria-selected', option.value === defaultOption.value ? 'true' : 'false');
 
     button.addEventListener('click', () => {
       select.value = option.value;
@@ -302,8 +316,14 @@ document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape') closeAllTopicDropdowns();
 });
 
-const topicObserver = new MutationObserver(initTopicDropdowns);
+let topicDropdownTimer = null;
+const topicObserver = new MutationObserver(() => {
+  if (topicDropdownTimer !== null) window.clearTimeout(topicDropdownTimer);
+  topicDropdownTimer = window.setTimeout(() => {
+    topicDropdownTimer = null;
+    initTopicDropdowns();
+  }, 50);
+});
 topicObserver.observe(document.documentElement, { childList: true, subtree: true });
 window.addEventListener('load', initTopicDropdowns);
-requestAnimationFrame(initTopicDropdowns);
-setTimeout(initTopicDropdowns, 500);
+initTopicDropdowns();

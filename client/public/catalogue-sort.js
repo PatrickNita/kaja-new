@@ -68,6 +68,16 @@ function switchCatalogueImagesToWebp() {
   });
 }
 
+function getCatalogueGridItems(grid) {
+  const links = Array.from(grid.querySelectorAll(':scope > .card-link'));
+  if (links.length) return links;
+  return Array.from(grid.querySelectorAll(':scope > .card'));
+}
+
+function getCatalogueItemName(item) {
+  return item.querySelector('strong')?.textContent?.trim() || '';
+}
+
 function addCatalogueSortControls() {
   const grid = document.querySelector('.grid[aria-label="Flavour catalogue"]');
   if (!grid) return;
@@ -96,16 +106,16 @@ function addCatalogueSortControls() {
 
   const sortCards = (direction) => {
     switchCatalogueImagesToWebp();
-    const cards = Array.from(grid.querySelectorAll('.card'));
-    cards
+    const items = getCatalogueGridItems(grid);
+    items
       .sort((a, b) => {
-        const nameA = a.querySelector('strong')?.textContent?.trim() || '';
-        const nameB = b.querySelector('strong')?.textContent?.trim() || '';
+        const nameA = getCatalogueItemName(a);
+        const nameB = getCatalogueItemName(b);
         return direction === 'asc'
           ? nameA.localeCompare(nameB, undefined, { numeric: true, sensitivity: 'base' })
           : nameB.localeCompare(nameA, undefined, { numeric: true, sensitivity: 'base' });
       })
-      .forEach((card) => grid.appendChild(card));
+      .forEach((item) => grid.appendChild(item));
 
     ascending.classList.toggle('is-active', direction === 'asc');
     descending.classList.toggle('is-active', direction === 'desc');

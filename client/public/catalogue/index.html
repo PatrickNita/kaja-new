@@ -84,13 +84,13 @@
     <div class="cursor-ring" aria-hidden="true"></div>
     <div class="cursor-dot" aria-hidden="true"></div>
     <header>
-      <a class="back" href="/">← Back to KAJA</a>
-      <span style="color:rgba(255,255,255,.48);font-size:12px;letter-spacing:.16em;text-transform:uppercase">Catalogue</span>
+      <a class="back" href="/" data-locale-home data-i18n="back">← Back to KAJA</a>
+      <span style="color:rgba(255,255,255,.48);font-size:12px;letter-spacing:.16em;text-transform:uppercase" data-i18n="navLabel">Catalogue</span>
     </header>
     <main>
-      <h1>Catalogue</h1>
-      <p class="lead">Portrait product boxes. Upload each flavour image into the products folder using the same flavour name as its filename.</p>
-      <section class="grid" aria-label="Flavour catalogue">
+      <h1 data-i18n="title">Catalogue</h1>
+      <p class="lead" data-i18n="lead">Portrait product boxes. Upload each flavour image into the products folder using the same flavour name as its filename.</p>
+      <section class="grid" data-i18n-aria="gridAriaLabel" aria-label="Flavour catalogue">
         <article class="card" style="--product-image:url('/catalogue/products/PEARADISE.jpg')"><strong>PEARADISE</strong></article>
         <article class="card" style="--product-image:url('/catalogue/products/BRAIN%20FREEZE.jpg')"><strong>BRAIN FREEZE</strong></article>
         <article class="card" style="--product-image:url('/catalogue/products/JAMPRICOT.jpg')"><strong>JAMPRICOT</strong></article>
@@ -138,6 +138,9 @@
         <article class="card" style="--product-image:url('/catalogue/products/MON%20BLANC.jpg')"><strong>MON BLANC</strong></article>
       </section>
     </main>
+    <script src="/catalogue-slug.js"></script>
+    <script src="/locale-subpage.js"></script>
+    <script src="/locale-page-links.js"></script>
     <script src="/catalogue-product-data.js"></script>
     <script src="/catalogue-sort.js"></script>
     <script src="/cursor-hover.js"></script>

@@ -40,10 +40,13 @@
   `;
   document.head.appendChild(style);
 
+  let lastSource = '';
+
   function setIntroLogoSource() {
     const logo = document.querySelector('.brand img');
     const source = logo?.currentSrc || logo?.src || logo?.getAttribute('src');
-    if (!source) return;
+    if (!source || source === lastSource) return;
+    lastSource = source;
     document.documentElement.style.setProperty('--kaja-intro-logo-url', `url("${source}")`);
   }
 
@@ -51,8 +54,5 @@
   observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['src'] });
 
   window.addEventListener('load', setIntroLogoSource);
-  requestAnimationFrame(function tick() {
-    setIntroLogoSource();
-    requestAnimationFrame(tick);
-  });
+  setIntroLogoSource();
 })();

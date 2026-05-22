@@ -1,36 +1,44 @@
-:root {
-  --intro-bg-scale: 1;
-  --intro-bg-dark: 0.08;
-}
-
-.segment.is-intro-section .segment-backdrop::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 100%;
-  background-image: url('/background-design.webp');
-  background-size: 100% auto;
-  background-position: center bottom;
-  background-repeat: no-repeat;
-  opacity: 1;
-  pointer-events: none;
-  transform: scale(var(--intro-bg-scale));
-  transform-origin: center bottom;
-  will-change: transform;
-}
-
+.segment.is-intro-section .segment-backdrop::before,
 .segment.is-intro-section .segment-backdrop::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(rgba(0,0,0,var(--intro-bg-dark)), rgba(0,0,0,var(--intro-bg-dark))),
-    radial-gradient(circle at 68% 48%, rgba(0,0,0,0.08), rgba(0,0,0,0.62) 72%);
-  pointer-events: none;
+  display: none;
+}
+
+.segment.is-intro-section .segment-backdrop {
+  background: #000;
+}
+
+.segment.is-intro-section .intro-backdrop-art {
+  background-color: #000;
 }
 
 .segment.is-intro-section .grid-mask {
   opacity: 0.18;
+}
+
+@media (max-width: 900px) {
+  .segment.is-intro-section .intro-backdrop-art {
+    top: auto !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    height: calc(100vw * 305 / 1625 * 1.2) !important;
+    max-height: none !important;
+    background-color: #000 !important;
+    background-size: 120% auto !important;
+    -webkit-background-size: 120% auto !important;
+    background-position: center bottom !important;
+    transform-origin: center bottom !important;
+    z-index: 4 !important;
+  }
+
+  .segment.is-intro-section .intro-backdrop-overlay,
+  .segment.is-intro-section .intro-backdrop-vignette,
+  .segment.is-intro-section .grid-mask {
+    bottom: calc(100vw * 305 / 1625 * 1.2) !important;
+  }
+
+  .segment.is-intro-section .intro-backdrop-vignette {
+    background: radial-gradient(circle at 50% 0%, rgba(0, 0, 0, 0.04), rgba(0, 0, 0, 0.48) 88%) !important;
+  }
 }

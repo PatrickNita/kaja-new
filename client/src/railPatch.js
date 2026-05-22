@@ -80,13 +80,14 @@ patchStyle.textContent = `
   width: min(54vw, 700px);
   min-height: 350px;
   padding: clamp(34px, 4.1vw, 58px);
-  border: 1px solid rgba(255,255,255,0.16);
+  border: 1px solid rgba(255,255,255,0.1);
   border-radius: clamp(24px, 3.2vw, 38px);
-  background: linear-gradient(145deg, rgba(255,255,255,0.14), rgba(255,255,255,0.04));
-  box-shadow: 0 52px 120px rgba(0,0,0,0.64), inset 0 0 70px rgba(255,255,255,0.035);
-  backdrop-filter: blur(18px);
+  background: rgba(38, 38, 38, 0.86);
+  box-shadow: 0 28px 72px rgba(0,0,0,0.55);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   transform-origin: center center;
-  will-change: transform, min-height, padding, background;
+  will-change: transform, min-height, padding;
 }
 .kaja-contact-label {
   margin: 0 0 18px;
@@ -98,9 +99,9 @@ patchStyle.textContent = `
 .kaja-contact-form input,
 .kaja-contact-form select {
   width: 100%;
-  border: 1px solid rgba(255,255,255,0.14);
+  border: 1px solid rgba(255,255,255,0.12);
   border-radius: 18px;
-  background: rgba(0,0,0,0.42);
+  background: #1a1a1a;
   color: #fff;
   padding: 17px 19px;
   font-size: 15px;
@@ -124,8 +125,8 @@ patchStyle.textContent = `
 }
 .kaja-contact-form input:focus,
 .kaja-contact-form select:focus {
-  border-color: rgba(255,255,255,0.36);
-  background-color: rgba(0,0,0,0.56);
+  border-color: rgba(255,255,255,0.28);
+  background-color: #141414;
 }
 .kaja-contact-form button {
   width: 100%;
@@ -154,6 +155,9 @@ patchStyle.textContent = `
   }
   .is-hanger-section.is-active .hanger-track {
     visibility: hidden !important;
+  }
+  .is-hanger-section.is-active:not(:has(.mobile-merch-track)) .hanger-track {
+    visibility: visible !important;
   }
   .is-hanger-section.is-active .mobile-merch-track {
     position: absolute;
@@ -210,18 +214,7 @@ patchStyle.textContent = `
 `;
 document.head.appendChild(patchStyle);
 
-const buttonTargets = [
-  {
-    title: 'A clean path through the collection.',
-    label: 'CHECK CATALOGUE',
-    href: '../catalogue'
-  },
-  {
-    title: 'A full collection on the line.',
-    label: 'CHECK MERCH',
-    href: '../merch'
-  }
-];
+const buttonTargets = [];
 
 function addSectionButtons() {
   const sections = Array.from(document.querySelectorAll('.segment'));
@@ -229,7 +222,15 @@ function addSectionButtons() {
   buttonTargets.forEach((target) => {
     const section = sections.find((item) => item.querySelector('h1')?.textContent?.trim() === target.title);
     const content = section?.querySelector('.segment-content');
-    if (!content || content.querySelector(`[data-section-button="${target.label}"]`)) return;
+    if (!content) return;
+
+    const existing = content.querySelector(`[data-section-button="${target.label}"]`);
+    if (existing) {
+      if (existing.getAttribute('href') !== target.href) {
+        existing.setAttribute('href', target.href);
+      }
+      return;
+    }
 
     const link = document.createElement('a');
     link.className = 'section-link-button';
@@ -240,17 +241,101 @@ function addSectionButtons() {
   });
 }
 
-function getProgressForLabel(label) {
+function readContactCopy() {
+  return window.__kajaLocale?.copy?.contact ?? {
+    heading: 'Contact KAJA',
+    name: 'Name',
+    email: 'Email',
+    phone: 'Phone number',
+    topic: 'Topic',
+    submit: 'Send request',
+    topics: [
+      { value: 'general-contact', label: 'General contact' },
+      { value: 'collaboration', label: 'Collaboration' },
+      { value: 'distribution', label: 'Distribution' }
+    ]
+  };
+}
+
+function readHintProgress() {
+  const activeSection = document.querySelector('.segment.is-active');
+  const frozenValue = activeSection?.dataset.frozenProgress;
+  if (frozenValue != null && frozenValue !== '') {
+    const parsed = Number.parseFloat(frozenValue);
+    if (!Number.isNaN(parsed)) return Math.min(Math.max(parsed, 0), 1);
+  }
+
+  const sectionValue = activeSection?.dataset.sectionProgress;
+  if (sectionValue != null && sectionValue !== '') {
+    const parsed = Number.parseFloat(sectionValue);
+    if (!Number.isNaN(parsed)) return Math.min(Math.max(parsed, 0), 1);
+  }
+
+  const hint = document.querySelector('.scroll-hint');
+  const datasetValue = hint?.dataset.progress;
+  if (datasetValue != null && datasetValue !== '') {
+    const parsed = Number.parseFloat(datasetValue);
+    if (!Number.isNaN(parsed)) return Math.min(Math.max(parsed, 0), 1);
+  }
+
+  if (hint?.dataset.sectionProgress === '1') return 1;
+  if (document.body.classList.contains('kaja-footer-active')) return 1;
+  if (hint?.dataset.hintMode === 'footer') return 1;
+
   const spans = Array.from(document.querySelectorAll('.scroll-hint span'));
-  const first = spans[0]?.textContent || '';
   const last = spans[spans.length - 1]?.textContent || '0%';
-  if (!first.includes(label)) return null;
   const percent = Number.parseFloat(last.replace('%', '')) || 0;
   return Math.min(Math.max(percent / 100, 0), 1);
 }
 
+function getMerchSection() {
+  return document.querySelector('.is-hanger-section')
+    || getSectionByTitle('MERCH')
+    || getSectionByTitle('A full collection on the line.');
+}
+
+function getContactSection() {
+  return document.querySelector('.is-contact-section')
+    || getSectionByTitle('Start the conversation.');
+}
+
+function getProgressForShape(shape) {
+  const hint = document.querySelector('.scroll-hint');
+  if (hint?.dataset.sectionProgress === '1' && shape === 'contact') return 1;
+  if (shape === 'contact' && document.body.classList.contains('kaja-footer-active')) return 1;
+
+  if (shape === 'hanger') {
+    const merchSection = getMerchSection();
+    if (merchSection?.classList.contains('is-active')) {
+      return readHintProgress();
+    }
+  }
+
+  if (shape === 'contact') {
+    const contactSection = getContactSection();
+    if (contactSection?.classList.contains('is-active')) {
+      return readHintProgress();
+    }
+  }
+
+  if (shape === 'intro') {
+    const introSection = document.querySelector('.is-intro-section');
+    if (introSection?.classList.contains('is-active')) {
+      return readHintProgress();
+    }
+  }
+
+  if (hint?.dataset.hintMode === 'footer') return shape === 'contact' ? 1 : null;
+  if (hint?.dataset.sectionShape !== shape) return null;
+
+  return readHintProgress();
+}
+
 function getSectionByTitle(title) {
-  return Array.from(document.querySelectorAll('.segment')).find((item) => item.querySelector('h1')?.textContent?.trim() === title);
+  const wanted = title.trim().toLowerCase();
+  return Array.from(document.querySelectorAll('.segment')).find(
+    (item) => item.querySelector('h1')?.textContent?.trim().toLowerCase() === wanted
+  );
 }
 
 function ensureIntroFrameAnimation() {
@@ -273,16 +358,21 @@ function ensureIntroFrameAnimation() {
   frame.appendChild(image);
   introSection.insertBefore(frame, oldVisual.nextSibling);
 
+  return frame;
+}
+
+let introFramesPreloaded = false;
+function preloadIntroFrames() {
+  if (introFramesPreloaded) return;
+  introFramesPreloaded = true;
   for (let index = 1; index <= 20; index += 1) {
     const preload = new Image();
     preload.src = `/intro-frames/frame-${String(index).padStart(2, '0')}.webp`;
   }
-
-  return frame;
 }
 
 function ensureMobileMerchTrack() {
-  const merchSection = getSectionByTitle('A full collection on the line.');
+  const merchSection = getMerchSection();
   const railWrap = merchSection?.querySelector('.hanger-rail-wrap');
   const sourceImg = merchSection?.querySelector('.hanger-track img');
   if (!railWrap || !sourceImg) return null;
@@ -305,11 +395,12 @@ function ensureMobileMerchTrack() {
   }
 
   railWrap.appendChild(mobileTrack);
+  merchTrackLayoutCache.clear();
   return mobileTrack;
 }
 
 function ensureContactForm() {
-  const contactSection = getSectionByTitle('Start the conversation.');
+  const contactSection = getContactSection();
   const oldForm = contactSection?.querySelector('.contact-form-panel');
   if (!contactSection) return null;
 
@@ -318,18 +409,18 @@ function ensureContactForm() {
 
   form = document.createElement('form');
   form.className = 'kaja-contact-form';
+  const contact = readContactCopy();
+  const topicOptions = contact.topics.map((item) => `<option value="${item.value}">${item.label}</option>`).join('');
   form.innerHTML = `
-    <p class="kaja-contact-label">Contact KAJA</p>
-    <input placeholder="Name" aria-label="Name" name="name" />
-    <input placeholder="Email" aria-label="Email" name="email" type="email" />
-    <input placeholder="Phone number" aria-label="Phone number" name="phone" type="tel" />
-    <select aria-label="Topic" name="topic" required>
-      <option value="" disabled selected>Topic</option>
-      <option value="general-contact">General contact</option>
-      <option value="collaboration">Collaboration</option>
-      <option value="distribution">Distribution</option>
+    <p class="kaja-contact-label">${contact.heading}</p>
+    <input placeholder="${contact.name}" aria-label="${contact.name}" name="name" />
+    <input placeholder="${contact.email}" aria-label="${contact.email}" name="email" type="email" />
+    <input placeholder="${contact.phone}" aria-label="${contact.phone}" name="phone" type="tel" />
+    <select aria-label="${contact.topic}" name="topic" required>
+      <option value="" disabled selected>${contact.topic}</option>
+      ${topicOptions}
     </select>
-    <button type="submit">Send request</button>
+    <button type="submit">${contact.submit}</button>
   `;
   form.addEventListener('submit', (event) => event.preventDefault());
 
@@ -342,95 +433,334 @@ function ensureContactForm() {
   return form;
 }
 
-const merchMotion = { current: 0, target: 0 };
-const contactMotion = { scale: 1, height: 0, darkness: 0, targetScale: 1, targetHeight: 0, targetDarkness: 0 };
+const contactMotion = { scale: 1, height: 0, targetScale: 1, targetHeight: 0 };
 const introMotion = { scale: 0.96, targetScale: 0.96 };
+let patchLoopActive = false;
+let contactSectionWasActive = false;
+let lastSyncedMerchProgress = -1;
+const merchTrackLayoutCache = new Map();
 
-function updateIntroFrameAnimation() {
+function readMerchSectionProgress(merchSection) {
+  const section = merchSection?.classList.contains('is-active')
+    ? merchSection
+    : (document.querySelector('.segment.is-active.is-hanger-section') || merchSection);
+  if (!section) return 0;
+
+  const frozen = section.dataset.frozenProgress;
+  if (frozen != null && frozen !== '') {
+    const parsed = Number.parseFloat(frozen);
+    if (!Number.isNaN(parsed)) return Math.min(Math.max(parsed, 0), 1);
+  }
+
+  const value = section.dataset.sectionProgress;
+  if (value != null && value !== '') {
+    const parsed = Number.parseFloat(value);
+    if (!Number.isNaN(parsed)) return Math.min(Math.max(parsed, 0), 1);
+  }
+
+  return readHintProgress();
+}
+
+function shouldSyncMerchSection(merchSection) {
+  if (!merchSection?.classList.contains('is-hanger-section')) return false;
+  return merchSection.classList.contains('is-active') || merchSection.dataset.frozenProgress != null;
+}
+
+const MERCH_LAYOUT_CACHE_VERSION = 4;
+
+function getMerchTrackLayoutKey(railWrap, useMobileTrack) {
+  if (!railWrap) return '';
+  return `${MERCH_LAYOUT_CACHE_VERSION}:${useMobileTrack ? 'mobile' : 'desktop'}:${Math.round(railWrap.getBoundingClientRect().width)}`;
+}
+
+function isValidMerchTrackLayout(layout) {
+  return layout && Number.isFinite(layout.startX) && Number.isFinite(layout.endX)
+    && Math.abs(layout.endX - layout.startX) >= 8;
+}
+
+function measureMerchTrackRange(merchSection, useMobileTrack = false) {
+  const railWrap = merchSection?.querySelector('.hanger-rail-wrap');
+  const track = useMobileTrack
+    ? (merchSection?.querySelector('.mobile-merch-track') || ensureMobileMerchTrack())
+    : merchSection?.querySelector('.hanger-track');
+  const itemSelector = useMobileTrack ? '.mobile-merch-item' : '.hanger-object';
+  const cacheKey = getMerchTrackLayoutKey(railWrap, useMobileTrack);
+  if (!cacheKey || !railWrap || !track) return null;
+
+  const cached = merchTrackLayoutCache.get(cacheKey);
+  if (isValidMerchTrackLayout(cached)) return cached;
+
+  const items = Array.from(track.querySelectorAll(itemSelector));
+  if (items.length < 6) return null;
+
+  const saved = track.style.transform;
+  track.style.transform = 'translate3d(0, 0, 0)';
+  void railWrap.offsetWidth;
+
+  const wrapWidth = railWrap.getBoundingClientRect().width;
+  if (wrapWidth < 100) {
+    track.style.transform = saved;
+    return null;
+  }
+
+  const trackOrigin = track.getBoundingClientRect().left;
+  const offsets = items.map((item) => {
+    const rect = item.getBoundingClientRect();
+    return {
+      left: rect.left - trackOrigin,
+      right: rect.right - trackOrigin
+    };
+  });
+
+  track.style.transform = saved;
+
+  const inset = Math.min(18, wrapWidth * 0.04);
+  const viewLeft = inset;
+  const viewRight = wrapWidth - inset;
+  const step = (offsets[1]?.left ?? offsets[0].right) - offsets[0].left || (offsets[0].right - offsets[0].left);
+
+  // 0%: first three hangers in view (third hanger aligns to the right edge).
+  let startX = viewRight - offsets[2].right;
+  if (offsets[0].left + startX < viewLeft) {
+    startX = viewLeft - offsets[0].left;
+  }
+
+  // 100%: pan until the last three hangers are fully in view (full size, no scaling).
+  let endX = viewRight - offsets[5].right;
+
+  if (endX >= startX - 1) {
+    endX = startX - step * 3;
+  }
+
+  const layout = { startX, endX, step };
+  if (!isValidMerchTrackLayout(layout)) {
+    merchTrackLayoutCache.delete(cacheKey);
+    return null;
+  }
+
+  merchTrackLayoutCache.set(cacheKey, layout);
+  return layout;
+}
+
+function formatMerchTrackTransform(offset) {
+  return {
+    transform: `translate3d(${offset.value}${offset.unit}, 0, 0)`,
+    origin: ''
+  };
+}
+
+function getMerchTrackOffset(merchSection, useMobileTrack = false, progress = readMerchSectionProgress(merchSection)) {
+  const layout = measureMerchTrackRange(merchSection, useMobileTrack);
+  if (!layout) {
+    const startVw = 14;
+    const panVw = 50;
+    return { value: startVw - progress * panVw, unit: 'vw' };
+  }
+
+  const eased = progress * progress * (3 - 2 * progress);
+  const panX = layout.startX + (layout.endX - layout.startX) * eased;
+  return { value: panX, unit: 'px' };
+}
+
+function applyMerchTrackTransform(track, merchSection, useMobileTrack, progress = readMerchSectionProgress(merchSection)) {
+  if (!track) return;
+  const offset = getMerchTrackOffset(merchSection, useMobileTrack, progress);
+  const { transform, origin } = formatMerchTrackTransform(offset);
+  track.style.transformOrigin = origin;
+  track.style.transform = transform;
+}
+
+function syncMerchHangerTracks(merchSection = getMerchSection(), progressOverride) {
+  if (!merchSection) return null;
+
+  const progress = progressOverride != null
+    ? Math.min(Math.max(Number(progressOverride) || 0, 0), 1)
+    : readMerchSectionProgress(merchSection);
+  const desktopOffset = getMerchTrackOffset(merchSection, false, progress);
+  const desktopFormatted = formatMerchTrackTransform(desktopOffset);
+  merchSection.style.setProperty('--merch-track-x', `${desktopOffset.value}${desktopOffset.unit}`);
+
+  const desktopTrack = merchSection.querySelector('.hanger-track');
+  const isMobile = window.matchMedia('(max-width: 900px)').matches;
+  const mobileTrack = isMobile
+    ? (merchSection.querySelector('.mobile-merch-track') || ensureMobileMerchTrack())
+    : null;
+  const mobileOffset = mobileTrack ? getMerchTrackOffset(merchSection, true, progress) : null;
+  const mobileFormatted = mobileOffset
+    ? formatMerchTrackTransform(mobileOffset)
+    : desktopFormatted;
+
+  if (desktopTrack) {
+    desktopTrack.style.transformOrigin = desktopFormatted.origin || '';
+    desktopTrack.style.transform = desktopFormatted.transform;
+  }
+  if (mobileTrack) {
+    mobileTrack.style.transformOrigin = mobileFormatted.origin || '';
+    mobileTrack.style.transform = mobileFormatted.transform;
+  }
+
+  lastSyncedMerchProgress = progress;
+  return mobileTrack || desktopTrack;
+}
+
+function patchNeedsAnimation() {
+  let needs = false;
+
+  const introSection = getSectionByTitle('A sharper way to present KAJA.');
+  const introProgress = getProgressForShape('intro');
+  if (introSection?.classList.contains('is-active') && introProgress !== null) {
+    if (!introSection.querySelector(':scope > .intro-frame-animation') && !ensureIntroFrameAnimation()) {
+      needs = true;
+    } else {
+      const pulse = Math.sin(introProgress * Math.PI);
+      const targetScale = 0.96 + pulse * 0.105 - introProgress * 0.018;
+      if (Math.abs(introMotion.scale - targetScale) > 0.002) needs = true;
+    }
+  }
+
+  const merchSection = getMerchSection();
+  if (merchSection && shouldSyncMerchSection(merchSection)) {
+    if (!merchSection.querySelector('.hanger-track')) needs = true;
+    else needs = true;
+  }
+
+  const contactSection = getContactSection();
+  const contactProgress = getProgressForShape('contact');
+  if (contactSection?.classList.contains('is-active') && contactProgress !== null) {
+    const form = contactSection.querySelector(':scope > .kaja-contact-form') || ensureContactForm();
+    if (!form) {
+      needs = true;
+    } else {
+      const targetScale = 1 + contactProgress * 0.035;
+      const targetHeight = contactProgress * 16;
+      if (Math.abs(contactMotion.scale - targetScale) > 0.002 || Math.abs(contactMotion.height - targetHeight) > 0.2) needs = true;
+    }
+  }
+
+  return needs;
+}
+
+function runPatchAnimations() {
   const introSection = getSectionByTitle('A sharper way to present KAJA.');
   const frame = ensureIntroFrameAnimation();
-  const progress = getProgressForLabel('INTRO');
+  const introProgress = getProgressForShape('intro');
 
-  if (introSection?.classList.contains('is-active') && frame && progress !== null) {
+  if (introSection?.classList.contains('is-active') && frame && introProgress !== null) {
+    preloadIntroFrames();
     const image = frame.querySelector('img');
-    const frameIndex = Math.min(20, Math.max(1, Math.floor(progress * 19) + 1));
+    const frameIndex = Math.min(20, Math.max(1, Math.floor(introProgress * 19) + 1));
     const nextSrc = `/intro-frames/frame-${String(frameIndex).padStart(2, '0')}.webp`;
     if (image && !image.src.endsWith(nextSrc)) image.src = nextSrc;
 
-    const pulse = Math.sin(progress * Math.PI);
-    introMotion.targetScale = 0.96 + pulse * 0.105 - progress * 0.018;
+    const pulse = Math.sin(introProgress * Math.PI);
+    introMotion.targetScale = 0.96 + pulse * 0.105 - introProgress * 0.018;
     introMotion.scale += (introMotion.targetScale - introMotion.scale) * 0.12;
     frame.style.transform = `translate3d(0, 0, 0) scale(${introMotion.scale})`;
   }
 
-  requestAnimationFrame(updateIntroFrameAnimation);
-}
-
-function moveMobileMerchTrack() {
-  const isMobile = window.matchMedia('(max-width: 900px)').matches;
-  const merchSection = getSectionByTitle('A full collection on the line.');
-  const progress = getProgressForLabel('MERCH');
-  const mobileTrack = ensureMobileMerchTrack();
-
-  if (isMobile && merchSection?.classList.contains('is-active') && mobileTrack && progress !== null) {
-    const items = Array.from(mobileTrack.querySelectorAll('.mobile-merch-item'));
-    const step = items[1] ? items[1].offsetLeft - items[0].offsetLeft : window.innerWidth * 0.45;
-    const firstItemStartOffset = window.innerWidth * 0.24;
-    const firstVisibleLeft = window.innerWidth * 0.04;
-    const startX = firstVisibleLeft - firstItemStartOffset;
-    const endX = window.innerWidth * 0.38 - step * 5.45;
-    const easedProgress = Math.pow(progress, 1.38);
-    merchMotion.target = startX + (endX - startX) * easedProgress;
-    merchMotion.current += (merchMotion.target - merchMotion.current) * 0.13;
-    mobileTrack.style.transform = `translate3d(${merchMotion.current}px, 0, 0)`;
+  const merchSection = getMerchSection();
+  if (merchSection && shouldSyncMerchSection(merchSection)) {
+    syncMerchHangerTracks(merchSection);
   }
 
-  requestAnimationFrame(moveMobileMerchTrack);
-}
-
-function growContactForm() {
-  const contactSection = getSectionByTitle('Start the conversation.');
+  const contactSection = getContactSection();
   const form = ensureContactForm();
-  const progress = getProgressForLabel('CONTACT');
+  const contactProgress = getProgressForShape('contact');
+  const isContactActive = contactSection?.classList.contains('is-active');
 
-  if (contactSection?.classList.contains('is-active') && form && progress !== null) {
-    contactMotion.targetScale = 1 + progress * 0.035;
-    contactMotion.targetHeight = progress * 16;
-    contactMotion.targetDarkness = progress;
+  if (isContactActive && form && contactProgress !== null) {
+    contactMotion.targetScale = 1 + contactProgress * 0.035;
+    contactMotion.targetHeight = contactProgress * 16;
 
-    contactMotion.scale += (contactMotion.targetScale - contactMotion.scale) * 0.12;
-    contactMotion.height += (contactMotion.targetHeight - contactMotion.height) * 0.12;
-    contactMotion.darkness += (contactMotion.targetDarkness - contactMotion.darkness) * 0.12;
-
-    const topAlpha = 0.14 - contactMotion.darkness * 0.035;
-    const bottomAlpha = 0.04 - contactMotion.darkness * 0.025;
-    const blackAlpha = 0.42 + contactMotion.darkness * 0.16;
+    if (!contactSectionWasActive) {
+      contactMotion.scale = contactMotion.targetScale;
+      contactMotion.height = contactMotion.targetHeight;
+    } else {
+      contactMotion.scale += (contactMotion.targetScale - contactMotion.scale) * 0.12;
+      contactMotion.height += (contactMotion.targetHeight - contactMotion.height) * 0.12;
+    }
 
     form.style.transform = `scale(${contactMotion.scale})`;
     form.style.minHeight = `${350 + contactMotion.height}px`;
     form.style.paddingTop = `calc(clamp(34px, 4.1vw, 58px) + ${contactMotion.height * 0.22}px)`;
     form.style.paddingBottom = `calc(clamp(34px, 4.1vw, 58px) + ${contactMotion.height * 0.22}px)`;
-    form.style.background = `linear-gradient(145deg, rgba(255,255,255,${topAlpha}), rgba(255,255,255,${bottomAlpha})), rgba(0,0,0,${blackAlpha})`;
   }
 
-  requestAnimationFrame(growContactForm);
+  contactSectionWasActive = Boolean(isContactActive && form && contactProgress !== null);
 }
 
-const observer = new MutationObserver(() => {
+function schedulePatchLoop() {
+  if (patchLoopActive) return;
+  patchLoopActive = true;
+  requestAnimationFrame(function patchLoop() {
+    runPatchAnimations();
+    if (patchNeedsAnimation()) {
+      requestAnimationFrame(patchLoop);
+    } else {
+      patchLoopActive = false;
+    }
+  });
+}
+
+function setupPatchEnhancements() {
   addSectionButtons();
   ensureIntroFrameAnimation();
   ensureContactForm();
+  if (window.matchMedia('(max-width: 900px)').matches) {
+    ensureMobileMerchTrack();
+  }
+  const merchSection = getMerchSection();
+  if (merchSection && shouldSyncMerchSection(merchSection)) {
+    syncMerchHangerTracks(merchSection);
+  }
+  schedulePatchLoop();
+}
+
+let patchObserverTimer = null;
+const observer = new MutationObserver((mutations) => {
+  for (const mutation of mutations) {
+    if (mutation.type !== 'attributes') continue;
+    const target = mutation.target;
+    if (!target?.classList?.contains?.('is-hanger-section')) continue;
+    if (
+      mutation.attributeName === 'class'
+      || mutation.attributeName === 'data-section-progress'
+      || mutation.attributeName === 'data-frozen-progress'
+    ) {
+      if (mutation.attributeName === 'class' && target.classList.contains('is-active')) {
+        merchTrackLayoutCache.clear();
+      }
+      if (shouldSyncMerchSection(target) || (mutation.attributeName === 'class' && target.classList.contains('is-active'))) {
+        syncMerchHangerTracks(target);
+        schedulePatchLoop();
+        return;
+      }
+    }
+  }
+
+  if (patchObserverTimer !== null) window.clearTimeout(patchObserverTimer);
+  patchObserverTimer = window.setTimeout(() => {
+    patchObserverTimer = null;
+    setupPatchEnhancements();
+  }, 60);
 });
-observer.observe(document.documentElement, { childList: true, subtree: true });
-window.addEventListener('load', () => {
-  addSectionButtons();
-  ensureIntroFrameAnimation();
-  ensureContactForm();
+observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'data-section-progress', 'data-frozen-progress'] });
+window.addEventListener('load', setupPatchEnhancements);
+window.addEventListener('resize', () => {
+  merchTrackLayoutCache.clear();
+  const merchSection = getMerchSection();
+  if (merchSection && shouldSyncMerchSection(merchSection)) {
+    syncMerchHangerTracks(merchSection);
+  }
+  schedulePatchLoop();
 });
-requestAnimationFrame(addSectionButtons);
-requestAnimationFrame(updateIntroFrameAnimation);
-requestAnimationFrame(moveMobileMerchTrack);
-requestAnimationFrame(growContactForm);
-setTimeout(addSectionButtons, 500);
-setTimeout(ensureIntroFrameAnimation, 500);
-setTimeout(ensureContactForm, 500);
+window.__kajaSyncMerchHangers = (progressOverride) => {
+  const merchSection = getMerchSection();
+  if (!merchSection || !shouldSyncMerchSection(merchSection)) return null;
+  syncMerchHangerTracks(merchSection, progressOverride);
+  schedulePatchLoop();
+  return merchSection;
+};
+
+setupPatchEnhancements();
+setTimeout(setupPatchEnhancements, 500);

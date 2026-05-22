@@ -1,3 +1,5 @@
+const HIDDEN_CURSOR = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'%3E%3C/svg%3E\"), none";
+
 const cursorHoverStyle = document.createElement('style');
 cursorHoverStyle.textContent = `
 .cursor-ring,
@@ -25,6 +27,12 @@ textarea,
   cursor: none !important;
 }
 
+html.entry-gate-active,
+html.entry-gate-active *,
+html.entry-gate-active :is(a, button, input, select, textarea, label, summary, [role="button"], [role="option"], [href], .lang-selector-trigger, .entry-gate-button) {
+  cursor: ${HIDDEN_CURSOR} !important;
+}
+
 @media (max-width: 900px), (pointer: coarse) {
   body.cursor-clickable-hover .cursor-ring,
   body.cursor-clickable-hover .cursor-dot {
@@ -38,6 +46,12 @@ textarea,
   textarea,
   [contenteditable="true"] {
     cursor: auto !important;
+  }
+
+  html.entry-gate-active,
+  html.entry-gate-active *,
+  html.entry-gate-active :is(a, button, input, select, textarea, label, summary, [role="button"], [role="option"], [href], .lang-selector-trigger, .entry-gate-button) {
+    cursor: ${HIDDEN_CURSOR} !important;
   }
 }
 `;
@@ -58,6 +72,12 @@ const clickableSelector = [
 ].join(',');
 
 function updateClickableCursor(event) {
+  if (document.documentElement.classList.contains('entry-gate-active')) {
+    const gateClickable = Boolean(event.target.closest('.entry-gate .entry-gate-control'));
+    document.body.classList.toggle('cursor-clickable-hover', gateClickable);
+    return;
+  }
+
   const isClickable = Boolean(event.target.closest(clickableSelector));
   document.body.classList.toggle('cursor-clickable-hover', isClickable);
 }

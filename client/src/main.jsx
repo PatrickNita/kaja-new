@@ -1,64 +1,115 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import './siteProtection.js';
+import EntryGate from './EntryGate.jsx';
+import ElasticCursor from './ElasticCursor.jsx';
+import { isEntryApproved } from './entryGate.js';
+import {
+  buildSections,
+  CONTACT_INDEX,
+  ENGLISH_ALIASES,
+  getLocaleCopy,
+  getLocaleFromPath,
+  getLocalePath,
+  publishLocale,
+  SECTION_COUNT
+} from './i18n';
+import './railPatch.js';
 import { createRoot } from 'react-dom/client';
-import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { flushSync } from 'react-dom';
+import { motion, useMotionValue, useMotionValueEvent, useSpring, useTransform } from 'framer-motion';
 import './styles.css';
 import logo from './assets/kaja-logo.png';
 import hanger from './assets/hanger.png';
 
-const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
-const FOOTER_INDEX = 6;
-const SPRING_CONFIG = { stiffness: 126, damping: 18, mass: 0.62 };
-
-const sections = [
-  {
-    label: 'KAJA',
-    eyebrow: '01 / KAJA',
-    title: 'KAJA',
-    copy: 'Hookah tobacco made in Moldova. Bold, rich and authentic. For the smokers.',
-    accent: 'Intro',
-    shape: 'intro'
-  },
-  {
-    label: 'STRENGTH',
-    eyebrow: '02 / Strength',
-    title: '100% BURLEY LEAF',
-    copy: 'Medium strength that delivers character without overpowering. Full-bodied experience with depth and balance.',
-    accent: 'Strong',
-    shape: 'stack'
-  },
-  {
-    label: 'CATALOGUE',
-    eyebrow: '03 / Catalogue',
-    title: 'MIXOLOGY',
-    copy: 'Our catalogue is designed to be simple and ready for mixology, while still offering texture, intensity and a full sensory experience on its own.',
-    accent: 'Catalogue',
-    shape: 'strips'
-  },
-  {
-    label: 'AVAILABILITY',
-    eyebrow: '04 / Availability',
-    title: 'FIND KAJA',
-    copy: 'Available in Moldova, Germany, Spain — with more to come.',
-    accent: 'Available',
-    shape: 'orb'
-  },
-  {
-    label: 'MERCH',
-    eyebrow: '05 / Merch',
-    title: 'MERCH',
-    copy: 'Brand pieces made for the KAJA community. Also tools that come in handy.',
-    accent: 'Merch',
-    shape: 'hanger'
-  },
-  {
-    label: 'CONTACT',
-    eyebrow: '06 / Contact',
-    title: 'START THE CONVERSATION.',
-    copy: 'Have a question about KAJA, collaborations, or distribution? Contact us here or through our social channels.',
-    accent: 'Contact',
-    shape: 'contact'
-  }
+const LANGUAGES = [
+  { code: 'en', label: 'EN' },
+  { code: 'ro', label: 'RO' },
+  { code: 'ru', label: 'RU' },
+  { code: 'es', label: 'ES' },
+  { code: 'de', label: 'DE' }
 ];
+
+const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+const lerp = (p, from, to) => from + (to - from) * clamp(p, 0, 1);
+
+function getSectionScrollDuration(fromIndex, toIndex, behavior, sectionScrollMs) {
+  if (behavior !== 'smooth') return 100;
+  const distance = Math.max(1, Math.abs(toIndex - fromIndex));
+  return Math.min(2200, sectionScrollMs * distance + 80);
+}
+
+function waitForScrollSettle(targetTop, maxWaitMs, onDone) {
+  const start = performance.now();
+  let stableFrames = 0;
+  let lastY = window.scrollY;
+  let rafId = null;
+  let done = false;
+
+  const finish = () => {
+    if (done) return;
+    done = true;
+    if (rafId !== null) cancelAnimationFrame(rafId);
+    onDone();
+  };
+
+  const tick = () => {
+    const y = window.scrollY;
+    const elapsed = performance.now() - start;
+    const atTarget = Math.abs(y - targetTop) <= 12;
+
+    if (Math.abs(y - lastY) < 0.75) stableFrames += 1;
+    else stableFrames = 0;
+    lastY = y;
+
+    if ((atTarget && stableFrames >= 4) || elapsed >= maxWaitMs) {
+      finish();
+      return;
+    }
+
+    rafId = requestAnimationFrame(tick);
+  };
+
+  rafId = requestAnimationFrame(tick);
+  return finish;
+}
+
+function segmentMotionValues(p, isMobile) {
+  const progress = clamp(p, 0, 1);
+  const productScale = progress <= 0.55
+    ? lerp(progress / 0.55, 0.92, 1.06)
+    : lerp((progress - 0.55) / 0.45, 1.06, 0.94);
+
+  return {
+    introBgScale: 1 + progress * 0.075,
+    introOverlayOpacity: 0.08 + progress * 0.22,
+    progressScale: progress,
+    titleY: isMobile ? 2 + progress * -7 : 6 + progress * -24,
+    copyY: isMobile ? 1 + progress * -4 : 3 + progress * -13,
+    counterScale: isMobile ? 0.96 + progress * 0.1 : 0.9 + progress * 0.28,
+    counterY: isMobile ? `calc(0.5vh + ${progress * -2}vh)` : `calc(2vh + ${progress * -7}vh)`,
+    gridOpacity: 0.32 + progress * 0.68,
+    gridY: isMobile ? `calc(0.6vh + ${progress * -1.2}vh)` : `calc(2vh + ${progress * -4}vh)`,
+    hangerX: `${30 - progress * 98}vw`,
+    productY: `${8 - progress * 18}vh`,
+    productScale,
+    productOpacity: progress <= 0.82 ? 1 : lerp((progress - 0.82) / 0.18, 1, 0.8),
+    contactX: `${-2.5 + progress * 5}vw`
+  };
+}
+const SPRING_CONFIG = { stiffness: 58, damping: 12, mass: 0.45 };
+const SCROLL_SPRING = { stiffness: 132, damping: 28, mass: 0.72, restDelta: 0.001, restSpeed: 0.01 };
+const SECTION_COMPLETE = 1;
+const SECTION_START = 0;
+const EDGE_EPSILON = 0.001;
+const VISUAL_EDGE_EPSILON = 0.012;
+const SCROLL_SPEED = 4;
+const MAX_TARGET_LEAD = 0.055 * SCROLL_SPEED;
+const WHEEL_STEP_MIN = 0.006 * SCROLL_SPEED;
+const WHEEL_STEP_MAX = 0.036 * SCROLL_SPEED;
+const GESTURE_IDLE_MS = 160;
+const FRAME_PROGRESS_MAX = 0.038 * SCROLL_SPEED;
+const WHEEL_PROGRESS_DIVISOR = 1700 / SCROLL_SPEED;
+const TOUCH_PROGRESS_DIVISOR = 900 / SCROLL_SPEED;
 
 const hangerObjects = Array.from({ length: 6 }, (_, index) => index + 1);
 const hangerRailWrapStyle = {
@@ -83,18 +134,17 @@ const contactFormStyle = {
   justifySelf: 'center',
   width: 'min(46vw, 560px)',
   padding: 'clamp(20px, 3vw, 38px)',
-  border: '1px solid rgba(255,255,255,0.16)',
+  border: '1px solid rgba(255,255,255,0.1)',
   borderRadius: 'clamp(22px, 3vw, 34px)',
-  background: 'linear-gradient(145deg, rgba(255,255,255,0.13), rgba(255,255,255,0.035))',
-  boxShadow: '0 52px 120px rgba(0,0,0,0.64), inset 0 0 70px rgba(255,255,255,0.035)',
-  backdropFilter: 'blur(18px)'
+  background: 'rgba(38, 38, 38, 0.86)',
+  boxShadow: '0 28px 72px rgba(0,0,0,0.55)'
 };
 
 const contactFieldStyle = {
   width: '100%',
-  border: '1px solid rgba(255,255,255,0.14)',
+  border: '1px solid rgba(255,255,255,0.12)',
   borderRadius: '16px',
-  background: 'rgba(0,0,0,0.42)',
+  background: '#1a1a1a',
   color: '#fff',
   padding: '14px 16px',
   fontSize: '14px',
@@ -157,9 +207,9 @@ const contactSocialIconStyle = {
 };
 
 const footerBaseStyle = {
-  position: 'absolute',
-  inset: 0,
-  zIndex: 80,
+  position: 'relative',
+  zIndex: 1,
+  width: '100%',
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
@@ -168,9 +218,8 @@ const footerBaseStyle = {
   padding: 'clamp(24px, 5vh, 60px) clamp(16px, 5vw, 64px) calc(clamp(26px, 6vh, 70px) + env(safe-area-inset-bottom))',
   textAlign: 'center',
   color: 'rgba(255,255,255,0.62)',
-  background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.5) 36%, rgba(0,0,0,0.94) 100%)',
-  pointerEvents: 'none',
-  transition: 'opacity 0.35s ease, transform 0.35s ease'
+  background: '#000',
+  pointerEvents: 'auto'
 };
 
 const footerNoticeStyle = {
@@ -193,70 +242,92 @@ const footerDetailsStyle = {
   color: 'rgba(255,255,255,0.52)'
 };
 
-function jumpProgress(value, ...motionValues) {
-  const next = clamp(value, 0, 1);
-  motionValues.forEach((motionValue) => {
-    if (!motionValue) return;
-    if (typeof motionValue.jump === 'function') motionValue.jump(next);
-    else motionValue.set(next);
-  });
-}
 
-function ElasticCursor() {
-  const cursor = useRef(null);
-  const dot = useRef(null);
-  const mouse = useRef({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
-  const ring = useRef({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
-  const previous = useRef({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
-  const raf = useRef(null);
-
-  useEffect(() => {
-    const move = (event) => {
-      mouse.current.x = event.clientX;
-      mouse.current.y = event.clientY;
-      if (dot.current) {
-        dot.current.style.transform = `translate3d(${event.clientX}px, ${event.clientY}px, 0) translate(-50%, -50%)`;
-      }
-    };
-
-    const tick = () => {
-      ring.current.x += (mouse.current.x - ring.current.x) * 0.17;
-      ring.current.y += (mouse.current.y - ring.current.y) * 0.17;
-
-      const dx = mouse.current.x - previous.current.x;
-      const dy = mouse.current.y - previous.current.y;
-      const speed = Math.min(Math.hypot(dx, dy), 80);
-      const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-      const stretch = 1 + speed / 210;
-      const squash = 1 - speed / 420;
-
-      if (cursor.current) {
-        cursor.current.style.transform = `translate3d(${ring.current.x}px, ${ring.current.y}px, 0) translate(-50%, -50%) rotate(${angle}deg) scale(${stretch}, ${squash})`;
-      }
-
-      previous.current.x += dx * 0.35;
-      previous.current.y += dy * 0.35;
-      raf.current = requestAnimationFrame(tick);
-    };
-
-    window.addEventListener('mousemove', move);
-    raf.current = requestAnimationFrame(tick);
-
-    return () => {
-      window.removeEventListener('mousemove', move);
-      cancelAnimationFrame(raf.current);
-    };
-  }, []);
+function LanguageFlag({ code, label, className = '' }) {
+  const [failed, setFailed] = useState(false);
 
   return (
-    <>
-      <div ref={cursor} className="cursor-ring" />
-      <div ref={dot} className="cursor-dot" />
-    </>
+    <span className={`lang-flag ${className}`.trim()} aria-hidden="true">
+      {failed ? (
+        <span className="lang-flag-placeholder" />
+      ) : (
+        <img
+          src={`/language-selector/${code}.webp`}
+          alt=""
+          width={48}
+          height={48}
+          draggable={false}
+          onError={() => setFailed(true)}
+        />
+      )}
+      <span className="lang-flag-code">{label}</span>
+    </span>
   );
 }
 
-function Navigation({ active, fixed, goTo }) {
+function LanguageSelector({ language, onLanguageChange, languageCopy }) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef(null);
+  const activeLanguage = LANGUAGES.find((item) => item.code === language) ?? LANGUAGES[0];
+
+  useEffect(() => {
+    if (!open) return undefined;
+
+    const onPointerDown = (event) => {
+      if (!rootRef.current?.contains(event.target)) {
+        setOpen(false);
+      }
+    };
+
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') setOpen(false);
+    };
+
+    document.addEventListener('pointerdown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [open]);
+
+  return (
+    <div
+      ref={rootRef}
+      className={`lang-selector ${open ? 'is-open' : ''}`}
+    >
+      <button
+        type="button"
+        className="lang-selector-trigger"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label={(languageCopy?.current ?? 'Language: {label}').replace('{label}', activeLanguage.label)}
+        onClick={() => setOpen((value) => !value)}
+      >
+        <LanguageFlag code={activeLanguage.code} label={activeLanguage.label} />
+        <span className="lang-selector-arrow" aria-hidden="true" />
+      </button>
+      <ul className="lang-selector-menu" role="listbox" aria-label={languageCopy?.select ?? 'Select language'}>
+        {LANGUAGES.map((item) => (
+          <li key={item.code} role="option" aria-selected={item.code === language}>
+            <button
+              type="button"
+              className={item.code === language ? 'is-active' : ''}
+              onClick={() => {
+                onLanguageChange(item.code);
+                setOpen(false);
+              }}
+            >
+              <LanguageFlag code={item.code} label={item.label} />
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function Navigation({ active, fixed, goTo, language, onLanguageChange, sections, languageCopy }) {
   const navRef = useRef(null);
   const navActive = Math.min(active, sections.length - 1);
 
@@ -270,24 +341,23 @@ function Navigation({ active, fixed, goTo }) {
       <button className="brand" onClick={() => goTo(0)} aria-label="Go to first segment">
         <img src={logo} alt="KAJA" />
       </button>
-      <nav ref={navRef} aria-label="Section navigation">
-        {sections.map((section, index) => (
-          <button
-            key={section.label}
-            className={navActive === index ? 'active' : ''}
-            onClick={() => goTo(index)}
-          >
-            <span>{String(index + 1).padStart(2, '0')}</span>
-            {section.label}
-          </button>
-        ))}
-      </nav>
+      <div className="top-nav-end">
+        <LanguageSelector language={language} onLanguageChange={onLanguageChange} languageCopy={languageCopy} />
+        <nav ref={navRef} aria-label="Section navigation">
+          {sections.map((section, index) => (
+            <button
+              key={section.label}
+              className={navActive === index ? 'active' : ''}
+              onClick={() => goTo(index)}
+            >
+              <span>{String(index + 1).padStart(2, '0')}</span>
+              {section.label}
+            </button>
+          ))}
+        </nav>
+      </div>
     </header>
   );
-}
-
-function IntroVisual() {
-  return <div className="intro-sequence" aria-label="KAJA intro jar visual" />;
 }
 
 function ProductVisual({ type, progress, index }) {
@@ -357,158 +427,523 @@ function ContactVisual({ progress }) {
   );
 }
 
-function Segment({ section, index, active, rawProgress, sharedProgress, isMobile }) {
-  const localProgress = useMotionValue(rawProgress);
-  const localSpring = useSpring(localProgress, SPRING_CONFIG);
-  const visualProgress = active && sharedProgress ? sharedProgress : localSpring;
-  const contentProgress = localSpring;
-  const titleY = useTransform(contentProgress, [0, 1], isMobile ? [2, -5] : [6, -18]);
-  const titleOpacity = useTransform(contentProgress, [0, 1], [1, 1]);
-  const copyY = useTransform(contentProgress, [0, 1], isMobile ? [1, -3] : [3, -10]);
-  const accentY = useTransform(contentProgress, [0, 1], isMobile ? ['0.5vh', '-1.5vh'] : ['1vh', '-5vh']);
-  const counterScale = useTransform(contentProgress, [0, 1], isMobile ? [0.96, 1.06] : [0.9, 1.18]);
-  const counterY = useTransform(contentProgress, [0, 1], isMobile ? ['0.5vh', '-1.5vh'] : ['2vh', '-5vh']);
-  const gridOpacity = useTransform(contentProgress, [0, 1], [0.32, 1]);
-  const gridY = useTransform(contentProgress, [0, 1], isMobile ? ['0.6vh', '-0.6vh'] : ['2vh', '-2vh']);
+function Segment({ section, index, sectionRef, isActive, segmentProgress, frozenProgress, isMobile }) {
+  const effectiveProgress = frozenProgress ?? segmentProgress;
+  const motion = segmentMotionValues(effectiveProgress, isMobile);
   const isIntroSection = section.shape === 'intro';
   const isHangerSection = section.shape === 'hanger';
   const isContactSection = section.shape === 'contact';
+  const isJarManaged = isIntroSection || section.shape === 'stack' || section.shape === 'strips' || section.shape === 'orb';
+  const sectionClassName = `segment ${isActive ? 'is-active' : ''} ${isIntroSection ? 'is-intro-section' : ''} ${isHangerSection ? 'is-hanger-section' : ''} ${isContactSection ? 'is-contact-section' : ''}`;
 
-  useEffect(() => {
-    localProgress.set(rawProgress);
-  }, [rawProgress, localProgress]);
-
-  useEffect(() => {
-    if (!isIntroSection || !active) return;
-
-    const updateIntroBackground = (value) => {
-      const next = clamp(value, 0, 1);
-      document.documentElement.style.setProperty('--intro-bg-scale', String(1 + next * 0.075));
-      document.documentElement.style.setProperty('--intro-bg-dark', String(0.08 + next * 0.22));
-    };
-
-    updateIntroBackground(rawProgress);
-    const unsubscribe = visualProgress.on('change', updateIntroBackground);
-
-    return () => {
-      unsubscribe();
-      document.documentElement.style.setProperty('--intro-bg-scale', '1');
-      document.documentElement.style.setProperty('--intro-bg-dark', '0.08');
-    };
-  }, [isIntroSection, active, visualProgress, rawProgress]);
+  useLayoutEffect(() => {
+    if (!isHangerSection) return;
+    if (!isActive && frozenProgress == null) return;
+    window.__kajaSyncMerchHangers?.(effectiveProgress);
+  }, [isHangerSection, isActive, effectiveProgress, frozenProgress]);
 
   return (
-    <section className={`segment ${active ? 'is-active' : ''} ${isIntroSection ? 'is-intro-section' : ''} ${isHangerSection ? 'is-hanger-section' : ''} ${isContactSection ? 'is-contact-section' : ''}`} aria-hidden={!active}>
+    <section
+      ref={sectionRef}
+      data-section-index={index}
+      data-section-shape={section.shape}
+      data-section-progress={String(motion.progressScale)}
+      data-frozen-progress={frozenProgress != null ? String(frozenProgress) : undefined}
+      className={sectionClassName}
+    >
       <div className="segment-backdrop">
-        <motion.div className="grid-mask" style={{ opacity: gridOpacity, y: gridY }} />
+        {isIntroSection ? (
+          <>
+            <div
+              className="intro-backdrop-art"
+              style={{ transform: `scale(${motion.introBgScale})`, transformOrigin: 'center bottom' }}
+              aria-hidden="true"
+            />
+            <div
+              className="intro-backdrop-overlay"
+              style={{ opacity: motion.introOverlayOpacity }}
+              aria-hidden="true"
+            />
+            <div className="intro-backdrop-vignette" aria-hidden="true" />
+          </>
+        ) : null}
+        <div className="grid-mask" style={{ opacity: motion.gridOpacity, transform: `translateY(${motion.gridY})` }} />
       </div>
       <div className="segment-content">
-        <motion.p className="eyebrow" style={{ y: copyY, opacity: titleOpacity }}>{section.eyebrow}</motion.p>
-        <motion.h1 style={{ y: titleY, opacity: titleOpacity }}>{section.title}</motion.h1>
-        <motion.p className="copy" style={{ y: copyY, opacity: titleOpacity }}>{section.copy}</motion.p>
+        <p className="eyebrow" style={{ transform: `translateY(${motion.copyY}px)` }}>{section.eyebrow}</p>
+        <h1 style={{ transform: `translateY(${motion.titleY}px)` }}>{section.title}</h1>
+        <p className="copy" style={{ transform: `translateY(${motion.copyY}px)` }}>{section.copy}</p>
         <div className="progress-track">
-          <motion.span style={{ scaleX: visualProgress }} />
+          <span style={{ transform: `scaleX(${motion.progressScale})`, transformOrigin: 'left center', display: 'block', height: '100%' }} />
         </div>
       </div>
-      {isIntroSection ? (
-        <IntroVisual />
-      ) : isHangerSection ? (
-        <HangerVisual progress={visualProgress} />
-      ) : isContactSection ? (
-        <ContactVisual progress={visualProgress} />
-      ) : (
-        <ProductVisual type={section.shape} progress={visualProgress} index={index} />
+      {isHangerSection ? (
+        <div className="hanger-scene">
+          <div className="hanger-rail-wrap" style={hangerRailWrapStyle}>
+            <div className="hanger-rail" />
+            <div className="hanger-track">
+              {hangerObjects.map((item) => (
+                <div className={`hanger-object hanger-object-${item}`} key={item} style={hangerObjectStyle}>
+                  <img src={hanger} alt="" aria-hidden="true" style={hangerImageStyle} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : isJarManaged || isContactSection ? null : (
+        <div
+          className={`visual visual-${section.shape}`}
+          style={{
+            transform: `translateY(${motion.productY}) scale(${motion.productScale})`,
+            opacity: motion.productOpacity
+          }}
+        >
+          <div className="visual-glow" />
+          <div className="visual-core">
+            <img src={logo} alt="KAJA product mark" />
+          </div>
+          <div className="visual-line line-a" />
+          <div className="visual-line line-b" />
+          <span className="visual-index">{String(index + 1).padStart(2, '0')}</span>
+        </div>
       )}
-      <motion.div className="counter" style={{ y: counterY, scale: counterScale }}>{String(index + 1).padStart(2, '0')}</motion.div>
+      <div className="counter" style={{ transform: `translateY(${motion.counterY}) scale(${motion.counterScale})` }}>
+        {String(index + 1).padStart(2, '0')}
+      </div>
     </section>
   );
 }
 
-function ScrollHint({ active, progress }) {
-  if (active === FOOTER_INDEX) {
+const SegmentMemo = React.memo(Segment, (prev, next) => (
+  prev.isActive === next.isActive
+  && prev.segmentProgress === next.segmentProgress
+  && prev.frozenProgress === next.frozenProgress
+  && prev.isMobile === next.isMobile
+  && prev.index === next.index
+));
+
+function SpringPercent({ value, fallback = '0%' }) {
+  const ref = useRef(null);
+
+  useMotionValueEvent(value, 'change', (next) => {
+    if (ref.current) ref.current.textContent = `${Math.round(clamp(next, 0, 1) * 100)}%`;
+  });
+
+  useEffect(() => {
+    if (ref.current && typeof value.get === 'function') {
+      ref.current.textContent = `${Math.round(clamp(value.get(), 0, 1) * 100)}%`;
+    }
+  }, [value]);
+
+  return <span ref={ref}>{fallback}</span>;
+}
+
+function ScrollHint({
+  active,
+  displayProgress,
+  scrollHintRef,
+  logicProgress,
+  useAnimatedBar,
+  nativeScrollUnlocked,
+  returnedFromFooter,
+  sections,
+  scrollHintCopy
+}) {
+  const contactComplete = active === CONTACT_INDEX && logicProgress >= SECTION_COMPLETE - EDGE_EPSILON;
+  const showFooterHint = (nativeScrollUnlocked || contactComplete) && !returnedFromFooter;
+  const barScale = useTransform(displayProgress, (value) => clamp(value, 0, 1));
+  const staticBarScale = clamp(logicProgress, 0, 1);
+  const logicValue = contactComplete ? 1 : clamp(logicProgress, 0, 1);
+
+  if (showFooterHint) {
     return (
-      <div className="scroll-hint">
-        <span>Footer</span>
-        <div><i style={{ height: '100%' }} /></div>
-        <span>End</span>
+      <div
+        ref={scrollHintRef}
+        className="scroll-hint"
+        data-hint-mode="footer"
+        data-section-progress={contactComplete ? '1' : undefined}
+        data-progress="1"
+      >
+        <span>{scrollHintCopy?.footer ?? 'Footer'}</span>
+        <div><motion.i style={{ scaleY: 1, transformOrigin: 'bottom' }} /></div>
+        <span>{scrollHintCopy?.end ?? 'End'}</span>
       </div>
     );
   }
 
   const section = sections[active] ?? sections[sections.length - 1];
-  const displayPercent = Math.round(clamp(progress, 0, 1) * 100);
 
   return (
-    <div className="scroll-hint">
+    <div
+      ref={scrollHintRef}
+      className="scroll-hint"
+      data-hint-mode="section"
+      data-section-index={String(active)}
+      data-section-shape={section.shape}
+      data-section-progress={contactComplete ? '1' : undefined}
+      data-progress={String(logicValue)}
+    >
       <span>{section.label} {active + 1}/{sections.length}</span>
-      <div><i style={{ height: `${displayPercent}%` }} /></div>
-      <span>{displayPercent}%</span>
+      <div>
+        <motion.i
+          style={{
+            scaleY: useAnimatedBar ? barScale : staticBarScale,
+            transformOrigin: 'bottom'
+          }}
+        />
+      </div>
+      {contactComplete ? <span>100%</span> : (
+        useAnimatedBar ? <SpringPercent value={displayProgress} /> : <span>{`${Math.round(staticBarScale * 100)}%`}</span>
+      )}
     </div>
   );
 }
 
-function LegalFooter({ visible }) {
+function LegalFooter({ footerRef, footerCopy }) {
   return (
-    <footer style={{ ...footerBaseStyle, opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(44px)' }}>
-      <p style={footerNoticeStyle}>PAGE IS DESTINATED FOR PEOPLE OF AGE 18+</p>
-      <p style={footerDetailsStyle}>KAJA Studio SRL • Strada Atelierului 18, Bucharest • CUI RO48291035 • Trade Registry J40/18422/2026 • contact@kaja.example • Support Monday-Friday 09:00-17:00</p>
+    <footer ref={footerRef} className="site-footer" style={footerBaseStyle}>
+      <p style={footerNoticeStyle}>{footerCopy?.notice ?? 'PAGE IS DESTINATED FOR PEOPLE OF AGE 18+'}</p>
+      <p style={footerDetailsStyle}>{footerCopy?.details ?? 'KAJA Studio SRL • Strada Atelierului 18, Bucharest • CUI RO48291035 • Trade Registry J40/18422/2026 • contact@kaja.example • Support Monday-Friday 09:00-17:00'}</p>
     </footer>
   );
 }
 
-function App() {
+function MainSite() {
+  const locale = getLocaleFromPath();
+  const copy = useMemo(() => getLocaleCopy(locale), [locale]);
+  const sections = useMemo(() => buildSections(copy), [copy]);
+
+  useEffect(() => {
+    publishLocale(locale, copy);
+  }, [locale, copy]);
+
+  useEffect(() => {
+    const path = window.location.pathname;
+    if (ENGLISH_ALIASES.test(path)) {
+      window.location.replace('/');
+    }
+  }, []);
+
   const [active, setActive] = useState(0);
+  const [presentedActive, setPresentedActive] = useState(0);
   const [progress, setProgress] = useState(0);
-  const [sharedDisplayProgress, setSharedDisplayProgress] = useState(0);
+  const [sectionProgresses, setSectionProgresses] = useState(() => Array(SECTION_COUNT).fill(0));
   const [fixed, setFixed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [nativeScrollUnlocked, setNativeScrollUnlocked] = useState(false);
+  const [returnedFromFooter, setReturnedFromFooter] = useState(false);
   const activeRef = useRef(0);
+  const presentedActiveRef = useRef(0);
   const progressRef = useRef(0);
-  const sharedProgressRef = useRef(0);
+  const targetProgressRef = useRef(0);
+  const nativeScrollRef = useRef(false);
+  const returnedFromFooterRef = useRef(false);
+  const sectionRefs = useRef([]);
+  const footerRef = useRef(null);
+  const scrollHintRef = useRef(null);
+  const pendingFooterScroll = useRef(false);
   const lock = useRef(false);
-  const pendingTransition = useRef(null);
   const touchStart = useRef(null);
   const touchLast = useRef(null);
-  const sharedProgressSource = useMotionValue(0);
-  const sharedProgress = useSpring(sharedProgressSource, SPRING_CONFIG);
+  const armedDirectionRef = useRef(null);
+  const wheelGestureActiveRef = useRef(false);
+  const gestureIdleTimerRef = useRef(null);
+  const pendingWheelDeltaRef = useRef(0);
+  const wheelFlushRafRef = useRef(null);
+  const touchIsFirstMoveRef = useRef(true);
+  const progressUiRef = useRef(0);
+  const sectionTransitionTimerRef = useRef(null);
+  const cancelScrollSettleRef = useRef(null);
+  const frozenSectionRef = useRef(null);
+  const headerDeferredRef = useRef(false);
+  const [frozenSection, setFrozenSection] = useState(null);
+  const sectionProgressesRef = useRef(Array(SECTION_COUNT).fill(0));
+  const progressTarget = useMotionValue(0);
+  const displayProgress = useSpring(progressTarget, SCROLL_SPRING);
+  const SECTION_SCROLL_MS = 520;
 
-  const resetSharedProgress = (value) => {
-    sharedProgressRef.current = clamp(value, 0, 1);
-    setSharedDisplayProgress(sharedProgressRef.current);
-    jumpProgress(sharedProgressRef.current, sharedProgressSource, sharedProgress);
-  };
+  const snapProgressMotion = useCallback((value) => {
+    const next = clamp(value, 0, 1);
+    if (typeof progressTarget.jump === 'function') progressTarget.jump(next);
+    else progressTarget.set(next);
+    if (typeof displayProgress.jump === 'function') displayProgress.jump(next);
+    else displayProgress.set(next);
+  }, [progressTarget, displayProgress]);
 
-  const completeTransition = (pending) => {
-    const nextProgress = pending.direction > 0 && pending.to === FOOTER_INDEX ? 1 : pending.toProgress;
-    pendingTransition.current = null;
-    activeRef.current = pending.to;
-    progressRef.current = nextProgress;
-    setActive(pending.to);
-    setProgress(nextProgress);
-    setFixed(pending.to > 0 || nextProgress > 0.05);
-    resetSharedProgress(nextProgress);
-    window.setTimeout(() => { lock.current = false; }, 80);
-  };
+  const setProgressTarget = useCallback((value) => {
+    const next = clamp(value, 0, 1);
+    progressTarget.set(next);
+  }, [progressTarget]);
+
+  const syncHintProgress = useCallback((value) => {
+    if (scrollHintRef.current) {
+      scrollHintRef.current.dataset.progress = String(clamp(value, 0, 1));
+    }
+  }, []);
+
+  const syncPresentedHintProgress = useCallback(() => {
+    syncHintProgress(sectionProgressesRef.current[presentedActiveRef.current] ?? 0);
+  }, [syncHintProgress]);
+
+  const applySectionProgresses = useCallback((updater) => {
+    const next = updater(sectionProgressesRef.current);
+    sectionProgressesRef.current = next;
+    setSectionProgresses(next);
+    return next;
+  }, []);
+
+  const anchorScrollToActiveSection = useCallback(() => {
+    if (nativeScrollRef.current || lock.current) return;
+    const el = sectionRefs.current[activeRef.current];
+    if (!el) return;
+    const top = el.offsetTop;
+    if (Math.abs(window.scrollY - top) > 6) {
+      window.scrollTo({ top, behavior: 'auto' });
+    }
+  }, []);
 
   useEffect(() => {
-    sharedProgressSource.set(progress);
-  }, [progress, sharedProgressSource]);
+    const onScroll = () => anchorScrollToActiveSection();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [anchorScrollToActiveSection]);
+
+  const enforceFrozenSectionProgress = useCallback(() => {
+    const frozen = frozenSectionRef.current;
+    if (!frozen) return;
+    if (Math.abs((sectionProgressesRef.current[frozen.index] ?? 0) - frozen.progress) < 0.0004) return;
+    applySectionProgresses((prev) => {
+      const updated = [...prev];
+      updated[frozen.index] = frozen.progress;
+      return updated;
+    });
+  }, [applySectionProgresses]);
 
   useEffect(() => {
-    const unsubscribe = sharedProgress.on('change', (value) => {
+    return displayProgress.on('change', (value) => {
+      enforceFrozenSectionProgress();
+
+      const idx = activeRef.current;
       const next = clamp(value, 0, 1);
-      sharedProgressRef.current = next;
-      setSharedDisplayProgress(next);
+      const target = progressRef.current;
 
-      const pending = pendingTransition.current;
-      if (!pending) return;
+      if (next >= SECTION_COMPLETE - VISUAL_EDGE_EPSILON && target >= SECTION_COMPLETE - EDGE_EPSILON) {
+        armedDirectionRef.current = 'down';
+      } else if (next <= SECTION_START + VISUAL_EDGE_EPSILON && target <= SECTION_START + EDGE_EPSILON) {
+        armedDirectionRef.current = 'up';
+      } else if (next > SECTION_START + VISUAL_EDGE_EPSILON && next < SECTION_COMPLETE - VISUAL_EDGE_EPSILON) {
+        armedDirectionRef.current = null;
+      }
 
-      if (pending.direction > 0 && next >= 0.995) completeTransition(pending);
-      if (pending.direction < 0 && next <= 0.005) completeTransition(pending);
+      if (Math.abs(sectionProgressesRef.current[idx] - next) < 0.0004) return;
+      applySectionProgresses((prev) => {
+        const updated = [...prev];
+        updated[idx] = next;
+        return updated;
+      });
+      if (idx === presentedActiveRef.current) {
+        syncPresentedHintProgress();
+      }
+    });
+  }, [displayProgress, applySectionProgresses, syncPresentedHintProgress, enforceFrozenSectionProgress]);
+
+  const setSectionState = useCallback((index, nextProgress, { snap = false, deferHeader = false } = {}) => {
+    const next = clamp(nextProgress, 0, 1);
+    activeRef.current = index;
+    progressRef.current = next;
+    targetProgressRef.current = next;
+    setActive(index);
+    if (!deferHeader) {
+      setFixed(index > 0 || next > 0.05);
+    }
+
+    const uiStep = Math.round(next * 100) / 100;
+    if (uiStep !== progressUiRef.current) {
+      progressUiRef.current = uiStep;
+      setProgress(next);
+    } else if (snap || next === SECTION_START || next === SECTION_COMPLETE) {
+      setProgress(next);
+    }
+
+    if (next > EDGE_EPSILON && next < SECTION_COMPLETE - EDGE_EPSILON) {
+      armedDirectionRef.current = null;
+    }
+
+    if (snap) {
+      snapProgressMotion(next);
+      applySectionProgresses((prev) => {
+        const updated = [...prev];
+        updated[index] = next;
+        return updated;
+      });
+      syncPresentedHintProgress();
+    } else {
+      setProgressTarget(next);
+    }
+
+    anchorScrollToActiveSection();
+  }, [setProgressTarget, snapProgressMotion, syncPresentedHintProgress, anchorScrollToActiveSection, applySectionProgresses]);
+
+  const unlockNativeScroll = useCallback(() => {
+    if (nativeScrollRef.current) return;
+    returnedFromFooterRef.current = false;
+    setReturnedFromFooter(false);
+    nativeScrollRef.current = true;
+    setNativeScrollUnlocked(true);
+    document.documentElement.classList.add('kaja-footer-scroll');
+    document.body.classList.add('kaja-footer-active');
+    setSectionState(CONTACT_INDEX, 1, { snap: true });
+    pendingFooterScroll.current = true;
+  }, [setSectionState]);
+
+  useEffect(() => {
+    if (!nativeScrollUnlocked || !pendingFooterScroll.current) return;
+    pendingFooterScroll.current = false;
+
+    requestAnimationFrame(() => {
+      const footer = footerRef.current;
+      if (footer) {
+        footer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+      const contactEl = sectionRefs.current[CONTACT_INDEX];
+      if (contactEl) {
+        window.scrollTo({
+          top: contactEl.offsetTop + contactEl.offsetHeight,
+          behavior: 'smooth'
+        });
+      }
+    });
+  }, [nativeScrollUnlocked]);
+
+  const applySectionState = useCallback((index, nextProgress, snap = false, options = {}) => {
+    setSectionState(index, nextProgress, { snap, ...options });
+  }, [setSectionState]);
+
+  const applyIntroHeaderState = useCallback((instant = false) => {
+    const progress = sectionProgressesRef.current[0] ?? 0;
+    const nextFixed = progress > 0.05;
+    const nav = document.querySelector('.top-nav');
+
+    if (instant && nav) nav.classList.add('is-instant');
+    flushSync(() => setFixed(nextFixed));
+    if (instant && nav) {
+      requestAnimationFrame(() => {
+        nav.classList.remove('is-instant');
+        window.dispatchEvent(new Event('resize'));
+      });
+    }
+  }, []);
+
+  const finishSectionTransition = useCallback((index, onComplete) => {
+    sectionTransitionTimerRef.current = null;
+    if (cancelScrollSettleRef.current) {
+      cancelScrollSettleRef.current();
+      cancelScrollSettleRef.current = null;
+    }
+
+    frozenSectionRef.current = null;
+    setFrozenSection(null);
+    presentedActiveRef.current = index;
+    setPresentedActive(index);
+    syncPresentedHintProgress();
+
+    if (headerDeferredRef.current && index === 0) {
+      headerDeferredRef.current = false;
+      applyIntroHeaderState(true);
+    }
+
+    lock.current = false;
+
+    const el = sectionRefs.current[index];
+    if (el) {
+      const top = el.offsetTop;
+      if (Math.abs(window.scrollY - top) > 6) {
+        window.scrollTo({ top, behavior: 'auto' });
+      }
+    }
+
+    onComplete?.();
+  }, [syncPresentedHintProgress, applyIntroHeaderState]);
+
+  const scrollToSection = useCallback((index, toProgress = 0, behavior = 'smooth', { preserveProgress = false, onComplete } = {}) => {
+    const el = sectionRefs.current[index];
+    if (!el) return;
+
+    if (sectionTransitionTimerRef.current !== null) {
+      window.clearTimeout(sectionTransitionTimerRef.current);
+      sectionTransitionTimerRef.current = null;
+    }
+    if (cancelScrollSettleRef.current) {
+      cancelScrollSettleRef.current();
+      cancelScrollSettleRef.current = null;
+    }
+
+    const leavingIndex = activeRef.current;
+    const leavingProgress = preserveProgress
+      ? (sectionProgressesRef.current[leavingIndex] ?? 0)
+      : (toProgress === SECTION_START ? SECTION_COMPLETE : SECTION_START);
+    const frozen = { index: leavingIndex, progress: leavingProgress };
+    frozenSectionRef.current = frozen;
+    flushSync(() => {
+      setFrozenSection(frozen);
+      applySectionProgresses((prev) => {
+        const next = [...prev];
+        next[leavingIndex] = leavingProgress;
+        next[index] = clamp(toProgress, 0, 1);
+        return next;
+      });
+      syncPresentedHintProgress();
     });
 
-    return unsubscribe;
-  }, [sharedProgress, sharedProgressSource]);
+    lock.current = true;
+    armedDirectionRef.current = null;
+    const deferHeader = index === 0 && leavingIndex > 0;
+    headerDeferredRef.current = deferHeader;
+    applySectionState(index, toProgress, true, { deferHeader });
+
+    const targetTop = el.offsetTop;
+    const maxWait = getSectionScrollDuration(leavingIndex, index, behavior, SECTION_SCROLL_MS);
+    window.scrollTo({ top: targetTop, behavior: behavior === 'smooth' ? 'smooth' : 'auto' });
+
+    let finished = false;
+    const complete = () => {
+      if (finished) return;
+      finished = true;
+      if (preserveProgress) {
+        snapProgressMotion(toProgress);
+      }
+      finishSectionTransition(index, onComplete);
+    };
+
+    cancelScrollSettleRef.current = waitForScrollSettle(targetTop, maxWait, complete);
+    sectionTransitionTimerRef.current = window.setTimeout(complete, maxWait);
+  }, [applySectionState, finishSectionTransition, applySectionProgresses, syncPresentedHintProgress, snapProgressMotion]);
+
+  const lockNativeScroll = useCallback((behavior = 'smooth') => {
+    if (!nativeScrollRef.current || lock.current) return;
+    lock.current = true;
+
+    returnedFromFooterRef.current = true;
+    setReturnedFromFooter(true);
+    applySectionState(CONTACT_INDEX, 1, true);
+
+    const contactEl = sectionRefs.current[CONTACT_INDEX];
+    if (contactEl) {
+      contactEl.scrollIntoView({ behavior, block: 'start' });
+    }
+
+    window.setTimeout(() => {
+      presentedActiveRef.current = CONTACT_INDEX;
+      setPresentedActive(CONTACT_INDEX);
+      syncPresentedHintProgress();
+      nativeScrollRef.current = false;
+      setNativeScrollUnlocked(false);
+      document.documentElement.classList.remove('kaja-footer-scroll');
+      document.body.classList.remove('kaja-footer-active');
+      lock.current = false;
+    }, behavior === 'smooth' ? SECTION_SCROLL_MS : 100);
+  }, [applySectionState, syncPresentedHintProgress]);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.matchMedia('(max-width: 900px)').matches);
@@ -517,121 +952,217 @@ function App() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const goTo = (target) => {
+  const goTo = useCallback((target) => {
     const next = clamp(target, 0, sections.length - 1);
-    pendingTransition.current = null;
-    lock.current = false;
-    activeRef.current = next;
-    progressRef.current = 0;
-    setActive(next);
-    setProgress(0);
-    resetSharedProgress(0);
-    setFixed(next > 0);
-  };
+    if (nativeScrollRef.current) lockNativeScroll();
+    returnedFromFooterRef.current = false;
+    setReturnedFromFooter(false);
+
+    if (next === activeRef.current) return;
+
+    const progress = sectionProgressesRef.current[next] ?? 0;
+    scrollToSection(next, progress, 'smooth', { preserveProgress: true });
+  }, [lockNativeScroll, scrollToSection]);
 
   useEffect(() => {
-    const update = (nextActive, nextProgress) => {
-      activeRef.current = nextActive;
-      progressRef.current = nextProgress;
-      setActive(nextActive);
-      setProgress(nextProgress);
-      setFixed(nextActive > 0 || nextProgress > 0.05);
+    const readVisualProgress = () => clamp(displayProgress.get(), 0, 1);
+
+    const commitProgress = (sectionIndex, requestedProgress) => {
+      const visual = readVisualProgress();
+      let next = clamp(requestedProgress, 0, 1);
+      const lead = next - visual;
+      if (lead > MAX_TARGET_LEAD) next = visual + MAX_TARGET_LEAD;
+      else if (lead < -MAX_TARGET_LEAD) next = visual - MAX_TARGET_LEAD;
+      applySectionState(sectionIndex, next);
     };
 
-    const waitForSharedProgress = (to, direction, toProgress = 0) => {
-      const pending = { to, direction, toProgress };
-      const currentSharedProgress = sharedProgressRef.current;
-
-      if ((direction > 0 && currentSharedProgress >= 0.995) || (direction < 0 && currentSharedProgress <= 0.005)) {
-        lock.current = true;
-        completeTransition(pending);
+    const armAtEdge = () => {
+      const visual = readVisualProgress();
+      const target = progressRef.current;
+      if (visual >= SECTION_COMPLETE - VISUAL_EDGE_EPSILON && target >= SECTION_COMPLETE - EDGE_EPSILON) {
+        armedDirectionRef.current = 'down';
         return;
       }
-
-      pendingTransition.current = pending;
-      lock.current = true;
-      update(activeRef.current, direction > 0 ? 1 : 0);
+      if (visual <= SECTION_START + VISUAL_EDGE_EPSILON && target <= SECTION_START + EDGE_EPSILON) {
+        armedDirectionRef.current = 'up';
+        return;
+      }
+      armedDirectionRef.current = null;
     };
 
-    const advance = (delta, divisor = 1700) => {
-      if (lock.current || !delta) return;
+    const tryCommitSectionAdvance = (direction) => {
+      if (direction > 0 && armedDirectionRef.current !== 'down') return false;
+      if (direction < 0 && armedDirectionRef.current !== 'up') return false;
+
+      const sectionIndex = activeRef.current;
+      const visual = readVisualProgress();
+      const target = progressRef.current;
+
+      if (direction > 0) {
+        if (visual < SECTION_COMPLETE - VISUAL_EDGE_EPSILON) return false;
+        if (target < SECTION_COMPLETE - EDGE_EPSILON) return false;
+        armedDirectionRef.current = null;
+        if (sectionIndex === CONTACT_INDEX) {
+          unlockNativeScroll();
+        } else if (sectionIndex < CONTACT_INDEX) {
+          scrollToSection(sectionIndex + 1, 0);
+        }
+        return true;
+      }
+
+      if (visual > SECTION_START + VISUAL_EDGE_EPSILON) return false;
+      if (target > SECTION_START + EDGE_EPSILON) return false;
+      armedDirectionRef.current = null;
+      if (sectionIndex > 0) scrollToSection(sectionIndex - 1, 1);
+      return true;
+    };
+
+    const applyProgressDelta = (delta, divisor = WHEEL_PROGRESS_DIVISOR, maxStep = WHEEL_STEP_MAX) => {
+      if (lock.current || !delta || nativeScrollRef.current) return;
 
       const direction = Math.sign(delta);
-      const amount = clamp(Math.abs(delta) / divisor, 0.014, 0.078);
-      let nextActive = activeRef.current;
-      let nextProgress = progressRef.current + amount * direction;
+      const amount = clamp(Math.abs(delta) / divisor, WHEEL_STEP_MIN, maxStep);
+      const sectionIndex = activeRef.current;
+      const current = progressRef.current;
 
-      if (direction > 0 && nextActive === FOOTER_INDEX) return;
-
-      if (direction < 0 && nextActive === FOOTER_INDEX) {
-        waitForSharedProgress(sections.length - 1, -1, 1);
+      if (direction > 0) {
+        if (current >= SECTION_COMPLETE - EDGE_EPSILON) return;
+        commitProgress(sectionIndex, Math.min(SECTION_COMPLETE, current + amount));
         return;
       }
 
-      if (nextProgress >= 1) {
-        const target = nextActive < sections.length - 1 ? nextActive + 1 : FOOTER_INDEX;
-        waitForSharedProgress(target, 1, target === FOOTER_INDEX ? 1 : 0);
-        return;
-      }
+      if (current <= SECTION_START + EDGE_EPSILON) return;
+      commitProgress(sectionIndex, Math.max(SECTION_START, current - amount));
+    };
 
-      if (nextProgress <= 0) {
-        if (nextActive > 0 && direction < 0) {
-          waitForSharedProgress(nextActive - 1, -1, 1);
-          return;
-        }
-        nextProgress = 0;
-      }
+    const flushWheelDelta = () => {
+      wheelFlushRafRef.current = null;
+      const delta = pendingWheelDeltaRef.current;
+      if (!delta) return;
 
-      update(nextActive, clamp(nextProgress, 0, 1));
+      const direction = Math.sign(delta);
+      const totalAmount = Math.abs(delta) / WHEEL_PROGRESS_DIVISOR;
+      const appliedAmount = Math.min(totalAmount, FRAME_PROGRESS_MAX);
+      const remainingAmount = Math.max(0, totalAmount - appliedAmount);
+
+      applyProgressDelta(direction * appliedAmount * WHEEL_PROGRESS_DIVISOR, WHEEL_PROGRESS_DIVISOR, FRAME_PROGRESS_MAX);
+
+      pendingWheelDeltaRef.current = remainingAmount > 0 ? direction * remainingAmount * WHEEL_PROGRESS_DIVISOR : 0;
+      if (pendingWheelDeltaRef.current !== 0) {
+        wheelFlushRafRef.current = requestAnimationFrame(flushWheelDelta);
+      }
+    };
+
+    const queueWheelDelta = (delta) => {
+      pendingWheelDeltaRef.current += delta;
+      if (wheelFlushRafRef.current !== null) return;
+      wheelFlushRafRef.current = requestAnimationFrame(flushWheelDelta);
+    };
+
+    const scheduleGestureEnd = () => {
+      if (gestureIdleTimerRef.current !== null) {
+        window.clearTimeout(gestureIdleTimerRef.current);
+      }
+      gestureIdleTimerRef.current = window.setTimeout(() => {
+        gestureIdleTimerRef.current = null;
+        wheelGestureActiveRef.current = false;
+        armAtEdge();
+      }, GESTURE_IDLE_MS);
     };
 
     const onWheel = (event) => {
+      if (nativeScrollRef.current) {
+        const contactEl = sectionRefs.current[CONTACT_INDEX];
+        const footerEl = footerRef.current;
+        const contactTop = contactEl?.offsetTop ?? 0;
+        const footerTop = footerEl?.offsetTop ?? contactTop + (contactEl?.offsetHeight ?? 0);
+        const inFooterZone = window.scrollY >= footerTop - 48;
+
+        if (event.deltaY < 0) {
+          event.preventDefault();
+          if (inFooterZone || window.scrollY > contactTop + 16) {
+            lockNativeScroll('smooth');
+            return;
+          }
+          lockNativeScroll('smooth');
+          if (tryCommitSectionAdvance(-1)) return;
+          applyProgressDelta(event.deltaY, WHEEL_PROGRESS_DIVISOR);
+        }
+        return;
+      }
+
       event.preventDefault();
-      advance(event.deltaY, 1700);
+
+      const isNewGesture = !wheelGestureActiveRef.current;
+      wheelGestureActiveRef.current = true;
+      scheduleGestureEnd();
+
+      if (isNewGesture && tryCommitSectionAdvance(Math.sign(event.deltaY))) {
+        return;
+      }
+
+      queueWheelDelta(event.deltaY);
     };
 
     const onTouchStart = (event) => {
-      if (event.target.closest('nav')) return;
+      if (nativeScrollRef.current) return;
+      if (event.target.closest('nav, .lang-selector')) return;
       const touch = event.touches[0];
       touchStart.current = touch.clientY;
       touchLast.current = touch.clientY;
+      touchIsFirstMoveRef.current = true;
     };
 
     const onTouchMove = (event) => {
-      if (event.target.closest('nav')) return;
+      if (nativeScrollRef.current) return;
+      if (event.target.closest('nav, .lang-selector')) return;
       if (touchLast.current === null) return;
       event.preventDefault();
       const touch = event.touches[0];
       const delta = touchLast.current - touch.clientY;
       touchLast.current = touch.clientY;
-      advance(delta, 540);
+
+      if (touchIsFirstMoveRef.current) {
+        touchIsFirstMoveRef.current = false;
+        if (tryCommitSectionAdvance(Math.sign(delta))) return;
+      }
+
+      applyProgressDelta(delta, TOUCH_PROGRESS_DIVISOR);
     };
 
     const onTouchEnd = () => {
       touchStart.current = null;
       touchLast.current = null;
+      touchIsFirstMoveRef.current = true;
+      armAtEdge();
     };
 
     const onKeyDown = (event) => {
       if (['ArrowDown', 'PageDown', ' '].includes(event.key)) {
+        if (nativeScrollRef.current) return;
         event.preventDefault();
-        if (activeRef.current === FOOTER_INDEX) return;
-        if (progressRef.current < 1) {
-          update(activeRef.current, 1);
-        } else {
-          const target = activeRef.current < sections.length - 1 ? activeRef.current + 1 : FOOTER_INDEX;
-          waitForSharedProgress(target, 1, target === FOOTER_INDEX ? 1 : 0);
-        }
+        if (tryCommitSectionAdvance(1)) return;
+        applyProgressDelta(120 * SCROLL_SPEED, 1);
+        armAtEdge();
       }
       if (['ArrowUp', 'PageUp'].includes(event.key)) {
-        event.preventDefault();
-        if (activeRef.current === FOOTER_INDEX) {
-          waitForSharedProgress(sections.length - 1, -1, 1);
-        } else if (progressRef.current > 0) {
-          update(activeRef.current, 0);
-        } else if (activeRef.current > 0) {
-          waitForSharedProgress(activeRef.current - 1, -1, 1);
+        if (nativeScrollRef.current) {
+          event.preventDefault();
+          const contactTop = sectionRefs.current[CONTACT_INDEX]?.offsetTop ?? 0;
+          const footerTop = footerRef.current?.offsetTop ?? Infinity;
+          if (window.scrollY >= footerTop - 48 || window.scrollY > contactTop + 16) {
+            lockNativeScroll('smooth');
+            return;
+          }
+          lockNativeScroll('smooth');
+          if (tryCommitSectionAdvance(-1)) return;
+          applyProgressDelta(-120 * SCROLL_SPEED, 1);
+          return;
         }
+        event.preventDefault();
+        if (tryCommitSectionAdvance(-1)) return;
+        applyProgressDelta(-120 * SCROLL_SPEED, 1);
+        armAtEdge();
       }
     };
 
@@ -641,7 +1172,6 @@ function App() {
     window.addEventListener('touchend', onTouchEnd);
     window.addEventListener('touchcancel', onTouchEnd);
     window.addEventListener('keydown', onKeyDown);
-    document.body.classList.add('no-scroll');
 
     return () => {
       window.removeEventListener('wheel', onWheel);
@@ -650,34 +1180,80 @@ function App() {
       window.removeEventListener('touchend', onTouchEnd);
       window.removeEventListener('touchcancel', onTouchEnd);
       window.removeEventListener('keydown', onKeyDown);
-      document.body.classList.remove('no-scroll');
+      if (gestureIdleTimerRef.current !== null) {
+        window.clearTimeout(gestureIdleTimerRef.current);
+      }
+      if (wheelFlushRafRef.current !== null) {
+        cancelAnimationFrame(wheelFlushRafRef.current);
+      }
+      if (sectionTransitionTimerRef.current !== null) {
+        window.clearTimeout(sectionTransitionTimerRef.current);
+      }
+      if (cancelScrollSettleRef.current) {
+        cancelScrollSettleRef.current();
+      }
     };
-  }, []);
+  }, [applySectionState, scrollToSection, unlockNativeScroll, lockNativeScroll, displayProgress]);
 
-  const visibleSections = useMemo(() => sections.map((section, index) => ({ section, index })), []);
-  const footerVisible = active === FOOTER_INDEX;
+  const navigateToLocale = useCallback((code) => {
+    if (code === locale) return;
+    window.location.assign(getLocalePath(code));
+  }, [locale]);
+
+  const visibleSections = useMemo(() => sections.map((section, index) => ({ section, index })), [sections]);
 
   return (
-    <main>
+    <main className={nativeScrollUnlocked ? 'has-footer-scroll' : ''}>
       <ElasticCursor />
-      <Navigation active={active} fixed={fixed || footerVisible} goTo={goTo} />
+      <Navigation
+        active={active}
+        fixed={fixed || nativeScrollUnlocked}
+        goTo={goTo}
+        language={locale}
+        onLanguageChange={navigateToLocale}
+        sections={sections}
+        languageCopy={copy.language}
+      />
       <div className="stage">
         {visibleSections.map(({ section, index }) => (
-          <Segment
-            key={section.label}
+          <SegmentMemo
+            key={`${section.shape}-${index}`}
             section={section}
             index={index}
-            active={footerVisible ? index === sections.length - 1 : active === index}
-            rawProgress={footerVisible ? 1 : active === index ? progress : active > index ? 1 : 0}
-            sharedProgress={sharedProgress}
+            sectionRef={(element) => {
+              sectionRefs.current[index] = element;
+            }}
+            isActive={active === index}
+            segmentProgress={sectionProgresses[index] ?? 0}
+            frozenProgress={frozenSection?.index === index ? frozenSection.progress : null}
             isMobile={isMobile}
           />
         ))}
       </div>
-      <ScrollHint active={active} progress={footerVisible ? 1 : sharedDisplayProgress} />
-      <LegalFooter visible={footerVisible} />
+      <ScrollHint
+        active={presentedActive}
+        displayProgress={displayProgress}
+        scrollHintRef={scrollHintRef}
+        logicProgress={sectionProgresses[presentedActive] ?? 0}
+        useAnimatedBar={presentedActive === active}
+        nativeScrollUnlocked={nativeScrollUnlocked}
+        returnedFromFooter={returnedFromFooter}
+        sections={sections}
+        scrollHintCopy={copy.scrollHint}
+      />
+      {nativeScrollUnlocked ? <LegalFooter footerRef={footerRef} footerCopy={copy.footer} /> : null}
     </main>
   );
+}
+
+function App() {
+  const [approved, setApproved] = useState(() => isEntryApproved());
+
+  if (!approved) {
+    return <EntryGate onApproved={() => setApproved(true)} />;
+  }
+
+  return <MainSite />;
 }
 
 createRoot(document.getElementById('root')).render(<App />);

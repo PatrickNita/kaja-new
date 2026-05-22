@@ -18,8 +18,17 @@
       pointer-events: none !important;
     }
 
-    .segment.is-active .kaja-section-cta-row,
+    .segment.is-active .kaja-section-cta-row {
+      display: flex !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      pointer-events: auto !important;
+    }
+
     .segment.is-active .kaja-contact-socials {
+      display: grid !important;
+      visibility: visible !important;
+      opacity: 1 !important;
       pointer-events: auto !important;
     }
 
@@ -149,9 +158,50 @@
 
   const byIndex = (index) => document.querySelectorAll('.segment')[index] || null;
 
+  function localePagePath(page) {
+    if (typeof window.__kajaLocale?.pagePath === 'function') {
+      return window.__kajaLocale.pagePath(page);
+    }
+
+    const match = window.location.pathname.match(/^\/(ro|ru|es|de)(?:\/|$)/);
+    const locale = window.__kajaLocale?.locale ?? (match ? match[1] : 'en');
+    if (locale === 'en') return `/${page}`;
+    return `/${locale}/${page}`;
+  }
+
+  function readLocaleCopy() {
+    return window.__kajaLocale?.copy ?? {
+      cta: { catalogue: 'CHECK CATALOGUE', merch: 'CHECK MERCH' },
+      contact: {
+        company: 'Company / Details',
+        channelsAriaLabel: 'Contact channels',
+        social: {
+          instagram: 'Instagram',
+          whatsapp: 'WhatsApp',
+          telegram: 'Telegram',
+          email: 'E-mail'
+        }
+      }
+    };
+  }
+
   function addCta(section, className, text, href) {
     const content = section?.querySelector('.segment-content');
-    if (!content || content.querySelector(`.${className}`)) return;
+    if (!content) return;
+
+    const existingRow = content.querySelector(`.${className}`);
+    if (existingRow) {
+      const link = existingRow.querySelector('a');
+      if (link) {
+        if (link.getAttribute('href') !== href) {
+          link.setAttribute('href', href);
+        }
+        if (link.textContent !== text) {
+          link.textContent = text;
+        }
+      }
+      return;
+    }
 
     const row = document.createElement('div');
     row.className = `kaja-section-cta-row ${className}`;
@@ -165,23 +215,34 @@
     content.appendChild(row);
   }
 
-  const contactSocials = [
-    { label: 'Instagram', href: '#instagram', icon: '/socials/instagram.webp' },
-    { label: 'WhatsApp', href: '#whatsapp', icon: '/socials/whatsapp.webp' },
-    { label: 'Telegram', href: '#telegram', icon: '/socials/telegram.webp' },
-    { label: 'E-mail', href: 'mailto:contact@kaja-tobacco.com', icon: '/socials/mail.webp' }
+  const contactSocialKeys = [
+    { key: 'instagram', href: '#instagram', icon: '/socials/instagram.webp' },
+    { key: 'whatsapp', href: '#whatsapp', icon: '/socials/whatsapp.webp' },
+    { key: 'telegram', href: '#telegram', icon: '/socials/telegram.webp' },
+    { key: 'email', href: 'mailto:contact@kaja-tobacco.com', icon: '/socials/mail.webp' }
   ];
+
+  function getContactSocials() {
+    const social = readLocaleCopy().contact?.social ?? {};
+    return contactSocialKeys.map((item) => ({
+      label: social[item.key] ?? item.key,
+      href: item.href,
+      icon: item.icon
+    }));
+  }
 
   function addContactTextField(section) {
     const panel = section?.querySelector('.contact-form-panel');
     const dropdown = panel?.querySelector('select');
     if (!panel || !dropdown || panel.querySelector('.kaja-contact-extra-text')) return;
 
+    const companyLabel = readLocaleCopy().contact?.company ?? 'Company / Details';
+
     const input = document.createElement('input');
     input.className = 'kaja-contact-extra-text';
     input.type = 'text';
-    input.placeholder = 'Company / Details';
-    input.setAttribute('aria-label', 'Company or details');
+    input.placeholder = companyLabel;
+    input.setAttribute('aria-label', companyLabel);
     input.style.cssText = dropdown.getAttribute('style') || '';
 
     dropdown.insertAdjacentElement('afterend', input);
@@ -195,9 +256,9 @@
 
     const row = document.createElement('div');
     row.className = 'kaja-contact-socials';
-    row.setAttribute('aria-label', 'Contact channels');
+    row.setAttribute('aria-label', readLocaleCopy().contact?.channelsAriaLabel ?? 'Contact channels');
 
-    contactSocials.forEach((social) => {
+    getContactSocials().forEach((social) => {
       const link = document.createElement('a');
       link.className = 'kaja-contact-social-button';
       link.href = social.href;
@@ -219,47 +280,63 @@
     content.appendChild(row);
   }
 
-  function syncInactiveButtons() {
-    document.querySelectorAll('.segment:not(.is-active) .kaja-section-cta-row, .segment:not(.is-active) .section-link-button, .segment:not(.is-active) .kaja-contact-socials').forEach((item) => {
-      item.style.setProperty('display', 'none', 'important');
-      item.style.setProperty('visibility', 'hidden', 'important');
-      item.style.setProperty('opacity', '0', 'important');
-      item.style.setProperty('pointer-events', 'none', 'important');
+  function clearButtonVisibilityOverrides() {
+    document.querySelectorAll('.kaja-section-cta-row, .section-link-button, .kaja-contact-socials').forEach((item) => {
+      item.style.removeProperty('display');
+      item.style.removeProperty('visibility');
+      item.style.removeProperty('opacity');
+      item.style.removeProperty('pointer-events');
     });
+  }
 
-    document.querySelectorAll('.segment.is-active .kaja-section-cta-row').forEach((item) => {
-      item.style.setProperty('display', 'flex', 'important');
-      item.style.setProperty('visibility', 'visible', 'important');
-      item.style.setProperty('opacity', '1', 'important');
-      item.style.setProperty('pointer-events', 'auto', 'important');
-    });
-
-    document.querySelectorAll('.segment.is-active .kaja-contact-socials').forEach((item) => {
-      item.style.setProperty('display', 'grid', 'important');
-      item.style.setProperty('visibility', 'visible', 'important');
-      item.style.setProperty('opacity', '1', 'important');
-      item.style.setProperty('pointer-events', 'auto', 'important');
-    });
+  function ensureContactSectionUi() {
+    const contactSection = byIndex(5);
+    if (!contactSection) return;
+    addContactTextField(contactSection);
+    addContactSocialButtons(contactSection);
+    clearButtonVisibilityOverrides();
   }
 
   function enhanceSections() {
+    const copy = readLocaleCopy();
     const catalogueSection = byIndex(2);
     const merchSection = byIndex(4);
-    const contactSection = byIndex(5);
 
-    addCta(catalogueSection, 'kaja-catalogue-cta', 'Check Catalogue', '#catalogue');
-    addCta(merchSection, 'kaja-merch-cta', 'Check Merch', '#merch');
-    addContactTextField(contactSection);
-    addContactSocialButtons(contactSection);
-    syncInactiveButtons();
+    addCta(catalogueSection, 'kaja-catalogue-cta', copy.cta?.catalogue ?? 'CHECK CATALOGUE', localePagePath('catalogue'));
+    addCta(merchSection, 'kaja-merch-cta', copy.cta?.merch ?? 'CHECK MERCH', localePagePath('merch'));
+    ensureContactSectionUi();
   }
 
-  const observer = new MutationObserver(enhanceSections);
-  observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style'] });
+  let enhanceTimer = null;
+  function scheduleEnhanceSections(delay = 50) {
+    if (enhanceTimer !== null) window.clearTimeout(enhanceTimer);
+    enhanceTimer = window.setTimeout(() => {
+      enhanceTimer = null;
+      enhanceSections();
+    }, delay);
+  }
+
+  const observer = new MutationObserver((mutations) => {
+    let classChanged = false;
+    let structureChanged = false;
+
+    for (const mutation of mutations) {
+      if (mutation.type === 'childList') structureChanged = true;
+      if (mutation.type === 'attributes' && mutation.attributeName === 'class') classChanged = true;
+    }
+
+    if (classChanged) {
+      ensureContactSectionUi();
+    }
+
+    if (structureChanged) {
+      scheduleEnhanceSections(50);
+    } else if (classChanged) {
+      scheduleEnhanceSections(0);
+    }
+  });
+  observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
 
   window.addEventListener('load', enhanceSections);
-  requestAnimationFrame(function tick() {
-    enhanceSections();
-    requestAnimationFrame(tick);
-  });
+  enhanceSections();
 })();

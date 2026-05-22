@@ -48,6 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.body.prepend(loader);
   window.setTimeout(() => {
     loader.classList.add('is-hidden');
+    window.dispatchEvent(new Event('kaja-loader-finished'));
     window.setTimeout(() => loader.remove(), 520);
   }, 1000);
 });

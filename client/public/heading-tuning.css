@@ -2,7 +2,6 @@ h1 {
   letter-spacing: -0.018em !important;
 }
 
-.is-intro-section .intro-sequence,
 .is-intro-section .visual,
 .is-intro-section .visual-panel {
   display: none !important;

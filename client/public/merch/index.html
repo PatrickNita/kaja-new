@@ -132,23 +132,27 @@
     <div class="cursor-ring" aria-hidden="true"></div>
     <div class="cursor-dot" aria-hidden="true"></div>
     <header>
-      <a class="back" href="/">← Back to KAJA</a>
-      <span style="color:rgba(255,255,255,.48);font-size:12px;letter-spacing:.16em;text-transform:uppercase">Merch</span>
+      <a class="back" href="/" data-locale-home data-i18n="back">← Back to KAJA</a>
+      <span style="color:rgba(255,255,255,.48);font-size:12px;letter-spacing:.16em;text-transform:uppercase" data-i18n="navLabel">Merch</span>
     </header>
     <main>
-      <h1>Merch</h1>
-      <p class="lead">A modular merch layout with equal-width blocks and varied heights, designed to fit together like a visual puzzle.</p>
-      <section class="masonry" aria-label="Merch products">
-        <article class="item"><span>Merch 01</span><strong>Oversized Tee</strong><p>Placeholder block for product imagery, details, and pricing.</p></article>
-        <article class="item"><span>Merch 02</span><strong>Cap</strong><p>Equal width, different height.</p></article>
-        <article class="item"><span>Merch 03</span><strong>Hoodie</strong><p>Large feature block for a hero merch item.</p></article>
-        <article class="item"><span>Merch 04</span><strong>Tote Bag</strong><p>Compact product card.</p></article>
-        <article class="item"><span>Merch 05</span><strong>Poster Set</strong><p>More space for visuals and copy.</p></article>
-        <article class="item"><span>Merch 06</span><strong>Sticker Pack</strong><p>Small item, same column width.</p></article>
-        <article class="item"><span>Merch 07</span><strong>Track Jacket</strong><p>Mid-size product module.</p></article>
-        <article class="item"><span>Merch 08</span><strong>Limited Drop</strong><p>Use this for special product releases.</p></article>
+      <h1 data-i18n="title">Merch</h1>
+      <p class="lead" data-i18n="lead">A modular merch layout with equal-width blocks and varied heights, designed to fit together like a visual puzzle.</p>
+      <section class="masonry" data-i18n-aria="gridAriaLabel" aria-label="Merch products">
+        <article class="item" data-image-key="OVERSIZED TEE"><span>Merch 01</span><strong>Oversized Tee</strong><p>Placeholder block for product imagery, details, and pricing.</p></article>
+        <article class="item" data-image-key="CAP"><span>Merch 02</span><strong>Cap</strong><p>Equal width, different height.</p></article>
+        <article class="item" data-image-key="HOODIE"><span>Merch 03</span><strong>Hoodie</strong><p>Large feature block for a hero merch item.</p></article>
+        <article class="item" data-image-key="TOTE BAG"><span>Merch 04</span><strong>Tote Bag</strong><p>Compact product card.</p></article>
+        <article class="item" data-image-key="POSTER SET"><span>Merch 05</span><strong>Poster Set</strong><p>More space for visuals and copy.</p></article>
+        <article class="item" data-image-key="STICKER PACK"><span>Merch 06</span><strong>Sticker Pack</strong><p>Small item, same column width.</p></article>
+        <article class="item" data-image-key="TRACK JACKET"><span>Merch 07</span><strong>Track Jacket</strong><p>Mid-size product module.</p></article>
+        <article class="item" data-image-key="LIMITED DROP"><span>Merch 08</span><strong>Limited Drop</strong><p>Use this for special product releases.</p></article>
       </section>
     </main>
+    <script src="/merch-slug.js"></script>
+    <script src="/locale-subpage.js"></script>
+    <script src="/locale-page-links.js"></script>
+    <script src="/merch-product-data.js"></script>
     <script src="/cursor-hover.js"></script>
     <script>
       const ring = document.querySelector('.cursor-ring');

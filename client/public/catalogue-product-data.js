@@ -10,6 +10,12 @@ body > header {
   z-index: 1 !important;
 }
 
+.grid[aria-label="Flavour catalogue"] .card-link {
+  display: block !important;
+  color: inherit !important;
+  text-decoration: none !important;
+}
+
 .grid[aria-label="Flavour catalogue"] .card {
   z-index: 1 !important;
   isolation: isolate !important;
@@ -70,20 +76,74 @@ body > header {
 `;
 document.head.appendChild(catalogueProductDataStyle);
 
+const DEFAULT_LOCALE = 'en';
 let catalogueProductsCache = null;
+
+function getLocaleFromPath(pathname = window.location.pathname) {
+  if (window.KajaCatalogueSlug) {
+    return window.KajaCatalogueSlug.getLocaleFromPath(pathname);
+  }
+
+  const localizedSubpage = pathname.match(/^\/(ro|ru|es|de)\/(catalogue|merch)\/?$/);
+  if (localizedSubpage) return localizedSubpage[1];
+
+  const localizedHome = pathname.match(/^\/(ro|ru|es|de)(?:\/|$)/);
+  if (localizedHome) return localizedHome[1];
+
+  if (/^\/en\/?$/.test(pathname)) return DEFAULT_LOCALE;
+  return DEFAULT_LOCALE;
+}
 
 function normalizeProductName(name) {
   return String(name || '').trim().toLowerCase();
 }
 
+function getCardImageKey(card) {
+  const style = card.getAttribute('style') || '';
+  const match = style.match(/\/products\/([^?)]+)\.(?:webp|jpg)/i);
+  if (!match) return '';
+  return normalizeProductName(decodeURIComponent(match[1]));
+}
+
+function getProductKey(product) {
+  return normalizeProductName(product?.imageKey ?? product?.name ?? product?.['Product Name']);
+}
+
+function getProductName(product) {
+  return product?.name ?? product?.['Product Name'] ?? '';
+}
+
+function getProductIngredients(product) {
+  const ingredients = product?.ingredients ?? product?.Ingredients;
+  return Array.isArray(ingredients)
+    ? ingredients.map((ingredient) => String(ingredient).trim()).filter(Boolean)
+    : [];
+}
+
 async function getCatalogueProducts() {
   if (catalogueProductsCache) return catalogueProductsCache;
 
-  const response = await fetch(`/catalogue/products.json?v=${Date.now()}`, { cache: 'no-store' });
-  if (!response.ok) return [];
+  const locale = getLocaleFromPath();
 
-  catalogueProductsCache = await response.json();
-  return catalogueProductsCache;
+  try {
+    const response = await fetch(`/locales/${locale}.json?v=${Date.now()}`, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`Locale fetch failed: ${response.status}`);
+    const copy = await response.json();
+    catalogueProductsCache = copy.pages?.catalogue?.items ?? [];
+    return catalogueProductsCache;
+  } catch {
+    if (locale === DEFAULT_LOCALE) return [];
+
+    try {
+      const response = await fetch(`/locales/${DEFAULT_LOCALE}.json?v=${Date.now()}`, { cache: 'no-store' });
+      if (!response.ok) return [];
+      const copy = await response.json();
+      catalogueProductsCache = copy.pages?.catalogue?.items ?? [];
+      return catalogueProductsCache;
+    } catch {
+      return [];
+    }
+  }
 }
 
 async function loadCatalogueProductData() {
@@ -93,15 +153,28 @@ async function loadCatalogueProductData() {
   try {
     const products = await getCatalogueProducts();
     const productMap = new Map(
-      products.map((product) => [normalizeProductName(product['Product Name']), product])
+      products.map((product) => [getProductKey(product), product])
     );
+
+    const slugApi = window.KajaCatalogueSlug;
+    const locale = getLocaleFromPath();
 
     grid.querySelectorAll('.card').forEach((card) => {
       const name = card.querySelector('strong')?.textContent || '';
-      const product = productMap.get(normalizeProductName(name));
-      const ingredients = Array.isArray(product?.Ingredients)
-        ? product.Ingredients.map((ingredient) => String(ingredient).trim()).filter(Boolean)
-        : [];
+      const product = productMap.get(getCardImageKey(card)) ?? productMap.get(normalizeProductName(name));
+      const ingredients = getProductIngredients(product);
+      const imageKey = product?.imageKey ?? getCardImageKey(card);
+
+      if (slugApi && imageKey) {
+        const cardLink = card.closest('.card-link') ?? document.createElement('a');
+        if (!card.closest('.card-link')) {
+          cardLink.className = 'card-link';
+          card.parentNode.insertBefore(cardLink, card);
+          cardLink.appendChild(card);
+        }
+        cardLink.href = slugApi.getProductPath(slugApi.imageKeyToSlug(imageKey), locale);
+        cardLink.setAttribute('aria-label', product?.name ?? name);
+      }
 
       card.querySelector('.catalogue-ingredient-badges')?.remove();
       if (!ingredients.length) return;

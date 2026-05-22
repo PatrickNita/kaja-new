@@ -112,41 +112,72 @@ function addContactTextField() {
   dropdown.insertAdjacentElement('afterend', input);
 }
 
-function addContactSocialButtons() {
+function ensureContactSocialButtons() {
   addContactTextField();
 
   const contactSection = Array.from(document.querySelectorAll('.segment')).find((item) => item.querySelector('h1')?.textContent?.trim() === 'Start the conversation.');
   const content = contactSection?.querySelector('.segment-content');
-  if (!content || content.querySelector('.kaja-contact-socials')) return;
+  if (!content) return;
 
-  const row = document.createElement('div');
-  row.className = 'kaja-contact-socials';
-  row.setAttribute('aria-label', 'Contact channels');
+  if (!content.querySelector('.kaja-contact-socials')) {
+    const row = document.createElement('div');
+    row.className = 'kaja-contact-socials';
+    row.setAttribute('aria-label', 'Contact channels');
 
-  contactSocials.forEach((social) => {
-    const link = document.createElement('a');
-    link.className = 'kaja-contact-social-button';
-    link.href = social.href;
-    link.setAttribute('aria-label', social.label);
+    contactSocials.forEach((social) => {
+      const link = document.createElement('a');
+      link.className = 'kaja-contact-social-button';
+      link.href = social.href;
+      link.setAttribute('aria-label', social.label);
 
-    const image = document.createElement('img');
-    image.src = social.icon;
-    image.alt = '';
-    image.setAttribute('aria-hidden', 'true');
+      const image = document.createElement('img');
+      image.src = social.icon;
+      image.alt = '';
+      image.setAttribute('aria-hidden', 'true');
 
-    const text = document.createElement('span');
-    text.textContent = social.label;
+      const text = document.createElement('span');
+      text.textContent = social.label;
 
-    link.appendChild(image);
-    link.appendChild(text);
-    row.appendChild(link);
+      link.appendChild(image);
+      link.appendChild(text);
+      row.appendChild(link);
+    });
+
+    content.appendChild(row);
+  }
+
+  content.querySelectorAll('.kaja-contact-socials').forEach((item) => {
+    item.style.removeProperty('display');
+    item.style.removeProperty('visibility');
+    item.style.removeProperty('opacity');
+    item.style.removeProperty('pointer-events');
   });
-
-  content.appendChild(row);
 }
 
-const contactSocialObserver = new MutationObserver(addContactSocialButtons);
-contactSocialObserver.observe(document.documentElement, { childList: true, subtree: true });
-window.addEventListener('load', addContactSocialButtons);
-requestAnimationFrame(addContactSocialButtons);
-setTimeout(addContactSocialButtons, 500);
+let contactSocialTimer = null;
+const contactSocialObserver = new MutationObserver((mutations) => {
+  let classChanged = false;
+  let structureChanged = false;
+
+  for (const mutation of mutations) {
+    if (mutation.type === 'childList') structureChanged = true;
+    if (mutation.type === 'attributes' && mutation.attributeName === 'class') classChanged = true;
+  }
+
+  if (classChanged) {
+    ensureContactSocialButtons();
+  }
+
+  if (structureChanged) {
+    if (contactSocialTimer !== null) window.clearTimeout(contactSocialTimer);
+    contactSocialTimer = window.setTimeout(() => {
+      contactSocialTimer = null;
+      ensureContactSocialButtons();
+    }, 50);
+  } else if (classChanged) {
+    ensureContactSocialButtons();
+  }
+});
+contactSocialObserver.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+window.addEventListener('load', ensureContactSocialButtons);
+ensureContactSocialButtons();

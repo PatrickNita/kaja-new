@@ -2,10 +2,10 @@ html, body, #root, main, .stage {
   min-height: 100dvh;
 }
 
-body.no-scroll,
 main,
 .stage {
-  height: 100dvh !important;
+  height: auto !important;
+  overflow: visible !important;
 }
 
 footer {

@@ -1,0 +1,596 @@
+{
+  "sections": [
+    {
+      "label": "KAJA",
+      "eyebrow": "01 / KAJA",
+      "title": "KAJA",
+      "copy": "Hookah tobacco made in Moldova. Bold, rich and authentic. For the smokers."
+    },
+    {
+      "label": "STRENGTH",
+      "eyebrow": "02 / Strength",
+      "title": "100% BURLEY LEAF",
+      "copy": "Medium strength that delivers character without overpowering. Full-bodied experience with depth and balance."
+    },
+    {
+      "label": "CATALOGUE",
+      "eyebrow": "03 / Catalogue",
+      "title": "MIXOLOGY",
+      "copy": "Our catalogue is designed to be simple and ready for mixology, while still offering texture, intensity and a full sensory experience on its own."
+    },
+    {
+      "label": "AVAILABILITY",
+      "eyebrow": "04 / Availability",
+      "title": "FIND KAJA",
+      "copy": "Available in Moldova, Germany, Spain — with more to come."
+    },
+    {
+      "label": "MERCH",
+      "eyebrow": "05 / Merch",
+      "title": "MERCH",
+      "copy": "Brand pieces made for the KAJA community. Also tools that come in handy."
+    },
+    {
+      "label": "CONTACT",
+      "eyebrow": "06 / Contact",
+      "title": "START THE CONVERSATION.",
+      "copy": "Have a question about KAJA, collaborations, or distribution? Contact us here or through our social channels."
+    }
+  ],
+  "scrollHint": {
+    "footer": "Footer",
+    "end": "End"
+  },
+  "contact": {
+    "heading": "Contact KAJA",
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone number",
+    "topic": "Topic",
+    "message": "Message",
+    "company": "Company / Details",
+    "submit": "Send request",
+    "channelsAriaLabel": "Contact channels",
+    "topics": [
+      {
+        "value": "general-contact",
+        "label": "General contact"
+      },
+      {
+        "value": "collaboration",
+        "label": "Collaboration"
+      },
+      {
+        "value": "distribution",
+        "label": "Distribution"
+      }
+    ],
+    "social": {
+      "instagram": "Instagram",
+      "whatsapp": "WhatsApp",
+      "telegram": "Telegram",
+      "email": "E-mail"
+    }
+  },
+  "footer": {
+    "notice": "PAGE IS DESTINATED FOR PEOPLE OF AGE 18+",
+    "details": "KAJA Studio SRL • Strada Atelierului 18, Bucharest • CUI RO48291035 • Trade Registry J40/18422/2026 • contact@kaja.example • Support Monday-Friday 09:00-17:00"
+  },
+  "cta": {
+    "catalogue": "CHECK CATALOGUE",
+    "merch": "CHECK MERCH"
+  },
+  "language": {
+    "select": "Select language",
+    "current": "Language: {label}"
+  },
+  "gate": {
+    "selectLanguage": "SELECT LANGUAGE",
+    "ageQuestion": "ARE YOU OVER 18?",
+    "informational": "THIS WEBSITE IS STRICTLY INFORMATIONAL",
+    "noSale": "UNDER NO CIRCUMSTANCES THIS PAGE ALLOWS THE SELL OF TOBACCO PRODUCTS.",
+    "instruction": "YES IS OBLIGATORY, only after pressing yes you are allowed to homepage, if you press no you are redirected to google.com.",
+    "yes": "YES",
+    "no": "NO",
+    "languageSelect": "Select language",
+    "languageNames": {
+      "en": "ENGLISH",
+      "ro": "ROMANIAN",
+      "ru": "RUSSIAN",
+      "es": "SPANISH",
+      "de": "GERMAN"
+    }
+  },
+  "pages": {
+    "catalogue": {
+      "documentTitle": "KAJA Catalogue",
+      "navLabel": "Catalogue",
+      "title": "Catalogue",
+      "back": "← Back to KAJA",
+      "productBack": "← Back to catalogue",
+      "productNotFound": "Product not found.",
+      "productKicker": "Flavour",
+      "productDescriptionLabel": "Description",
+      "productIngredientsLabel": "Ingredients",
+      "productPackagingLabel": "Available packaging",
+      "productDescriptionEmpty": "No description yet.",
+      "productIngredientsEmpty": "No ingredients listed.",
+      "productPackagingEmpty": "No packaging listed.",
+      "lead": "Portrait product boxes. Upload each flavour image into the products folder using the same flavour name as its filename.",
+      "gridAriaLabel": "Flavour catalogue",
+      "items": [
+        {
+          "imageKey": "PEARADISE",
+          "name": "PEARADISE",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "PEAR SODA"
+          ]
+        },
+        {
+          "imageKey": "BRAIN FREEZE",
+          "name": "BRAIN FREEZE",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "ICE/COOLING"
+          ]
+        },
+        {
+          "imageKey": "JAMPRICOT",
+          "name": "JAMPRICOT",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "APRICOT JAM"
+          ]
+        },
+        {
+          "imageKey": "CHA ROSSO",
+          "name": "CHA ROSSO",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "RED TEA"
+          ]
+        },
+        {
+          "imageKey": "CHA VERDE",
+          "name": "CHA VERDE",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "GREEN TEA"
+          ]
+        },
+        {
+          "imageKey": "CHA NERRO",
+          "name": "CHA NERRO",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "BLACK TEA"
+          ]
+        },
+        {
+          "imageKey": "STWY",
+          "name": "STWY",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "STRAWBERRY"
+          ]
+        },
+        {
+          "imageKey": "BBRY",
+          "name": "BBRY",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "BLACKBERRY"
+          ]
+        },
+        {
+          "imageKey": "BKNT",
+          "name": "BKNT",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "BLACKCURRANT"
+          ]
+        },
+        {
+          "imageKey": "RARI",
+          "name": "RARI",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "RASPBERRY"
+          ]
+        },
+        {
+          "imageKey": "COLD RUBY",
+          "name": "COLD RUBY",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "CHERRY"
+          ]
+        },
+        {
+          "imageKey": "BANTASTIC",
+          "name": "BANTASTIC",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "BANANA MILKSHAKE"
+          ]
+        },
+        {
+          "imageKey": "GREEN & HAIRY",
+          "name": "GREEN & HAIRY",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "KIWI SMOOTHIE"
+          ]
+        },
+        {
+          "imageKey": "GINGUZU",
+          "name": "GINGUZU",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "GINGERBREAD",
+            "YUZU"
+          ]
+        },
+        {
+          "imageKey": "KERNAMEL",
+          "name": "KERNAMEL",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "POPCORN",
+            "SALTED CARAMEL"
+          ]
+        },
+        {
+          "imageKey": "LA PASSION",
+          "name": "LA PASSION",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "MARACUJA"
+          ]
+        },
+        {
+          "imageKey": "C-TRICK",
+          "name": "C-TRICK",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "LEMON CANDY"
+          ]
+        },
+        {
+          "imageKey": "MANDARLING",
+          "name": "MANDARLING",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "TANGERINE"
+          ]
+        },
+        {
+          "imageKey": "ANA'S AZZ",
+          "name": "ANA'S AZZ",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "PINEAPPLE"
+          ]
+        },
+        {
+          "imageKey": "3.14CH",
+          "name": "3.14CH",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "PEACH ICED TEA"
+          ]
+        },
+        {
+          "imageKey": "LTP",
+          "name": "LTP",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "LEMON TART PIE"
+          ]
+        },
+        {
+          "imageKey": "ALURE",
+          "name": "ALURE",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "ALOE VERA"
+          ]
+        },
+        {
+          "imageKey": "HER PLEASURE",
+          "name": "HER PLEASURE",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "APEROL SPRITZ"
+          ]
+        },
+        {
+          "imageKey": "SPOOKY",
+          "name": "SPOOKY",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "BAKED PUMPKIN"
+          ]
+        },
+        {
+          "imageKey": "FUDGE IT",
+          "name": "FUDGE IT",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "BROWNIE FUDGE"
+          ]
+        },
+        {
+          "imageKey": "MELOW",
+          "name": "MELOW",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "HONEYDEW MELON"
+          ]
+        },
+        {
+          "imageKey": "CHCK",
+          "name": "CHCK",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "CHEESECAKE"
+          ]
+        },
+        {
+          "imageKey": "CIN&MON",
+          "name": "CIN&MON",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "CINNAMON",
+            "MILK"
+          ]
+        },
+        {
+          "imageKey": "MONDAY MORNING",
+          "name": "MONDAY MORNING",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "COFFEE"
+          ]
+        },
+        {
+          "imageKey": "2LATE",
+          "name": "2LATE",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "CHOCOLATE"
+          ]
+        },
+        {
+          "imageKey": "ELDEFLEUR",
+          "name": "ELDEFLEUR",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "ELDERFLOWER JUICE"
+          ]
+        },
+        {
+          "imageKey": "SUNKISSED",
+          "name": "SUNKISSED",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "WATERMELON"
+          ]
+        },
+        {
+          "imageKey": "FIGARO",
+          "name": "FIGARO",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "FIG"
+          ]
+        },
+        {
+          "imageKey": "FOREST MASTER",
+          "name": "FOREST MASTER",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "WOODRUFF"
+          ]
+        },
+        {
+          "imageKey": "BITTERSWEET",
+          "name": "BITTERSWEET",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "GRAPEFRUIT"
+          ]
+        },
+        {
+          "imageKey": "1ST SIN",
+          "name": "1ST SIN",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "GREEN APPLE DROPS"
+          ]
+        },
+        {
+          "imageKey": "GUAVERA",
+          "name": "GUAVERA",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "GUAVA"
+          ]
+        },
+        {
+          "imageKey": "LOVE ANDA",
+          "name": "LOVE ANDA",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "LAVENDER"
+          ]
+        },
+        {
+          "imageKey": "BEE ELIXIR",
+          "name": "BEE ELIXIR",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "LINDEN HONEY"
+          ]
+        },
+        {
+          "imageKey": "MANSSI",
+          "name": "MANSSI",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "MANGO LASSI"
+          ]
+        },
+        {
+          "imageKey": "SORBAE",
+          "name": "SORBAE",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "PAPAYA SORBET"
+          ]
+        },
+        {
+          "imageKey": "PISTANA",
+          "name": "PISTANA",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "PISTACHIO CREAM"
+          ]
+        },
+        {
+          "imageKey": "POMPEI",
+          "name": "POMPEI",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "POMELO"
+          ]
+        },
+        {
+          "imageKey": "NILLA",
+          "name": "NILLA",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "VANILLA BEAN"
+          ]
+        },
+        {
+          "imageKey": "MON BLANC",
+          "name": "MON BLANC",
+          "availablePackaging": [],
+          "description": "",
+          "ingredients": [
+            "WHITE MUSCAT GRAPE"
+          ]
+        }
+      ]
+    },
+    "merch": {
+      "documentTitle": "KAJA Merch",
+      "navLabel": "Merch",
+      "title": "Merch",
+      "back": "← Back to KAJA",
+      "productBack": "← Back to merch",
+      "productNotFound": "Product not found.",
+      "productKicker": "Merch",
+      "productCopyLabel": "Details",
+      "productCopyEmpty": "No details yet.",
+      "lead": "A modular merch layout with equal-width blocks and varied heights, designed to fit together like a visual puzzle.",
+      "gridAriaLabel": "Merch products",
+      "items": [
+        {
+          "imageKey": "OVERSIZED TEE",
+          "label": "Merch 01",
+          "title": "Oversized Tee",
+          "copy": "Placeholder block for product imagery, details, and pricing."
+        },
+        {
+          "imageKey": "CAP",
+          "label": "Merch 02",
+          "title": "Cap",
+          "copy": "Equal width, different height."
+        },
+        {
+          "imageKey": "HOODIE",
+          "label": "Merch 03",
+          "title": "Hoodie",
+          "copy": "Large feature block for a hero merch item."
+        },
+        {
+          "imageKey": "TOTE BAG",
+          "label": "Merch 04",
+          "title": "Tote Bag",
+          "copy": "Compact product card."
+        },
+        {
+          "imageKey": "POSTER SET",
+          "label": "Merch 05",
+          "title": "Poster Set",
+          "copy": "More space for visuals and copy."
+        },
+        {
+          "imageKey": "STICKER PACK",
+          "label": "Merch 06",
+          "title": "Sticker Pack",
+          "copy": "Small item, same column width."
+        },
+        {
+          "imageKey": "TRACK JACKET",
+          "label": "Merch 07",
+          "title": "Track Jacket",
+          "copy": "Mid-size product module."
+        },
+        {
+          "imageKey": "LIMITED DROP",
+          "label": "Merch 08",
+          "title": "Limited Drop",
+          "copy": "Use this for special product releases."
+        }
+      ]
+    }
+  }
+}
