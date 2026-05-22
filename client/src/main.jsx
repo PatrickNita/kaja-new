@@ -114,6 +114,7 @@ const MAX_TARGET_LEAD = 0.055 * SCROLL_SPEED;
 const WHEEL_STEP_MIN = 0.006 * SCROLL_SPEED;
 const WHEEL_STEP_MAX = 0.036 * SCROLL_SPEED;
 const GESTURE_IDLE_MS = 160;
+const FOOTER_REENGAGE_COOLDOWN_MS = 180;
 const FRAME_PROGRESS_MAX = 0.038 * SCROLL_SPEED;
 const WHEEL_PROGRESS_DIVISOR = 1700 / SCROLL_SPEED;
 const TOUCH_PROGRESS_DIVISOR = 900 / SCROLL_SPEED;
@@ -681,6 +682,9 @@ function MainSite() {
   const sectionTransitionTimerRef = useRef(null);
   const cancelScrollSettleRef = useRef(null);
   const sectionTransitionIdRef = useRef(0);
+  const footerReengageTimerRef = useRef(null);
+  const cancelFooterReengageRef = useRef(null);
+  const footerReengageIdRef = useRef(0);
   const isMobileRef = useRef(false);
   const frozenSectionRef = useRef(null);
   const headerDeferredRef = useRef(false);
@@ -720,21 +724,74 @@ function MainSite() {
     return next;
   }, []);
 
+  const getFooterMaxScrollY = useCallback(() => {
+    const footerEl = footerRef.current;
+    if (footerEl) {
+      return Math.max(0, footerEl.offsetTop + footerEl.offsetHeight - window.innerHeight);
+    }
+    return Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+  }, []);
+
+  const clampFooterScroll = useCallback(() => {
+    if (!nativeScrollRef.current || lock.current) return;
+    const contactEl = sectionRefs.current[CONTACT_INDEX];
+    const contactTop = contactEl?.offsetTop ?? 0;
+    const maxScrollY = getFooterMaxScrollY();
+    const nextY = clamp(window.scrollY, contactTop, maxScrollY);
+    if (Math.abs(nextY - window.scrollY) > 1) {
+      window.scrollTo({ top: nextY, behavior: 'auto' });
+    }
+  }, [getFooterMaxScrollY]);
+
+  const clampMobileSectionScroll = useCallback(() => {
+    if (!isMobileRef.current || nativeScrollRef.current) return;
+    if (document.documentElement.classList.contains('kaja-footer-reengage')) return;
+
+    let minY = 0;
+    let maxY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+
+    if (lock.current) {
+      const frozen = frozenSectionRef.current;
+      const targetEl = sectionRefs.current[activeRef.current];
+      const leaveEl = frozen ? sectionRefs.current[frozen.index] : null;
+      if (leaveEl && targetEl) {
+        minY = Math.min(leaveEl.offsetTop, targetEl.offsetTop);
+        const leaveMax = leaveEl.offsetTop + leaveEl.offsetHeight - window.innerHeight;
+        const targetMax = targetEl.offsetTop + targetEl.offsetHeight - window.innerHeight;
+        maxY = Math.max(minY, leaveMax, targetMax);
+      } else if (targetEl) {
+        minY = targetEl.offsetTop;
+        maxY = Math.max(minY, targetEl.offsetTop + targetEl.offsetHeight - window.innerHeight);
+      }
+    } else {
+      const activeEl = sectionRefs.current[activeRef.current];
+      if (!activeEl) return;
+      minY = activeEl.offsetTop;
+      maxY = Math.max(minY, activeEl.offsetTop + activeEl.offsetHeight - window.innerHeight);
+    }
+
+    maxY = Math.max(minY, maxY);
+    const nextY = clamp(window.scrollY, minY, maxY);
+    if (Math.abs(nextY - window.scrollY) > 1) {
+      window.scrollTo({ top: nextY, behavior: 'auto' });
+    } else if (!lock.current && Math.abs(window.scrollY - minY) > 6) {
+      window.scrollTo({ top: minY, behavior: 'auto' });
+    }
+  }, []);
+
   const anchorScrollToActiveSection = useCallback(() => {
     if (nativeScrollRef.current || lock.current) return;
+    if (isMobileRef.current) {
+      clampMobileSectionScroll();
+      return;
+    }
     const el = sectionRefs.current[activeRef.current];
     if (!el) return;
     const top = el.offsetTop;
     if (Math.abs(window.scrollY - top) > 6) {
       window.scrollTo({ top, behavior: 'auto' });
     }
-  }, []);
-
-  useEffect(() => {
-    const onScroll = () => anchorScrollToActiveSection();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, [anchorScrollToActiveSection]);
+  }, [clampMobileSectionScroll]);
 
   const enforceFrozenSectionProgress = useCallback(() => {
     const frozen = frozenSectionRef.current;
@@ -891,6 +948,8 @@ function MainSite() {
     }
 
     lock.current = false;
+    document.documentElement.classList.remove('kaja-section-transition');
+    document.body.classList.remove('kaja-section-transition');
 
     const el = sectionRefs.current[index];
     if (el) {
@@ -963,6 +1022,10 @@ function MainSite() {
 
     lock.current = true;
     armedDirectionRef.current = null;
+    if (isMobileRef.current && behavior === 'smooth') {
+      document.documentElement.classList.add('kaja-section-transition');
+      document.body.classList.add('kaja-section-transition');
+    }
     const deferHeader = index === 0 && leavingIndex > 0;
     headerDeferredRef.current = deferHeader;
     applySectionState(index, toProgress, true, { deferHeader });
@@ -1000,25 +1063,38 @@ function MainSite() {
     return window.scrollY >= footerTop - 48 || window.scrollY > contactTop + 16;
   }, []);
 
-  const getFooterMaxScrollY = useCallback(() => {
-    const footerEl = footerRef.current;
-    if (footerEl) {
-      return Math.max(0, footerEl.offsetTop + footerEl.offsetHeight - window.innerHeight);
-    }
-    return Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
-  }, []);
-
-  const clampFooterScroll = useCallback(() => {
-    if (!nativeScrollRef.current || lock.current) return;
-    const maxScrollY = getFooterMaxScrollY();
-    if (window.scrollY > maxScrollY + 1) {
-      window.scrollTo({ top: maxScrollY, behavior: 'auto' });
-    }
-  }, [getFooterMaxScrollY]);
-
   const lockNativeScroll = useCallback((behavior = 'smooth') => {
     if (!nativeScrollRef.current || lock.current) return;
+
+    const transitionId = footerReengageIdRef.current + 1;
+    footerReengageIdRef.current = transitionId;
+
+    if (footerReengageTimerRef.current !== null) {
+      window.clearTimeout(footerReengageTimerRef.current);
+      footerReengageTimerRef.current = null;
+    }
+    if (cancelFooterReengageRef.current) {
+      cancelFooterReengageRef.current();
+      cancelFooterReengageRef.current = null;
+    }
+
     lock.current = true;
+    document.documentElement.classList.add('kaja-footer-reengage');
+    document.body.classList.add('kaja-footer-reengage');
+    touchStart.current = null;
+    touchLast.current = null;
+    touchIsFirstMoveRef.current = true;
+    pendingWheelDeltaRef.current = 0;
+    wheelGestureActiveRef.current = false;
+    armedDirectionRef.current = null;
+    if (gestureIdleTimerRef.current !== null) {
+      window.clearTimeout(gestureIdleTimerRef.current);
+      gestureIdleTimerRef.current = null;
+    }
+    if (wheelFlushRafRef.current !== null) {
+      cancelAnimationFrame(wheelFlushRafRef.current);
+      wheelFlushRafRef.current = null;
+    }
 
     returnedFromFooterRef.current = true;
     setReturnedFromFooter(true);
@@ -1026,18 +1102,26 @@ function MainSite() {
 
     const contactEl = sectionRefs.current[CONTACT_INDEX];
     const scrollBehavior = behavior === 'auto' ? 'auto' : 'smooth';
+    const targetTop = contactEl?.offsetTop ?? 0;
 
     if (contactEl) {
       if (scrollBehavior === 'smooth') {
         contactEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
       } else {
-        window.scrollTo({ top: contactEl.offsetTop, behavior: 'auto' });
+        window.scrollTo({ top: targetTop, behavior: 'auto' });
       }
     }
 
-    const delay = scrollBehavior === 'smooth' ? SECTION_SCROLL_MS : 80;
+    const maxWait = scrollBehavior === 'smooth'
+      ? (isMobileRef.current ? SECTION_SCROLL_MS + 720 : SECTION_SCROLL_MS + 520)
+      : 120;
 
-    window.setTimeout(() => {
+    const finishReengage = () => {
+      if (footerReengageIdRef.current !== transitionId) return;
+
+      footerReengageTimerRef.current = null;
+      cancelFooterReengageRef.current = null;
+
       presentedActiveRef.current = CONTACT_INDEX;
       setPresentedActive(CONTACT_INDEX);
       syncPresentedHintProgress();
@@ -1046,13 +1130,37 @@ function MainSite() {
       document.documentElement.classList.remove('kaja-footer-scroll');
       document.body.classList.remove('kaja-footer-active');
       armedDirectionRef.current = null;
-      lock.current = false;
+      pendingWheelDeltaRef.current = 0;
+      wheelGestureActiveRef.current = false;
+      if (wheelFlushRafRef.current !== null) {
+        cancelAnimationFrame(wheelFlushRafRef.current);
+        wheelFlushRafRef.current = null;
+      }
 
       const el = sectionRefs.current[CONTACT_INDEX];
       if (el) {
         window.scrollTo({ top: el.offsetTop, behavior: 'auto' });
       }
-    }, delay);
+
+      touchStart.current = null;
+      touchLast.current = null;
+      touchIsFirstMoveRef.current = true;
+
+      footerReengageTimerRef.current = window.setTimeout(() => {
+        if (footerReengageIdRef.current !== transitionId) return;
+        footerReengageTimerRef.current = null;
+        document.documentElement.classList.remove('kaja-footer-reengage');
+        document.body.classList.remove('kaja-footer-reengage');
+        lock.current = false;
+      }, FOOTER_REENGAGE_COOLDOWN_MS);
+    };
+
+    if (scrollBehavior === 'smooth') {
+      cancelFooterReengageRef.current = waitForScrollSettle(targetTop, maxWait, finishReengage);
+      footerReengageTimerRef.current = window.setTimeout(finishReengage, maxWait);
+    } else {
+      finishReengage();
+    }
   }, [applySectionState, syncPresentedHintProgress]);
 
   useEffect(() => {
@@ -1069,6 +1177,10 @@ function MainSite() {
           lastScrollY = currentY;
           return;
         }
+      } else if (isMobileRef.current && !nativeScrollRef.current) {
+        clampMobileSectionScroll();
+      } else if (!lock.current) {
+        anchorScrollToActiveSection();
       }
 
       lastScrollY = window.scrollY;
@@ -1076,13 +1188,14 @@ function MainSite() {
 
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
-  }, [lockNativeScroll, shouldReengageScrollFromFooter, clampFooterScroll]);
+  }, [lockNativeScroll, shouldReengageScrollFromFooter, clampFooterScroll, clampMobileSectionScroll, anchorScrollToActiveSection]);
 
   useEffect(() => {
     const checkMobile = () => {
       const mobile = window.matchMedia('(max-width: 900px)').matches;
       isMobileRef.current = mobile;
       setIsMobile(mobile);
+      document.documentElement.classList.toggle('kaja-mobile-scroll', mobile);
     };
     checkMobile();
     window.addEventListener('resize', checkMobile);
@@ -1152,6 +1265,7 @@ function MainSite() {
     };
 
     const tryCommitSectionAdvance = (direction) => {
+      if (lock.current) return false;
       if (direction > 0 && armedDirectionRef.current !== 'down') return false;
       if (direction < 0 && armedDirectionRef.current !== 'up') return false;
 
@@ -1198,6 +1312,10 @@ function MainSite() {
 
     const flushWheelDelta = () => {
       wheelFlushRafRef.current = null;
+      if (lock.current) {
+        pendingWheelDeltaRef.current = 0;
+        return;
+      }
       const delta = pendingWheelDeltaRef.current;
       if (!delta) return;
 
@@ -1232,6 +1350,11 @@ function MainSite() {
     };
 
     const onWheel = (event) => {
+      if (lock.current) {
+        event.preventDefault();
+        return;
+      }
+
       if (nativeScrollRef.current) {
         if (event.deltaY > 0 && isAtFooterBottom()) {
           event.preventDefault();
@@ -1241,11 +1364,7 @@ function MainSite() {
           event.preventDefault();
           if (shouldReengageScrollFromFooter()) {
             lockNativeScroll('smooth');
-            return;
           }
-          lockNativeScroll('smooth');
-          if (tryCommitSectionAdvance(-1)) return;
-          applyProgressDelta(event.deltaY, WHEEL_PROGRESS_DIVISOR);
         }
         return;
       }
@@ -1264,7 +1383,10 @@ function MainSite() {
     };
 
     const onTouchStart = (event) => {
-      if (lock.current) return;
+      if (lock.current) {
+        event.preventDefault();
+        return;
+      }
       if (event.target.closest('nav, .lang-selector')) return;
       const touch = event.touches[0];
       touchStart.current = touch.clientY;
@@ -1273,7 +1395,10 @@ function MainSite() {
     };
 
     const onTouchMove = (event) => {
-      if (lock.current) return;
+      if (lock.current) {
+        event.preventDefault();
+        return;
+      }
       if (event.target.closest('nav, .lang-selector')) return;
       if (touchLast.current === null) return;
 
@@ -1293,9 +1418,16 @@ function MainSite() {
           return;
         }
 
-        if (delta < 0 && shouldReengageScrollFromFooter()) {
-          event.preventDefault();
-          lockNativeScroll('smooth');
+        if (delta < 0) {
+          const contactTop = sectionRefs.current[CONTACT_INDEX]?.offsetTop ?? 0;
+          if (window.scrollY <= contactTop + 1) {
+            event.preventDefault();
+            return;
+          }
+          if (shouldReengageScrollFromFooter()) {
+            event.preventDefault();
+            lockNativeScroll('smooth');
+          }
         }
         return;
       }
@@ -1316,7 +1448,7 @@ function MainSite() {
       touchStart.current = null;
       touchLast.current = null;
       touchIsFirstMoveRef.current = true;
-      armAtEdge();
+      if (!lock.current) armAtEdge();
     };
 
     const onKeyDown = (event) => {
@@ -1330,15 +1462,9 @@ function MainSite() {
       if (['ArrowUp', 'PageUp'].includes(event.key)) {
         if (nativeScrollRef.current) {
           event.preventDefault();
-          const contactTop = sectionRefs.current[CONTACT_INDEX]?.offsetTop ?? 0;
-          const footerTop = footerRef.current?.offsetTop ?? Infinity;
-          if (window.scrollY >= footerTop - 48 || window.scrollY > contactTop + 16) {
+          if (shouldReengageScrollFromFooter()) {
             lockNativeScroll('smooth');
-            return;
           }
-          lockNativeScroll('smooth');
-          if (tryCommitSectionAdvance(-1)) return;
-          applyProgressDelta(-120 * SCROLL_SPEED, 1);
           return;
         }
         event.preventDefault();
@@ -1373,6 +1499,12 @@ function MainSite() {
       }
       if (cancelScrollSettleRef.current) {
         cancelScrollSettleRef.current();
+      }
+      if (footerReengageTimerRef.current !== null) {
+        window.clearTimeout(footerReengageTimerRef.current);
+      }
+      if (cancelFooterReengageRef.current) {
+        cancelFooterReengageRef.current();
       }
     };
   }, [applySectionState, scrollToSection, unlockNativeScroll, lockNativeScroll, shouldReengageScrollFromFooter, displayProgress]);

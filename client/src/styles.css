@@ -44,6 +44,7 @@ html,
 body {
   scrollbar-width: none;
   -ms-overflow-style: none;
+  overscroll-behavior-y: none;
 }
 
 html::-webkit-scrollbar,
@@ -85,7 +86,21 @@ main {
 html.kaja-footer-scroll,
 html.kaja-footer-scroll body {
   scroll-snap-type: none;
-  overscroll-behavior-y: none;
+  overscroll-behavior: none;
+}
+
+html.kaja-footer-reengage,
+html.kaja-footer-reengage body,
+html.kaja-section-transition,
+html.kaja-section-transition body {
+  overscroll-behavior: none;
+  touch-action: none;
+}
+
+html.kaja-mobile-scroll,
+html.kaja-mobile-scroll body {
+  overscroll-behavior: none;
+  overflow-x: hidden;
 }
 
 .cursor-ring,
