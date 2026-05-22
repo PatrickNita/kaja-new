@@ -120,7 +120,7 @@ const WHEEL_STEP_MAX = 0.036 * SCROLL_SPEED;
 const GESTURE_IDLE_MS = 160;
 const MOBILE_GESTURE_IDLE_MS = 96;
 const FOOTER_REENGAGE_COOLDOWN_MS = 180;
-const MOBILE_SECTION_TRANSITION_COOLDOWN_MS = 120;
+const MOBILE_SECTION_TRANSITION_COOLDOWN_MS = 220;
 const FRAME_PROGRESS_MAX = 0.038 * SCROLL_SPEED;
 const WHEEL_PROGRESS_DIVISOR = 1700 / SCROLL_SPEED;
 const TOUCH_PROGRESS_DIVISOR = 900 / SCROLL_SPEED;
@@ -708,8 +708,28 @@ function MainSite() {
     }
     document.documentElement.classList.remove('kaja-section-transition');
     document.body.classList.remove('kaja-section-transition');
+    touchStart.current = null;
+    touchLast.current = null;
+    touchIsFirstMoveRef.current = true;
+    pendingWheelDeltaRef.current = 0;
+    wheelGestureActiveRef.current = false;
+    armedDirectionRef.current = null;
+    if (gestureIdleTimerRef.current !== null) {
+      window.clearTimeout(gestureIdleTimerRef.current);
+      gestureIdleTimerRef.current = null;
+    }
+    if (wheelFlushRafRef.current !== null) {
+      cancelAnimationFrame(wheelFlushRafRef.current);
+      wheelFlushRafRef.current = null;
+    }
     lock.current = false;
   }, []);
+
+  const isScrollInteractionBlocked = useCallback(() => (
+    lock.current
+    || document.documentElement.classList.contains('kaja-section-transition')
+    || document.documentElement.classList.contains('kaja-footer-reengage')
+  ), []);
 
   const snapProgressMotion = useCallback((value) => {
     const next = clamp(value, 0, 1);
@@ -762,36 +782,18 @@ function MainSite() {
 
   const clampMobileSectionScroll = useCallback(() => {
     if (!isMobileRef.current || nativeScrollRef.current) return;
+    if (lock.current) return;
+    if (document.documentElement.classList.contains('kaja-section-transition')) return;
     if (document.documentElement.classList.contains('kaja-footer-reengage')) return;
 
-    let minY = 0;
-    let maxY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
-
-    if (lock.current) {
-      const frozen = frozenSectionRef.current;
-      const targetEl = sectionRefs.current[activeRef.current];
-      const leaveEl = frozen ? sectionRefs.current[frozen.index] : null;
-      if (leaveEl && targetEl) {
-        minY = Math.min(leaveEl.offsetTop, targetEl.offsetTop);
-        const leaveMax = leaveEl.offsetTop + leaveEl.offsetHeight - window.innerHeight;
-        const targetMax = targetEl.offsetTop + targetEl.offsetHeight - window.innerHeight;
-        maxY = Math.max(minY, leaveMax, targetMax);
-      } else if (targetEl) {
-        minY = targetEl.offsetTop;
-        maxY = Math.max(minY, targetEl.offsetTop + targetEl.offsetHeight - window.innerHeight);
-      }
-    } else {
-      const activeEl = sectionRefs.current[activeRef.current];
-      if (!activeEl) return;
-      minY = activeEl.offsetTop;
-      maxY = Math.max(minY, activeEl.offsetTop + activeEl.offsetHeight - window.innerHeight);
-    }
-
-    maxY = Math.max(minY, maxY);
+    const activeEl = sectionRefs.current[activeRef.current];
+    if (!activeEl) return;
+    const minY = activeEl.offsetTop;
+    const maxY = Math.max(minY, activeEl.offsetTop + activeEl.offsetHeight - window.innerHeight);
     const nextY = clamp(window.scrollY, minY, maxY);
     if (Math.abs(nextY - window.scrollY) > 1) {
       window.scrollTo({ top: nextY, behavior: 'auto' });
-    } else if (!lock.current && Math.abs(window.scrollY - minY) > 6) {
+    } else if (Math.abs(window.scrollY - minY) > 6) {
       window.scrollTo({ top: minY, behavior: 'auto' });
     }
   }, []);
@@ -824,6 +826,7 @@ function MainSite() {
   useEffect(() => {
     return displayProgress.on('change', (value) => {
       enforceFrozenSectionProgress();
+      if (lock.current) return;
 
       const idx = activeRef.current;
       const next = clamp(value, 0, 1);
@@ -1002,6 +1005,12 @@ function MainSite() {
     const transitionId = sectionTransitionIdRef.current + 1;
     sectionTransitionIdRef.current = transitionId;
 
+    lock.current = true;
+    if (behavior === 'smooth') {
+      document.documentElement.classList.add('kaja-section-transition');
+      document.body.classList.add('kaja-section-transition');
+    }
+
     touchStart.current = null;
     touchLast.current = null;
     touchIsFirstMoveRef.current = true;
@@ -1049,12 +1058,6 @@ function MainSite() {
       syncPresentedHintProgress();
     });
 
-    lock.current = true;
-    armedDirectionRef.current = null;
-    if (behavior === 'smooth') {
-      document.documentElement.classList.add('kaja-section-transition');
-      document.body.classList.add('kaja-section-transition');
-    }
     const deferHeader = index === 0 && leavingIndex > 0;
     headerDeferredRef.current = deferHeader;
     applySectionState(index, toProgress, true, { deferHeader });
@@ -1216,7 +1219,7 @@ function MainSite() {
           lastScrollY = currentY;
           return;
         }
-      } else if (isMobileRef.current && !nativeScrollRef.current) {
+      } else if (isMobileRef.current && !nativeScrollRef.current && !lock.current) {
         clampMobileSectionScroll();
       } else if (!lock.current) {
         anchorScrollToActiveSection();
@@ -1304,7 +1307,7 @@ function MainSite() {
     };
 
     const tryCommitSectionAdvance = (direction) => {
-      if (lock.current) return false;
+      if (isScrollInteractionBlocked()) return false;
       if (direction > 0 && armedDirectionRef.current !== 'down') return false;
       if (direction < 0 && armedDirectionRef.current !== 'up') return false;
 
@@ -1332,7 +1335,7 @@ function MainSite() {
     };
 
     const applyProgressDelta = (delta, divisor = WHEEL_PROGRESS_DIVISOR, maxStep = WHEEL_STEP_MAX) => {
-      if (lock.current || !delta || nativeScrollRef.current) return;
+      if (isScrollInteractionBlocked() || !delta || nativeScrollRef.current) return;
 
       const direction = Math.sign(delta);
       const amount = clamp(Math.abs(delta) / divisor, WHEEL_STEP_MIN, maxStep);
@@ -1351,7 +1354,7 @@ function MainSite() {
 
     const flushWheelDelta = () => {
       wheelFlushRafRef.current = null;
-      if (lock.current) {
+      if (isScrollInteractionBlocked()) {
         pendingWheelDeltaRef.current = 0;
         return;
       }
@@ -1389,7 +1392,7 @@ function MainSite() {
     };
 
     const onWheel = (event) => {
-      if (lock.current) {
+      if (isScrollInteractionBlocked()) {
         event.preventDefault();
         return;
       }
@@ -1422,7 +1425,7 @@ function MainSite() {
     };
 
     const onTouchStart = (event) => {
-      if (lock.current) {
+      if (isScrollInteractionBlocked()) {
         event.preventDefault();
         return;
       }
@@ -1434,12 +1437,15 @@ function MainSite() {
     };
 
     const onTouchMove = (event) => {
-      if (lock.current) {
+      if (isScrollInteractionBlocked()) {
         event.preventDefault();
         return;
       }
       if (event.target.closest('nav, .lang-selector')) return;
-      if (touchLast.current === null) return;
+      if (touchLast.current === null) {
+        if (!nativeScrollRef.current) event.preventDefault();
+        return;
+      }
 
       const touch = event.touches[0];
       const delta = touchLast.current - touch.clientY;
@@ -1487,7 +1493,7 @@ function MainSite() {
       touchStart.current = null;
       touchLast.current = null;
       touchIsFirstMoveRef.current = true;
-      if (!lock.current) armAtEdge();
+      if (!isScrollInteractionBlocked()) armAtEdge();
     };
 
     const onKeyDown = (event) => {
