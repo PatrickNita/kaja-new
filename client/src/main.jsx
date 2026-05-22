@@ -33,13 +33,17 @@ const LANGUAGES = [
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 const lerp = (p, from, to) => from + (to - from) * clamp(p, 0, 1);
 
-function getSectionScrollDuration(fromIndex, toIndex, behavior, sectionScrollMs) {
-  if (behavior !== 'smooth') return 100;
+function getSectionScrollDuration(fromIndex, toIndex, behavior, sectionScrollMs, isMobile = false) {
+  if (behavior !== 'smooth') return isMobile ? 72 : 100;
   const distance = Math.max(1, Math.abs(toIndex - fromIndex));
-  return Math.min(2200, sectionScrollMs * distance + 80);
+  const baseMs = isMobile ? Math.min(sectionScrollMs, 360) : sectionScrollMs;
+  const maxCap = isMobile ? 820 : 2200;
+  return Math.min(maxCap, baseMs * distance + (isMobile ? 36 : 80));
 }
 
-function waitForScrollSettle(targetTop, maxWaitMs, onDone) {
+function waitForScrollSettle(targetTop, maxWaitMs, onDone, options = {}) {
+  const tolerance = options.tolerance ?? 12;
+  const stableFramesRequired = options.stableFrames ?? 4;
   const start = performance.now();
   let stableFrames = 0;
   let lastY = window.scrollY;
@@ -62,13 +66,13 @@ function waitForScrollSettle(targetTop, maxWaitMs, onDone) {
   const tick = () => {
     const y = window.scrollY;
     const elapsed = performance.now() - start;
-    const atTarget = Math.abs(y - targetTop) <= 12;
+    const atTarget = Math.abs(y - targetTop) <= tolerance;
 
     if (Math.abs(y - lastY) < 0.75) stableFrames += 1;
     else stableFrames = 0;
     lastY = y;
 
-    if ((atTarget && stableFrames >= 4) || elapsed >= maxWaitMs) {
+    if ((atTarget && stableFrames >= stableFramesRequired) || elapsed >= maxWaitMs) {
       finish();
       return;
     }
@@ -105,6 +109,7 @@ function segmentMotionValues(p, isMobile) {
 }
 const SPRING_CONFIG = { stiffness: 58, damping: 12, mass: 0.45 };
 const SCROLL_SPRING = { stiffness: 132, damping: 28, mass: 0.72, restDelta: 0.001, restSpeed: 0.01 };
+const MOBILE_SCROLL_SPRING = { stiffness: 210, damping: 34, mass: 0.52, restDelta: 0.001, restSpeed: 0.01 };
 const SECTION_COMPLETE = 1;
 const SECTION_START = 0;
 const EDGE_EPSILON = 0.001;
@@ -114,6 +119,7 @@ const MAX_TARGET_LEAD = 0.055 * SCROLL_SPEED;
 const WHEEL_STEP_MIN = 0.006 * SCROLL_SPEED;
 const WHEEL_STEP_MAX = 0.036 * SCROLL_SPEED;
 const GESTURE_IDLE_MS = 160;
+const MOBILE_GESTURE_IDLE_MS = 96;
 const FOOTER_REENGAGE_COOLDOWN_MS = 180;
 const FRAME_PROGRESS_MAX = 0.038 * SCROLL_SPEED;
 const WHEEL_PROGRESS_DIVISOR = 1700 / SCROLL_SPEED;
@@ -691,8 +697,9 @@ function MainSite() {
   const [frozenSection, setFrozenSection] = useState(null);
   const sectionProgressesRef = useRef(Array(SECTION_COUNT).fill(0));
   const progressTarget = useMotionValue(0);
-  const displayProgress = useSpring(progressTarget, SCROLL_SPRING);
+  const displayProgress = useSpring(progressTarget, isMobile ? MOBILE_SCROLL_SPRING : SCROLL_SPRING);
   const SECTION_SCROLL_MS = 520;
+  const MOBILE_SECTION_SCROLL_MS = 340;
 
   const snapProgressMotion = useCallback((value) => {
     const next = clamp(value, 0, 1);
@@ -1022,7 +1029,8 @@ function MainSite() {
 
     lock.current = true;
     armedDirectionRef.current = null;
-    if (isMobileRef.current && behavior === 'smooth') {
+    const mobileSnap = isMobileRef.current && behavior === 'smooth';
+    if (!mobileSnap && behavior === 'smooth') {
       document.documentElement.classList.add('kaja-section-transition');
       document.body.classList.add('kaja-section-transition');
     }
@@ -1031,8 +1039,20 @@ function MainSite() {
     applySectionState(index, toProgress, true, { deferHeader });
 
     const targetTop = el.offsetTop;
-    const maxWait = getSectionScrollDuration(leavingIndex, index, behavior, SECTION_SCROLL_MS);
-    if (behavior === 'smooth') {
+    const sectionScrollMs = isMobileRef.current ? MOBILE_SECTION_SCROLL_MS : SECTION_SCROLL_MS;
+    const scrollBehavior = mobileSnap ? 'auto' : behavior;
+    const maxWait = getSectionScrollDuration(
+      leavingIndex,
+      index,
+      scrollBehavior,
+      sectionScrollMs,
+      isMobileRef.current
+    );
+    const settleOptions = isMobileRef.current
+      ? { stableFrames: 2, tolerance: 18 }
+      : undefined;
+
+    if (scrollBehavior === 'smooth') {
       el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } else {
       window.scrollTo({ top: targetTop, behavior: 'auto' });
@@ -1048,7 +1068,7 @@ function MainSite() {
       finishSectionTransition(index, onComplete);
     };
 
-    cancelScrollSettleRef.current = waitForScrollSettle(targetTop, maxWait, complete);
+    cancelScrollSettleRef.current = waitForScrollSettle(targetTop, maxWait, complete, settleOptions);
     sectionTransitionTimerRef.current = window.setTimeout(complete, maxWait);
   }, [applySectionState, finishSectionTransition, applySectionProgresses, syncPresentedHintProgress, snapProgressMotion]);
 
@@ -1265,7 +1285,21 @@ function MainSite() {
     };
 
     const tryCommitSectionAdvance = (direction) => {
-      if (lock.current) return false;
+      if (lock.current) {
+        if (!isMobileRef.current) return false;
+        const sectionIndex = activeRef.current;
+        if (direction > 0 && sectionIndex < CONTACT_INDEX) {
+          armedDirectionRef.current = null;
+          scrollToSection(sectionIndex + 1, 0);
+          return true;
+        }
+        if (direction < 0 && sectionIndex > 0) {
+          armedDirectionRef.current = null;
+          scrollToSection(sectionIndex - 1, 1);
+          return true;
+        }
+        return false;
+      }
       if (direction > 0 && armedDirectionRef.current !== 'down') return false;
       if (direction < 0 && armedDirectionRef.current !== 'up') return false;
 
@@ -1346,7 +1380,7 @@ function MainSite() {
         gestureIdleTimerRef.current = null;
         wheelGestureActiveRef.current = false;
         armAtEdge();
-      }, GESTURE_IDLE_MS);
+      }, isMobileRef.current ? MOBILE_GESTURE_IDLE_MS : GESTURE_IDLE_MS);
     };
 
     const onWheel = (event) => {
@@ -1397,6 +1431,14 @@ function MainSite() {
     const onTouchMove = (event) => {
       if (lock.current) {
         event.preventDefault();
+        if (isMobileRef.current && touchLast.current !== null && !event.target.closest('nav, .lang-selector')) {
+          const touch = event.touches[0];
+          const delta = touchLast.current - touch.clientY;
+          touchLast.current = touch.clientY;
+          if (Math.abs(delta) > 5) {
+            tryCommitSectionAdvance(Math.sign(delta));
+          }
+        }
         return;
       }
       if (event.target.closest('nav, .lang-selector')) return;
