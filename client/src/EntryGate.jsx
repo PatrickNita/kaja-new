@@ -25,6 +25,22 @@ const DEFAULT_GATE = {
   languageNames: DEFAULT_LANGUAGE_NAMES
 };
 
+const DESKTOP_CURSOR_QUERY = '(min-width: 901px)';
+
+function useDesktopCursorEnabled() {
+  const [enabled, setEnabled] = useState(() => window.matchMedia(DESKTOP_CURSOR_QUERY).matches);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(DESKTOP_CURSOR_QUERY);
+    const sync = () => setEnabled(mediaQuery.matches);
+    sync();
+    mediaQuery.addEventListener('change', sync);
+    return () => mediaQuery.removeEventListener('change', sync);
+  }, []);
+
+  return enabled;
+}
+
 function activateOnKey(event, onActivate) {
   if (event.key === 'Enter' || event.key === ' ') {
     event.preventDefault();
@@ -141,6 +157,7 @@ export default function EntryGate({ onApproved }) {
   const [loaderDone, setLoaderDone] = useState(() => !document.getElementById('kaja-loader'));
   const [previewLocale, setPreviewLocale] = useState(() => getLocaleFromPath());
   const [ageActionsWidth, setAgeActionsWidth] = useState(null);
+  const desktopCursor = useDesktopCursorEnabled();
   const ageQuestionRef = useRef(null);
   const gateRef = useRef(null);
   const gate = useMemo(() => ({
@@ -157,9 +174,9 @@ export default function EntryGate({ onApproved }) {
   }, [previewLocale]);
 
   useLayoutEffect(() => {
-    if (!loaderDone || !gateRef.current) return undefined;
+    if (!loaderDone || !gateRef.current || !desktopCursor) return undefined;
     return installEntryGateCursorLock(gateRef.current);
-  }, [loaderDone, previewLocale]);
+  }, [loaderDone, previewLocale, desktopCursor]);
 
   useLayoutEffect(() => {
     const syncAgeActionsWidth = () => {
@@ -211,7 +228,7 @@ export default function EntryGate({ onApproved }) {
       aria-modal="true"
       aria-labelledby="entry-gate-title"
     >
-      <ElasticCursor />
+      {desktopCursor ? <ElasticCursor /> : null}
       <div className="entry-gate-panel">
         <div className="entry-gate-language-block">
           <h1 id="entry-gate-title" className="entry-gate-title">{gate.selectLanguage}</h1>

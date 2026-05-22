@@ -802,17 +802,12 @@ h1 {
   body.entry-gate-active a,
   html.entry-gate-active,
   html.entry-gate-active * {
-    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'%3E%3C/svg%3E"), none !important;
+    cursor: auto !important;
   }
 
   .cursor-ring,
   .cursor-dot {
     display: none;
-  }
-
-  body.entry-gate-active .cursor-ring,
-  body.entry-gate-active .cursor-dot {
-    display: block;
   }
 
   .top-nav,
@@ -1292,10 +1287,12 @@ body.entry-gate-active .cursor-dot {
   transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
-.entry-gate-lang .entry-gate-control.lang-selector-trigger,
-.entry-gate-lang .lang-selector-menu .entry-gate-control,
-.entry-gate-control.entry-gate-button {
-  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'%3E%3C/svg%3E"), none !important;
+@media (min-width: 901px) {
+  .entry-gate-lang .entry-gate-control.lang-selector-trigger,
+  .entry-gate-lang .lang-selector-menu .entry-gate-control,
+  .entry-gate-control.entry-gate-button {
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'%3E%3C/svg%3E"), none !important;
+  }
 }
 
 .entry-gate .lang-flag img {
@@ -1362,5 +1359,11 @@ body.entry-gate-active .cursor-dot {
   .entry-gate-lang .lang-selector-menu {
     left: 0;
     right: 0;
+  }
+
+  .entry-gate-lang .entry-gate-control.lang-selector-trigger,
+  .entry-gate-lang .lang-selector-menu .entry-gate-control,
+  .entry-gate-control.entry-gate-button {
+    cursor: auto !important;
   }
 }
