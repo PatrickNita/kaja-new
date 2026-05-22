@@ -34,11 +34,10 @@ const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 const lerp = (p, from, to) => from + (to - from) * clamp(p, 0, 1);
 
 function getSectionScrollDuration(fromIndex, toIndex, behavior, sectionScrollMs, isMobile = false) {
-  if (behavior !== 'smooth') return isMobile ? 72 : 100;
+  if (behavior !== 'smooth') return 100;
   const distance = Math.max(1, Math.abs(toIndex - fromIndex));
-  const baseMs = isMobile ? Math.min(sectionScrollMs, 360) : sectionScrollMs;
-  const maxCap = isMobile ? 820 : 2200;
-  return Math.min(maxCap, baseMs * distance + (isMobile ? 36 : 80));
+  const maxCap = isMobile ? 1400 : 2200;
+  return Math.min(maxCap, sectionScrollMs * distance + (isMobile ? 60 : 80));
 }
 
 function waitForScrollSettle(targetTop, maxWaitMs, onDone, options = {}) {
@@ -121,6 +120,7 @@ const WHEEL_STEP_MAX = 0.036 * SCROLL_SPEED;
 const GESTURE_IDLE_MS = 160;
 const MOBILE_GESTURE_IDLE_MS = 96;
 const FOOTER_REENGAGE_COOLDOWN_MS = 180;
+const MOBILE_SECTION_TRANSITION_COOLDOWN_MS = 120;
 const FRAME_PROGRESS_MAX = 0.038 * SCROLL_SPEED;
 const WHEEL_PROGRESS_DIVISOR = 1700 / SCROLL_SPEED;
 const TOUCH_PROGRESS_DIVISOR = 900 / SCROLL_SPEED;
@@ -691,6 +691,7 @@ function MainSite() {
   const footerReengageTimerRef = useRef(null);
   const cancelFooterReengageRef = useRef(null);
   const footerReengageIdRef = useRef(0);
+  const sectionTransitionReleaseTimerRef = useRef(null);
   const isMobileRef = useRef(false);
   const frozenSectionRef = useRef(null);
   const headerDeferredRef = useRef(false);
@@ -699,7 +700,16 @@ function MainSite() {
   const progressTarget = useMotionValue(0);
   const displayProgress = useSpring(progressTarget, isMobile ? MOBILE_SCROLL_SPRING : SCROLL_SPRING);
   const SECTION_SCROLL_MS = 520;
-  const MOBILE_SECTION_SCROLL_MS = 340;
+
+  const releaseSectionTransitionLock = useCallback(() => {
+    if (sectionTransitionReleaseTimerRef.current !== null) {
+      window.clearTimeout(sectionTransitionReleaseTimerRef.current);
+      sectionTransitionReleaseTimerRef.current = null;
+    }
+    document.documentElement.classList.remove('kaja-section-transition');
+    document.body.classList.remove('kaja-section-transition');
+    lock.current = false;
+  }, []);
 
   const snapProgressMotion = useCallback((value) => {
     const next = clamp(value, 0, 1);
@@ -954,10 +964,6 @@ function MainSite() {
       applyIntroHeaderState(true);
     }
 
-    lock.current = false;
-    document.documentElement.classList.remove('kaja-section-transition');
-    document.body.classList.remove('kaja-section-transition');
-
     const el = sectionRefs.current[index];
     if (el) {
       const top = el.offsetTop;
@@ -974,8 +980,20 @@ function MainSite() {
       }
     }
 
+    if (isMobileRef.current) {
+      if (sectionTransitionReleaseTimerRef.current !== null) {
+        window.clearTimeout(sectionTransitionReleaseTimerRef.current);
+      }
+      sectionTransitionReleaseTimerRef.current = window.setTimeout(() => {
+        sectionTransitionReleaseTimerRef.current = null;
+        releaseSectionTransitionLock();
+      }, MOBILE_SECTION_TRANSITION_COOLDOWN_MS);
+    } else {
+      releaseSectionTransitionLock();
+    }
+
     onComplete?.();
-  }, [syncPresentedHintProgress, applyIntroHeaderState]);
+  }, [syncPresentedHintProgress, applyIntroHeaderState, releaseSectionTransitionLock]);
 
   const scrollToSection = useCallback((index, toProgress = 0, behavior = 'smooth', { preserveProgress = false, onComplete } = {}) => {
     const el = sectionRefs.current[index];
@@ -1007,6 +1025,10 @@ function MainSite() {
       cancelScrollSettleRef.current();
       cancelScrollSettleRef.current = null;
     }
+    if (sectionTransitionReleaseTimerRef.current !== null) {
+      window.clearTimeout(sectionTransitionReleaseTimerRef.current);
+      sectionTransitionReleaseTimerRef.current = null;
+    }
 
     const leavingIndex = activeRef.current;
     const leavingProgress = preserveProgress
@@ -1029,8 +1051,7 @@ function MainSite() {
 
     lock.current = true;
     armedDirectionRef.current = null;
-    const mobileSnap = isMobileRef.current && behavior === 'smooth';
-    if (!mobileSnap && behavior === 'smooth') {
+    if (behavior === 'smooth') {
       document.documentElement.classList.add('kaja-section-transition');
       document.body.classList.add('kaja-section-transition');
     }
@@ -1039,20 +1060,18 @@ function MainSite() {
     applySectionState(index, toProgress, true, { deferHeader });
 
     const targetTop = el.offsetTop;
-    const sectionScrollMs = isMobileRef.current ? MOBILE_SECTION_SCROLL_MS : SECTION_SCROLL_MS;
-    const scrollBehavior = mobileSnap ? 'auto' : behavior;
     const maxWait = getSectionScrollDuration(
       leavingIndex,
       index,
-      scrollBehavior,
-      sectionScrollMs,
+      behavior,
+      SECTION_SCROLL_MS,
       isMobileRef.current
     );
     const settleOptions = isMobileRef.current
-      ? { stableFrames: 2, tolerance: 18 }
+      ? { stableFrames: 4, tolerance: 8 }
       : undefined;
 
-    if (scrollBehavior === 'smooth') {
+    if (behavior === 'smooth') {
       el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } else {
       window.scrollTo({ top: targetTop, behavior: 'auto' });
@@ -1285,21 +1304,7 @@ function MainSite() {
     };
 
     const tryCommitSectionAdvance = (direction) => {
-      if (lock.current) {
-        if (!isMobileRef.current) return false;
-        const sectionIndex = activeRef.current;
-        if (direction > 0 && sectionIndex < CONTACT_INDEX) {
-          armedDirectionRef.current = null;
-          scrollToSection(sectionIndex + 1, 0);
-          return true;
-        }
-        if (direction < 0 && sectionIndex > 0) {
-          armedDirectionRef.current = null;
-          scrollToSection(sectionIndex - 1, 1);
-          return true;
-        }
-        return false;
-      }
+      if (lock.current) return false;
       if (direction > 0 && armedDirectionRef.current !== 'down') return false;
       if (direction < 0 && armedDirectionRef.current !== 'up') return false;
 
@@ -1431,14 +1436,6 @@ function MainSite() {
     const onTouchMove = (event) => {
       if (lock.current) {
         event.preventDefault();
-        if (isMobileRef.current && touchLast.current !== null && !event.target.closest('nav, .lang-selector')) {
-          const touch = event.touches[0];
-          const delta = touchLast.current - touch.clientY;
-          touchLast.current = touch.clientY;
-          if (Math.abs(delta) > 5) {
-            tryCommitSectionAdvance(Math.sign(delta));
-          }
-        }
         return;
       }
       if (event.target.closest('nav, .lang-selector')) return;
@@ -1547,6 +1544,9 @@ function MainSite() {
       }
       if (cancelFooterReengageRef.current) {
         cancelFooterReengageRef.current();
+      }
+      if (sectionTransitionReleaseTimerRef.current !== null) {
+        window.clearTimeout(sectionTransitionReleaseTimerRef.current);
       }
     };
   }, [applySectionState, scrollToSection, unlockNativeScroll, lockNativeScroll, shouldReengageScrollFromFooter, displayProgress]);
