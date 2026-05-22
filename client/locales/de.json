@@ -85,20 +85,20 @@
     "current": "Language: {label}"
   },
   "gate": {
-    "selectLanguage": "SELECT LANGUAGE",
-    "ageQuestion": "ARE YOU OVER 18?",
-    "informational": "THIS WEBSITE IS STRICTLY INFORMATIONAL",
-    "noSale": "UNDER NO CIRCUMSTANCES THIS PAGE ALLOWS THE SELL OF TOBACCO PRODUCTS.",
+    "selectLanguage": "SPRACHE AUSWÄHLEN",
+    "ageQuestion": "SIND SIE ÜBER 18 JAHRE ALT?",
+    "informational": "DIESE WEBSITE DIENT AUSSCHLIESSLICH INFORMATIONSZWECKEN",
+    "noSale": "UNTER KEINEN UMSTÄNDEN ERLAUBT DIESE SEITE DEN VERKAUF VON TABAKPRODUKTEN.",
     "instruction": "YES IS OBLIGATORY, only after pressing yes you are allowed to homepage, if you press no you are redirected to google.com.",
-    "yes": "YES",
-    "no": "NO",
+    "yes": "JA",
+    "no": "NEIN",
     "languageSelect": "Select language",
     "languageNames": {
-      "en": "ENGLISH",
-      "ro": "ROMANIAN",
-      "ru": "RUSSIAN",
-      "es": "SPANISH",
-      "de": "GERMAN"
+      "en": "English",
+      "ro": "Română",
+      "ru": "Русский",
+      "es": "Español",
+      "de": "Deutsch"
     }
   },
   "pages": {
