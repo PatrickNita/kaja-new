@@ -443,6 +443,10 @@ function Segment({ section, index, sectionRef, isActive, segmentProgress, frozen
   const isIntroSection = section.shape === 'intro';
   const isHangerSection = section.shape === 'hanger';
   const isContactSection = section.shape === 'contact';
+  const isSequenceSection = section.shape === 'strips' || section.shape === 'orb';
+  const sectionProgressAttr = isSequenceSection
+    ? String(Math.round(effectiveProgress * 120) / 120)
+    : String(motion.progressScale);
   const isJarManaged = isIntroSection || section.shape === 'stack' || section.shape === 'strips' || section.shape === 'orb';
   const sectionClassName = `segment ${isActive ? 'is-active' : ''} ${isIntroSection ? 'is-intro-section' : ''} ${isHangerSection ? 'is-hanger-section' : ''} ${isContactSection ? 'is-contact-section' : ''}`;
 
@@ -457,7 +461,7 @@ function Segment({ section, index, sectionRef, isActive, segmentProgress, frozen
       ref={sectionRef}
       data-section-index={index}
       data-section-shape={section.shape}
-      data-section-progress={String(motion.progressScale)}
+      data-section-progress={sectionProgressAttr}
       data-frozen-progress={frozenProgress != null ? String(frozenProgress) : undefined}
       className={sectionClassName}
     >
