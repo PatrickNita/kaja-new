@@ -53,6 +53,12 @@ function waitForScrollSettle(targetTop, maxWaitMs, onDone) {
     onDone();
   };
 
+  const cancel = () => {
+    if (done) return;
+    done = true;
+    if (rafId !== null) cancelAnimationFrame(rafId);
+  };
+
   const tick = () => {
     const y = window.scrollY;
     const elapsed = performance.now() - start;
@@ -71,7 +77,7 @@ function waitForScrollSettle(targetTop, maxWaitMs, onDone) {
   };
 
   rafId = requestAnimationFrame(tick);
-  return finish;
+  return cancel;
 }
 
 function segmentMotionValues(p, isMobile) {
@@ -111,6 +117,9 @@ const GESTURE_IDLE_MS = 160;
 const FRAME_PROGRESS_MAX = 0.038 * SCROLL_SPEED;
 const WHEEL_PROGRESS_DIVISOR = 1700 / SCROLL_SPEED;
 const TOUCH_PROGRESS_DIVISOR = 900 / SCROLL_SPEED;
+const MOBILE_TOUCH_PROGRESS_DIVISOR = 480 / SCROLL_SPEED;
+const MOBILE_TOUCH_STEP_MAX = 0.058 * SCROLL_SPEED;
+const MOBILE_MAX_TARGET_LEAD = 0.09 * SCROLL_SPEED;
 
 const hangerObjects = Array.from({ length: 6 }, (_, index) => index + 1);
 const hangerRailWrapStyle = {
@@ -655,6 +664,8 @@ function MainSite() {
   const progressUiRef = useRef(0);
   const sectionTransitionTimerRef = useRef(null);
   const cancelScrollSettleRef = useRef(null);
+  const sectionTransitionIdRef = useRef(0);
+  const isMobileRef = useRef(false);
   const frozenSectionRef = useRef(null);
   const headerDeferredRef = useRef(false);
   const [frozenSection, setFrozenSection] = useState(null);
@@ -750,6 +761,7 @@ function MainSite() {
 
   const setSectionState = useCallback((index, nextProgress, { snap = false, deferHeader = false } = {}) => {
     const next = clamp(nextProgress, 0, 1);
+    const previousIndex = activeRef.current;
     activeRef.current = index;
     progressRef.current = next;
     targetProgressRef.current = next;
@@ -782,7 +794,9 @@ function MainSite() {
       setProgressTarget(next);
     }
 
-    anchorScrollToActiveSection();
+    if (previousIndex !== index) {
+      anchorScrollToActiveSection();
+    }
   }, [setProgressTarget, snapProgressMotion, syncPresentedHintProgress, anchorScrollToActiveSection, applySectionProgresses]);
 
   const unlockNativeScroll = useCallback(() => {
@@ -877,6 +891,24 @@ function MainSite() {
     const el = sectionRefs.current[index];
     if (!el) return;
 
+    const transitionId = sectionTransitionIdRef.current + 1;
+    sectionTransitionIdRef.current = transitionId;
+
+    touchStart.current = null;
+    touchLast.current = null;
+    touchIsFirstMoveRef.current = true;
+    pendingWheelDeltaRef.current = 0;
+    wheelGestureActiveRef.current = false;
+    armedDirectionRef.current = null;
+    if (gestureIdleTimerRef.current !== null) {
+      window.clearTimeout(gestureIdleTimerRef.current);
+      gestureIdleTimerRef.current = null;
+    }
+    if (wheelFlushRafRef.current !== null) {
+      cancelAnimationFrame(wheelFlushRafRef.current);
+      wheelFlushRafRef.current = null;
+    }
+
     if (sectionTransitionTimerRef.current !== null) {
       window.clearTimeout(sectionTransitionTimerRef.current);
       sectionTransitionTimerRef.current = null;
@@ -900,6 +932,8 @@ function MainSite() {
         next[index] = clamp(toProgress, 0, 1);
         return next;
       });
+      presentedActiveRef.current = index;
+      setPresentedActive(index);
       syncPresentedHintProgress();
     });
 
@@ -909,13 +943,14 @@ function MainSite() {
     headerDeferredRef.current = deferHeader;
     applySectionState(index, toProgress, true, { deferHeader });
 
+    const resolvedBehavior = isMobileRef.current ? 'auto' : behavior;
     const targetTop = el.offsetTop;
-    const maxWait = getSectionScrollDuration(leavingIndex, index, behavior, SECTION_SCROLL_MS);
-    window.scrollTo({ top: targetTop, behavior: behavior === 'smooth' ? 'smooth' : 'auto' });
+    const maxWait = getSectionScrollDuration(leavingIndex, index, resolvedBehavior, SECTION_SCROLL_MS);
+    window.scrollTo({ top: targetTop, behavior: resolvedBehavior === 'smooth' ? 'smooth' : 'auto' });
 
     let finished = false;
     const complete = () => {
-      if (finished) return;
+      if (finished || sectionTransitionIdRef.current !== transitionId) return;
       finished = true;
       if (preserveProgress) {
         snapProgressMotion(toProgress);
@@ -1017,7 +1052,11 @@ function MainSite() {
   }, [lockNativeScroll, shouldReengageScrollFromFooter, clampFooterScroll]);
 
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.matchMedia('(max-width: 900px)').matches);
+    const checkMobile = () => {
+      const mobile = window.matchMedia('(max-width: 900px)').matches;
+      isMobileRef.current = mobile;
+      setIsMobile(mobile);
+    };
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
@@ -1029,11 +1068,26 @@ function MainSite() {
     returnedFromFooterRef.current = false;
     setReturnedFromFooter(false);
 
+    touchStart.current = null;
+    touchLast.current = null;
+    touchIsFirstMoveRef.current = true;
+    pendingWheelDeltaRef.current = 0;
+    wheelGestureActiveRef.current = false;
+    armedDirectionRef.current = null;
+    if (gestureIdleTimerRef.current !== null) {
+      window.clearTimeout(gestureIdleTimerRef.current);
+      gestureIdleTimerRef.current = null;
+    }
+    if (wheelFlushRafRef.current !== null) {
+      cancelAnimationFrame(wheelFlushRafRef.current);
+      wheelFlushRafRef.current = null;
+    }
+
     if (next === activeRef.current) return;
 
     const progress = sectionProgressesRef.current[next] ?? 0;
     scrollToSection(next, progress, 'smooth', { preserveProgress: true });
-  }, [lockNativeScroll, scrollToSection]);
+  }, [lockNativeScroll, scrollToSection, sections.length]);
 
   useEffect(() => {
     const readVisualProgress = () => clamp(displayProgress.get(), 0, 1);
@@ -1050,8 +1104,9 @@ function MainSite() {
       const visual = readVisualProgress();
       let next = clamp(requestedProgress, 0, 1);
       const lead = next - visual;
-      if (lead > MAX_TARGET_LEAD) next = visual + MAX_TARGET_LEAD;
-      else if (lead < -MAX_TARGET_LEAD) next = visual - MAX_TARGET_LEAD;
+      const maxLead = isMobileRef.current ? MOBILE_MAX_TARGET_LEAD : MAX_TARGET_LEAD;
+      if (lead > maxLead) next = visual + maxLead;
+      else if (lead < -maxLead) next = visual - maxLead;
       applySectionState(sectionIndex, next);
     };
 
@@ -1182,6 +1237,7 @@ function MainSite() {
     };
 
     const onTouchStart = (event) => {
+      if (lock.current) return;
       if (event.target.closest('nav, .lang-selector')) return;
       const touch = event.touches[0];
       touchStart.current = touch.clientY;
@@ -1190,6 +1246,7 @@ function MainSite() {
     };
 
     const onTouchMove = (event) => {
+      if (lock.current) return;
       if (event.target.closest('nav, .lang-selector')) return;
       if (touchLast.current === null) return;
 
@@ -1223,7 +1280,9 @@ function MainSite() {
         if (tryCommitSectionAdvance(Math.sign(delta))) return;
       }
 
-      applyProgressDelta(delta, TOUCH_PROGRESS_DIVISOR);
+      const touchDivisor = isMobileRef.current ? MOBILE_TOUCH_PROGRESS_DIVISOR : TOUCH_PROGRESS_DIVISOR;
+      const touchStepMax = isMobileRef.current ? MOBILE_TOUCH_STEP_MAX : WHEEL_STEP_MAX;
+      applyProgressDelta(delta, touchDivisor, touchStepMax);
     };
 
     const onTouchEnd = () => {
