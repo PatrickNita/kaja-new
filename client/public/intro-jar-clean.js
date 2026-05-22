@@ -19,6 +19,7 @@ introJarStyle.textContent=`
 document.head.appendChild(introJarStyle);
 const clamp=(v,a,b)=>Math.min(Math.max(v,a),b);
 const smooth=v=>v*v*(3-2*v);
+function isMobileSequence(){return window.matchMedia('(max-width:900px)').matches}
 const motionBySection={};
 const leafLayout=[
 {x:18,y:22,s:.92,r:-34,dx:-38,dy:-18,dr:-42},{x:32,y:12,s:.72,r:18,dx:-18,dy:-34,dr:28},{x:58,y:14,s:.82,r:-8,dx:18,dy:-30,dr:-24},{x:78,y:24,s:.98,r:31,dx:38,dy:-12,dr:40},{x:86,y:48,s:.74,r:-44,dx:48,dy:4,dr:-38},{x:75,y:74,s:.88,r:12,dx:34,dy:28,dr:32},{x:55,y:86,s:.76,r:-18,dx:12,dy:42,dr:-30},{x:32,y:78,s:.94,r:42,dx:-24,dy:34,dr:46},{x:13,y:58,s:.8,r:-12,dx:-48,dy:14,dr:-28},{x:22,y:42,s:.68,r:24,dx:-36,dy:-4,dr:36},{x:48,y:28,s:.62,r:-52,dx:-8,dy:-24,dr:-44},{x:65,y:56,s:.7,r:54,dx:24,dy:16,dr:48}
@@ -107,16 +108,31 @@ function sequenceSceneSelector(shape){
   return null;
 }
 const layoutObservers=new WeakMap();
+function sequenceSceneMetrics(scene){
+  const rect=scene.getBoundingClientRect();
+  if(rect.width>24&&rect.height>24)return rect;
+  if(!isMobileSequence())return rect;
+  const style=window.getComputedStyle(scene);
+  const w=parseFloat(style.width)||0;
+  const h=parseFloat(style.height)||0;
+  if(w>24&&h>24)return{width:w,height:h,top:rect.top,left:rect.left,right:rect.left+w,bottom:rect.top+h};
+  return rect;
+}
 function sceneLayoutReady(scene){
   if(!scene)return false;
-  const rect=scene.getBoundingClientRect();
+  const rect=sequenceSceneMetrics(scene);
   return rect.width>24&&rect.height>24;
 }
 function observeSceneLayout(scene){
   if(!scene||layoutObservers.has(scene)||typeof ResizeObserver==='undefined')return;
   const ro=new ResizeObserver(()=>{
     if(!sceneLayoutReady(scene))return;
-    const delay=isMobileSequence()?140:60;
+    const section=scene.closest('.segment');
+    const shape=section?sectionShape(section):'';
+    const state=section?sectionMotion(section):null;
+    const undrawn=Boolean(state&&((shape==='strips'&&state.catalogueDrawnIndex<0)||(shape==='orb'&&state.availabilityDrawnIndex<0)));
+    const urgent=undrawn&&section?.classList.contains('is-active');
+    const delay=urgent?0:(isMobileSequence()?140:60);
     if(scene._layoutTickTimer)window.clearTimeout(scene._layoutTickTimer);
     scene._layoutTickTimer=window.setTimeout(()=>{
       scene._layoutTickTimer=null;
@@ -273,19 +289,15 @@ function ensureContactSocials(section){
 }
 function sizeSequenceCanvas(scene,canvas,state,drawnKey,isAvailability=false){
   if(!sceneLayoutReady(scene))return false;
-  const rect=scene.getBoundingClientRect();
+  const rect=sequenceSceneMetrics(scene);
   const dpr=Math.min(window.devicePixelRatio||1,2);
   const mult=isAvailability?1.58:2.05;
   const w=Math.max(1,Math.round(rect.width*mult*dpr));
   const h=Math.max(1,Math.round(rect.height*mult*dpr));
   if(canvas.width!==w||canvas.height!==h){
-    const prevW=Math.max(canvas.width,1);
-    const prevH=Math.max(canvas.height,1);
     canvas.width=w;
     canvas.height=h;
-    const widthShift=Math.abs(w-prevW)/prevW;
-    const heightShift=Math.abs(h-prevH)/prevH;
-    if(state[drawnKey]<0||widthShift>0.06||heightShift>0.06)state[drawnKey]=-1;
+    state[drawnKey]=-1;
   }
   return true;
 }
@@ -367,7 +379,6 @@ function ensureCatalogue(section){if(!section)return null;cleanOldSectionVisuals
 function ensureAvailability(section){if(!section)return null;const oldVisual=section.querySelector('.visual');if(oldVisual)oldVisual.style.setProperty('display','none','important');let scene=section.querySelector('.availability-frame-sequence');if(scene)return scene;scene=document.createElement('div');scene.className='availability-frame-sequence';const canvas=document.createElement('canvas');canvas.setAttribute('aria-label','Availability animation frame');scene.appendChild(canvas);section.appendChild(scene);ensureSequencePoster(scene,'orb',sectionProgress(section));observeSceneLayout(scene);scheduleTick();return scene}
 function ensureStrength(section){if(!section)return null;const oldVisual=section.querySelector('.visual.visual-stack');if(oldVisual)oldVisual.style.setProperty('display','none','important');let scene=section.querySelector('.strength-leaf-scene');if(scene)return scene;scene=document.createElement('div');scene.className='strength-leaf-scene';const middle=document.createElement('img');middle.className='strength-leaf-middle';middle.src='/leaf-middle.webp';middle.alt='Strength leaf center';middle.draggable=false;scene.appendChild(middle);for(let i=2;i<=13;i+=1){const img=document.createElement('img');const data=leafLayout[i-2];img.className='strength-leaf';img.src=`/leaf${i}.webp`;img.alt='';img.draggable=false;img.setAttribute('aria-hidden','true');img.dataset.x=data.x;img.dataset.y=data.y;img.dataset.s=data.s;img.dataset.r=data.r;img.dataset.dx=data.dx;img.dataset.dy=data.dy;img.dataset.dr=data.dr;img.style.left=`${data.x}%`;img.style.top=`${data.y}%`;scene.appendChild(img)}section.appendChild(scene);return scene}
 function spring(current,target,amount){return current+(target-current)*amount}
-function isMobileSequence(){return window.matchMedia('(max-width:900px)').matches}
 function sequenceAnimProgress(state,key,p,frozen,snapFirst){
   if(frozen||isMobileSequence()){state[key]=p;return p}
   return applyMotion(state,key,p,false,snapFirst?1:.12)
@@ -493,13 +504,24 @@ function observeSections(){
     sectionObserver.observe(section,{attributes:true,attributeFilter:['data-section-progress','data-frozen-progress','class']});
   });
 }
+function retrySequenceFirstFrame(section,shape,p,attempt=0){
+  if(attempt>24||!section?.classList.contains('is-active'))return;
+  const state=sectionMotion(section);
+  const drawnKey=shape==='strips'?'catalogueDrawnIndex':'availabilityDrawnIndex';
+  if(state[drawnKey]>=0)return;
+  primeSequenceStartFrame(section,shape,p);
+  scheduleTick();
+  if(state[drawnKey]<0)requestAnimationFrame(()=>retrySequenceFirstFrame(section,shape,p,attempt+1));
+}
 window.__kajaPrimeSequenceSection=(index,progress=0)=>{
   const section=document.querySelector(`.segment[data-section-index="${index}"]`);
   if(!section)return;
   const shape=sectionShape(section);
   if(shape!=='strips'&&shape!=='orb')return;
-  primeSequenceStartFrame(section,shape,clamp(Number(progress)||0,0,1));
+  const p=clamp(Number(progress)||0,0,1);
+  primeSequenceStartFrame(section,shape,p);
   scheduleTick();
+  if(isMobileSequence())retrySequenceFirstFrame(section,shape,p);
 };
 observeSections();
 let domObserverTimer=null;
