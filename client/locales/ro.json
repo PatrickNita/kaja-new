@@ -85,20 +85,20 @@
     "current": "Language: {label}"
   },
   "gate": {
-    "selectLanguage": "SELECT LANGUAGE",
-    "ageQuestion": "ARE YOU OVER 18?",
-    "informational": "THIS WEBSITE IS STRICTLY INFORMATIONAL",
-    "noSale": "UNDER NO CIRCUMSTANCES THIS PAGE ALLOWS THE SELL OF TOBACCO PRODUCTS.",
+    "selectLanguage": "SELECTEAZĂ LIMBA",
+    "ageQuestion": "AI PESTE 18 ANI?",
+    "informational": "ACEST WEBSITE ESTE STRICT INFORMAȚIONAL",
+    "noSale": "SUB NICI O CIRCUMSTANȚĂ ACEST SITE NU OFERĂ POSIBILITATEA DE A CUMPĂRA PRODUSE DIN TUTUN.",
     "instruction": "YES IS OBLIGATORY, only after pressing yes you are allowed to homepage, if you press no you are redirected to google.com.",
-    "yes": "YES",
-    "no": "NO",
+    "yes": "DA",
+    "no": "NU",
     "languageSelect": "Select language",
     "languageNames": {
-      "en": "ENGLISH",
-      "ro": "ROMANIAN",
-      "ru": "RUSSIAN",
-      "es": "SPANISH",
-      "de": "GERMAN"
+      "en": "English",
+      "ro": "Română",
+      "ru": "Русский",
+      "es": "Español",
+      "de": "Deutsch"
     }
   },
   "pages": {
