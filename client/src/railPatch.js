@@ -186,12 +186,12 @@ patchStyle.textContent = `
     mix-blend-mode: screen;
   }
   .is-contact-section.is-active .kaja-contact-form {
-    width: min(86vw, 340px);
+    width: min(94vw, 420px);
     min-height: 200px;
     padding: 12px 14px;
     align-self: start;
     justify-self: center;
-    margin-top: clamp(20px, 4.5vh, 32px);
+    margin-top: clamp(8px, 2vh, 14px);
     transform-origin: top center;
   }
   .kaja-contact-label {
@@ -691,7 +691,7 @@ function runPatchAnimations() {
       form.style.minHeight = `${200 + contactMotion.height}px`;
       form.style.paddingTop = `${12 + contactMotion.height * 0.08}px`;
       form.style.paddingBottom = `${12 + contactMotion.height * 0.08}px`;
-      form.style.marginTop = `${Math.max(20, 18 + contactMotion.height * 1.2)}px`;
+      form.style.marginTop = `${Math.max(8, 6 + contactMotion.height * 0.6)}px`;
       form.style.transformOrigin = 'top center';
     } else {
       form.style.minHeight = `${350 + contactMotion.height}px`;

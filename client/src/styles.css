@@ -946,7 +946,7 @@ h1 {
   .is-contact-section {
     grid-template-rows: auto auto;
     align-content: start;
-    gap: clamp(28px, 6vh, 44px);
+    gap: clamp(14px, 3vh, 24px);
   }
 
   .is-contact-section .segment-content {
@@ -963,7 +963,8 @@ h1 {
   .is-contact-section.is-active .kaja-contact-form {
     align-self: start;
     justify-self: center;
-    margin-top: clamp(20px, 4.5vh, 32px);
+    width: min(94vw, 420px);
+    margin-top: clamp(8px, 2vh, 14px);
     transform-origin: top center;
   }
 
@@ -1086,7 +1087,7 @@ h1 {
   }
 
   .is-contact-section.is-active .kaja-contact-form {
-    margin-top: 18px;
+    margin-top: 8px;
     min-height: 188px;
   }
 
