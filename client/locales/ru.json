@@ -85,20 +85,20 @@
     "current": "Language: {label}"
   },
   "gate": {
-    "selectLanguage": "SELECT LANGUAGE",
-    "ageQuestion": "ARE YOU OVER 18?",
-    "informational": "THIS WEBSITE IS STRICTLY INFORMATIONAL",
-    "noSale": "UNDER NO CIRCUMSTANCES THIS PAGE ALLOWS THE SELL OF TOBACCO PRODUCTS.",
+    "selectLanguage": "ВЫБЕРИТЕ ЯЗЫК",
+    "ageQuestion": "ВАМ БОЛЬШЕ 18 ЛЕТ?",
+    "informational": "ДАННЫЙ ВЕБ-САЙТ НОСИТ ИСКЛЮЧИТЕЛЬНО ИНФОРМАЦИОННЫЙ ХАРАКТЕР.",
+    "noSale": "НИ ПРИ КАКИХ ОБСТОЯТЕЛЬСТВАХ НА ЭТОЙ СТРАНИЦЕ НЕ ДОПУСКАЕТСЯ ПРОДАЖА ТАБАЧНЫХ ИЗДЕЛИЙ.",
     "instruction": "YES IS OBLIGATORY, only after pressing yes you are allowed to homepage, if you press no you are redirected to google.com.",
-    "yes": "YES",
-    "no": "NO",
+    "yes": "ДА",
+    "no": "НЕТ",
     "languageSelect": "Select language",
     "languageNames": {
-      "en": "ENGLISH",
-      "ro": "ROMANIAN",
-      "ru": "RUSSIAN",
-      "es": "SPANISH",
-      "de": "GERMAN"
+      "en": "English",
+      "ro": "Română",
+      "ru": "Русский",
+      "es": "Español",
+      "de": "Deutsch"
     }
   },
   "pages": {
