@@ -944,16 +944,27 @@ h1 {
   }
 
   .is-contact-section {
-    gap: clamp(20px, 3.8vh, 32px);
+    grid-template-rows: auto auto;
+    align-content: start;
+    gap: clamp(44px, 10vh, 68px);
   }
 
   .is-contact-section .segment-content {
-    padding-bottom: 10px;
+    padding-bottom: 16px;
   }
 
   .is-contact-section .kaja-contact-socials {
     margin-top: 16px;
-    margin-bottom: 6px;
+    margin-bottom: 12px;
+    position: relative;
+    z-index: 12;
+  }
+
+  .is-contact-section.is-active .kaja-contact-form {
+    align-self: start;
+    justify-self: center;
+    margin-top: clamp(36px, 8vh, 56px);
+    transform-origin: top center;
   }
 
   .visual {
@@ -1075,13 +1086,13 @@ h1 {
   }
 
   .is-contact-section.is-active .kaja-contact-form {
-    margin-top: 14px;
-    min-height: 196px;
+    margin-top: 28px;
+    min-height: 188px;
   }
 
   .is-contact-section .kaja-contact-socials {
     margin-top: 12px;
-    margin-bottom: 4px;
+    margin-bottom: 10px;
   }
 
   .visual {
