@@ -83,6 +83,17 @@ main {
   scroll-snap-align: none;
 }
 
+.site-footer a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  text-decoration-color: rgba(255, 255, 255, 0.32);
+}
+
+.site-footer a:hover {
+  color: rgba(255, 255, 255, 0.82);
+}
+
 html.kaja-footer-scroll,
 html.kaja-footer-scroll body {
   scroll-snap-type: none;

@@ -259,6 +259,35 @@ const footerDetailsStyle = {
   color: 'rgba(255,255,255,0.52)'
 };
 
+const FOOTER_CONTACT_EMAIL = 'contact@kaja-tobacco.com';
+const FOOTER_DETAILS_FALLBACK = 'KAJA Studio SRL • Strada Atelierului 18, Bucharest • CUI RO48291035 • Trade Registry J40/18422/2026 • contact@kaja.example • Support Monday-Friday 09:00-17:00';
+
+const footerEmailLinkStyle = {
+  color: 'inherit',
+  textDecoration: 'underline',
+  textUnderlineOffset: '0.18em',
+  textDecorationColor: 'rgba(255,255,255,0.32)'
+};
+
+function renderFooterDetails(details) {
+  const text = details ?? FOOTER_DETAILS_FALLBACK;
+  const emailMatch = text.match(/contact@kaja(?:\.\w+)+/);
+  if (!emailMatch || emailMatch.index == null) return text;
+
+  const start = emailMatch.index;
+  const end = start + emailMatch[0].length;
+
+  return (
+    <>
+      {text.slice(0, start)}
+      <a href={`mailto:${FOOTER_CONTACT_EMAIL}`} style={footerEmailLinkStyle}>
+        {FOOTER_CONTACT_EMAIL}
+      </a>
+      {text.slice(end)}
+    </>
+  );
+}
+
 
 function LanguageFlag({ code, label, className = '' }) {
   const [failed, setFailed] = useState(false);
@@ -636,7 +665,7 @@ function LegalFooter({ footerRef, footerCopy }) {
   return (
     <footer ref={footerRef} className="site-footer" style={footerBaseStyle}>
       <p style={footerNoticeStyle}>{footerCopy?.notice ?? 'PAGE IS DESTINATED FOR PEOPLE OF AGE 18+'}</p>
-      <p style={footerDetailsStyle}>{footerCopy?.details ?? 'KAJA Studio SRL • Strada Atelierului 18, Bucharest • CUI RO48291035 • Trade Registry J40/18422/2026 • contact@kaja.example • Support Monday-Friday 09:00-17:00'}</p>
+      <p style={footerDetailsStyle}>{renderFooterDetails(footerCopy?.details)}</p>
     </footer>
   );
 }
