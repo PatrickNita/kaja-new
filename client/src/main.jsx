@@ -1171,6 +1171,19 @@ function MainSite() {
       cancelFooterReengageRef.current = null;
     }
 
+    if (onComplete && !isMobileRef.current) {
+      returnedFromFooterRef.current = false;
+      setReturnedFromFooter(false);
+      flushSync(() => {
+        nativeScrollRef.current = false;
+        setNativeScrollUnlocked(false);
+      });
+      document.documentElement.classList.remove('kaja-footer-scroll');
+      document.body.classList.remove('kaja-footer-active');
+      onComplete();
+      return;
+    }
+
     lock.current = true;
     document.documentElement.classList.add('kaja-footer-reengage');
     document.body.classList.add('kaja-footer-reengage');
