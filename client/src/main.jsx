@@ -720,6 +720,7 @@ function MainSite() {
   const footerReengageTimerRef = useRef(null);
   const cancelFooterReengageRef = useRef(null);
   const footerReengageIdRef = useRef(0);
+  const pendingNavTargetRef = useRef(null);
   const sectionTransitionReleaseTimerRef = useRef(null);
   const isMobileRef = useRef(false);
   const frozenSectionRef = useRef(null);
@@ -1139,8 +1140,24 @@ function MainSite() {
     return window.scrollY >= footerTop - 48 || window.scrollY > contactTop + 16;
   }, []);
 
-  const lockNativeScroll = useCallback((behavior = 'smooth') => {
-    if (!nativeScrollRef.current || lock.current) return;
+  const cancelFooterReengageTransition = useCallback(() => {
+    footerReengageIdRef.current += 1;
+    if (footerReengageTimerRef.current !== null) {
+      window.clearTimeout(footerReengageTimerRef.current);
+      footerReengageTimerRef.current = null;
+    }
+    if (cancelFooterReengageRef.current) {
+      cancelFooterReengageRef.current();
+      cancelFooterReengageRef.current = null;
+    }
+  }, []);
+
+  const lockNativeScroll = useCallback((behavior = 'smooth', onComplete) => {
+    if (!nativeScrollRef.current) {
+      onComplete?.();
+      return;
+    }
+    if (lock.current) return;
 
     const transitionId = footerReengageIdRef.current + 1;
     footerReengageIdRef.current = transitionId;
@@ -1172,8 +1189,13 @@ function MainSite() {
       wheelFlushRafRef.current = null;
     }
 
-    returnedFromFooterRef.current = true;
-    setReturnedFromFooter(true);
+    if (onComplete) {
+      returnedFromFooterRef.current = false;
+      setReturnedFromFooter(false);
+    } else {
+      returnedFromFooterRef.current = true;
+      setReturnedFromFooter(true);
+    }
     applySectionState(CONTACT_INDEX, 1, true);
 
     const contactEl = sectionRefs.current[CONTACT_INDEX];
@@ -1192,17 +1214,24 @@ function MainSite() {
       ? (isMobileRef.current ? SECTION_SCROLL_MS + 720 : SECTION_SCROLL_MS + 520)
       : 120;
 
+    const releaseFooterReengage = () => {
+      if (footerReengageIdRef.current !== transitionId) return;
+      footerReengageTimerRef.current = null;
+      document.documentElement.classList.remove('kaja-footer-reengage');
+      document.body.classList.remove('kaja-footer-reengage');
+      lock.current = false;
+    };
+
     const finishReengage = () => {
       if (footerReengageIdRef.current !== transitionId) return;
 
       footerReengageTimerRef.current = null;
       cancelFooterReengageRef.current = null;
 
-      presentedActiveRef.current = CONTACT_INDEX;
-      setPresentedActive(CONTACT_INDEX);
-      syncPresentedHintProgress();
-      nativeScrollRef.current = false;
-      setNativeScrollUnlocked(false);
+      flushSync(() => {
+        nativeScrollRef.current = false;
+        setNativeScrollUnlocked(false);
+      });
       document.documentElement.classList.remove('kaja-footer-scroll');
       document.body.classList.remove('kaja-footer-active');
       armedDirectionRef.current = null;
@@ -1222,12 +1251,23 @@ function MainSite() {
       touchLast.current = null;
       touchIsFirstMoveRef.current = true;
 
+      if (onComplete) {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            if (footerReengageIdRef.current !== transitionId) return;
+            releaseFooterReengage();
+            onComplete();
+          });
+        });
+        return;
+      }
+
+      presentedActiveRef.current = CONTACT_INDEX;
+      setPresentedActive(CONTACT_INDEX);
+      syncPresentedHintProgress();
+
       footerReengageTimerRef.current = window.setTimeout(() => {
-        if (footerReengageIdRef.current !== transitionId) return;
-        footerReengageTimerRef.current = null;
-        document.documentElement.classList.remove('kaja-footer-reengage');
-        document.body.classList.remove('kaja-footer-reengage');
-        lock.current = false;
+        releaseFooterReengage();
       }, FOOTER_REENGAGE_COOLDOWN_MS);
     };
 
@@ -1278,12 +1318,7 @@ function MainSite() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const goTo = useCallback((target) => {
-    const next = clamp(target, 0, sections.length - 1);
-    if (nativeScrollRef.current) lockNativeScroll();
-    returnedFromFooterRef.current = false;
-    setReturnedFromFooter(false);
-
+  const resetScrollGestureState = useCallback(() => {
     touchStart.current = null;
     touchLast.current = null;
     touchIsFirstMoveRef.current = true;
@@ -1298,12 +1333,56 @@ function MainSite() {
       cancelAnimationFrame(wheelFlushRafRef.current);
       wheelFlushRafRef.current = null;
     }
+  }, []);
 
-    if (next === activeRef.current) return;
+  const goTo = useCallback((target) => {
+    const next = clamp(target, 0, sections.length - 1);
+    resetScrollGestureState();
 
-    const progress = sectionProgressesRef.current[next] ?? 0;
-    scrollToSection(next, progress, 'smooth', { preserveProgress: true });
-  }, [lockNativeScroll, scrollToSection, sections.length]);
+    const runSectionJump = () => {
+      if (next === activeRef.current) return;
+      const progress = sectionProgressesRef.current[next] ?? 0;
+      scrollToSection(next, progress, 'smooth', { preserveProgress: true });
+    };
+
+    if (nativeScrollRef.current) {
+      pendingNavTargetRef.current = next;
+
+      if (lock.current) {
+        cancelFooterReengageTransition();
+        document.documentElement.classList.remove('kaja-footer-reengage');
+        document.body.classList.remove('kaja-footer-reengage');
+        lock.current = false;
+      }
+
+      const finishFooterExit = () => {
+        const destination = pendingNavTargetRef.current;
+        pendingNavTargetRef.current = null;
+        if (destination == null || destination === CONTACT_INDEX || destination === activeRef.current) return;
+        const progress = sectionProgressesRef.current[destination] ?? 0;
+        scrollToSection(destination, progress, 'smooth', { preserveProgress: true });
+      };
+
+      if (next === CONTACT_INDEX) {
+        pendingNavTargetRef.current = null;
+        lockNativeScroll('smooth');
+        return;
+      }
+
+      lockNativeScroll('smooth', finishFooterExit);
+      return;
+    }
+
+    returnedFromFooterRef.current = false;
+    setReturnedFromFooter(false);
+    runSectionJump();
+  }, [
+    cancelFooterReengageTransition,
+    lockNativeScroll,
+    resetScrollGestureState,
+    scrollToSection,
+    sections.length
+  ]);
 
   useEffect(() => {
     const readVisualProgress = () => clamp(displayProgress.get(), 0, 1);
