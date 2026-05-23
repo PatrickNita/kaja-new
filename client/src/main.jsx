@@ -1062,6 +1062,11 @@ function MainSite() {
     headerDeferredRef.current = deferHeader;
     applySectionState(index, toProgress, true, { deferHeader });
 
+    const targetShape = sections[index]?.shape;
+    if (isMobileRef.current && (targetShape === 'strips' || targetShape === 'orb')) {
+      window.__kajaPrewarmSequenceSection?.(index, toProgress, 'expand');
+    }
+
     const targetTop = el.offsetTop;
     const maxWait = getSectionScrollDuration(
       leavingIndex,
@@ -1092,7 +1097,7 @@ function MainSite() {
 
     cancelScrollSettleRef.current = waitForScrollSettle(targetTop, maxWait, complete, settleOptions);
     sectionTransitionTimerRef.current = window.setTimeout(complete, maxWait);
-  }, [applySectionState, finishSectionTransition, applySectionProgresses, syncPresentedHintProgress, snapProgressMotion]);
+  }, [applySectionState, finishSectionTransition, applySectionProgresses, syncPresentedHintProgress, snapProgressMotion, sections]);
 
   const shouldReengageScrollFromFooter = useCallback(() => {
     const contactEl = sectionRefs.current[CONTACT_INDEX];
